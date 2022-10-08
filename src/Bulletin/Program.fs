@@ -48,7 +48,26 @@ let main args =
         use_static_files
 
         endpoints
-            [ get "/" (Handlers.scribanViewHandler "index" {|  |})
+            [ get
+                  "/"
+                  (Handlers.scribanViewHandler
+                      "index"
+                      {| posts =
+                          [ {| headline = "You're an idiot christian"
+                               score = 21
+                               author = "cody"
+                               upvoted = true
+                               downvoted = false |}
+                            {| headline = "That's not cool, cody!"
+                               score = -5
+                               author = "christian"
+                               upvoted = false
+                               downvoted = false |}
+                            {| headline = "I'm a centrist guys!!!"
+                               score = -924175
+                               author = "some random centrist"
+                               upvoted = false
+                               downvoted = true |} ] |})
               get "/ping" (Response.ofPlainText "pong") ]
     }
 

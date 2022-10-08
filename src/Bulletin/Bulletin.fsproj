@@ -17,6 +17,7 @@
     <PackageReference Include="Scriban" Version="5.5.0" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="views\*" CopyToOutputDirectory="Always" />
+    <None Include="views/*" CopyToOutputDirectory="Always" />
+    <None Include="wwwroot/*" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>
