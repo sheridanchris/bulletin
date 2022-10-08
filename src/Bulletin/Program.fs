@@ -6,6 +6,7 @@ open Falco.HostBuilder
 open Scriban
 open ScribanEngine
 open System.IO
+open Crawler
 
 let configuration =
     configuration [||] {
@@ -19,6 +20,7 @@ let googleOptions: GoogleOptions -> unit =
         googleOptions.ClientSecret <- configuration["Google.Secret"]
 
 let configureServices (views: Map<string, Template>) (serviceCollection: IServiceCollection) =
+    serviceCollection.AddHostedService<RSSCrawlerService>() |> ignore
     serviceCollection.AddScoped<IViewEngine, ScribanViewEngine>(fun _ -> new ScribanViewEngine(views))
     |> ignore
 
