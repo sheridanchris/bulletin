@@ -5,4 +5,4 @@ open Falco.Middleware
 open ScribanEngine
 
 let scribanViewHandler (view: string) (model: 'a) : HttpHandler =
-    withService<IViewEngine>(fun viewEngine -> Response.renderViewEngine viewEngine view model)
+    withService<IViewEngine> (fun viewEngine -> Response.renderViewEngine viewEngine view model)

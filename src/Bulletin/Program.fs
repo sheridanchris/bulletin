@@ -3,14 +3,15 @@ open Microsoft.AspNetCore.Authentication.Google
 open Falco
 open Falco.Routing
 open Falco.HostBuilder
+open Scriban
 open ScribanEngine
 open System.IO
-open Scriban
 
-let configuration = configuration [||] {
-    optional_json "appsettings.Development.json"
-    required_json "appsettings.json"
-}
+let configuration =
+    configuration [||] {
+        optional_json "appsettings.Development.json"
+        required_json "appsettings.json"
+    }
 
 let googleOptions: GoogleOptions -> unit =
     fun googleOptions ->
@@ -18,8 +19,10 @@ let googleOptions: GoogleOptions -> unit =
         googleOptions.ClientSecret <- configuration["Google.Secret"]
 
 let configureServices (views: Map<string, Template>) (serviceCollection: IServiceCollection) =
-    serviceCollection.AddScoped<IViewEngine, ScribanViewEngine>(fun _ -> new ScribanViewEngine(views)) |> ignore
-    serviceCollection.AddAuthentication().AddGoogle(googleOptions) |> ignore
+    serviceCollection.AddScoped<IViewEngine, ScribanViewEngine>(fun _ -> new ScribanViewEngine(views))
+    |> ignore
+
+    // serviceCollection.AddAuthentication().AddGoogle(googleOptions) |> ignore
     serviceCollection
 
 let scribanViews =
@@ -30,21 +33,23 @@ let scribanViews =
         let viewName = Path.GetFileNameWithoutExtension(file)
         let viewContent = File.ReadAllText(file)
         let view = Template.Parse(viewContent)
-        viewName, view 
+        viewName, view
 
-    Directory.EnumerateFiles(viewsDirectory)
-    |> Seq.map viewFromFile
-    |> Map.ofSeq
+    Directory.EnumerateFiles(viewsDirectory) |> Seq.map viewFromFile |> Map.ofSeq
 
-[<EntryPoint>] 
+[<EntryPoint>]
 let main args =
     webHost args {
         add_service (configureServices scribanViews)
-        use_authentication
-        use_authorization
+        // use_authentication
+        // use_authorization
         use_compression
         use_caching
+        use_static_files
 
-        endpoints [ get "/ping" (Response.ofPlainText "pong") ]
+        endpoints
+            [ get "/" (Handlers.scribanViewHandler "index" {|  |})
+              get "/ping" (Response.ofPlainText "pong") ]
     }
+
     0

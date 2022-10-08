@@ -16,4 +16,7 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.9" />
     <PackageReference Include="Scriban" Version="5.5.0" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="views\*" CopyToOutputDirectory="Always" />
+  </ItemGroup>
 </Project>
