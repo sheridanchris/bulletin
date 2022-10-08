@@ -33,6 +33,6 @@ let getPostByIdAsync postId =
 let getVotesAsync postId =
     withConnection (fun connection ->
         connection
-        |> Db.newCommand "SELECT COUNT(*) AS post_count WHERE post_id = @id"
+        |> Db.newCommand "SELECT COUNT(*) AS post_count FROM votes WHERE post_id = @id"
         |> Db.setParams [ "id", SqlType.Int postId ]
         |> Db.Async.querySingle (fun reader -> reader.ReadInt32 "post_count"))
