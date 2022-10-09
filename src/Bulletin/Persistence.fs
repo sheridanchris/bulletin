@@ -14,6 +14,10 @@ let sql commandText = sql generatorConfig commandText
 let run f = DbAction.run createConnection f
 let runAsync f = AsyncDb.run createConnection f
 
+let insertPost: Post -> AsyncDb<int> =
+    sql "insert into posts (Id, Headline, Link, Poster, CreatedAt, UpdatedAt, Votes)
+         values (@Id, @Headline, @Link, @Poster, @CreatedAt, @UpdatedAt, @Votes)"
+
 let getPosts: unit -> AsyncDb<Post list> =
     sql "select p.Id, p.Headline, p.Link, p.Poster, p.CreatedAt, p.UpdatedAt from posts as p 
          left join votes as vote on post.Id = vote.PostId
