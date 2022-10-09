@@ -4,18 +4,6 @@ open System
 
 type User = { Id: int; Username: string }
 
-type Poster =
-    | User of int
-    | Robot
-
-type Post =
-    { Id: int
-      Headline: string
-      Link: string
-      Poster: Poster
-      CreatedAt: DateTime
-      UpdatedAt: DateTime }
-
 type VoteType =
     | Positive
     | Negative
@@ -25,13 +13,26 @@ type Vote =
       UserId: int
       Type: VoteType }
 
+// type Poster =
+//     | User of int
+//     | Robot
+
+type Post =
+    { Id: int
+      Headline: string
+      Link: string
+      CreatedAt: DateTime
+      UpdatedAt: DateTime
+      Votes: Vote list
+      Poster: int option }
+
 type Comment =
-    { Id: Guid
+    { Id: int
       PostId: int
       UserId: int
-      Parent: Guid option }
+      Parent: int option }
 
 type CommentVote =
-    { CommentId: Guid
+    { CommentId: int
       UserId: int
       Type: VoteType }

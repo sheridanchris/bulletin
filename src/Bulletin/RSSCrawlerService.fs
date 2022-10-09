@@ -15,7 +15,7 @@ let sources =
       "https://feeds.nbcnews.com/nbcnews/public/news"
       "https://moxie.foxnews.com/google-publisher/latest.xml" ]
 
-type RSSCrawlerService =
+type RSSCrawlerService() =
     interface IHostedService with
         member _.StartAsync(cancellationToken: CancellationToken): Task =
             failwith "Not Implemented"
