@@ -21,10 +21,10 @@ type Post =
     { Id: int
       Headline: string
       Link: string
+      Poster: int option
       CreatedAt: DateTime
       UpdatedAt: DateTime
-      Votes: Vote list
-      Poster: int option }
+      Votes: Vote list }
 
 type Comment =
     { Id: int
