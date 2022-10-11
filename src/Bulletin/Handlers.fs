@@ -16,9 +16,11 @@ let postsHandler : HttpHandler =
             let getScore (post: Post) =
                 post.Votes
                 |> List.map (fun vote -> vote.Type) 
-                |> List.sumBy (function
-                    | Positive -> +1
-                    | Negative -> -1)
+                |> List.sumBy (
+                    function
+                    | VoteType.Positive -> 1
+                    | VoteType.Negative -> -1
+                    | _ -> 0)
                 
             let toModel (post: Post) =
                 {| headline = post.Headline

@@ -5,8 +5,8 @@ open System
 type User = { Id: int; Username: string }
 
 type VoteType =
-    | Positive
-    | Negative
+    | Positive = 1
+    | Negative = 2
 
 type Vote =
     { PostId: int
@@ -17,22 +17,23 @@ type Vote =
 //     | User of int
 //     | Robot
 
-type Post =
-    { Id: int
-      Headline: string
-      Link: string
-      Poster: int option
-      CreatedAt: DateTime
-      UpdatedAt: DateTime
-      Votes: Vote list }
-
 type Comment =
     { Id: int
       PostId: int
       UserId: int
-      Parent: int option }
+      ParentId: int option }
 
 type CommentVote =
     { CommentId: int
       UserId: int
       Type: VoteType }
+
+type Post =
+    { Id: int
+      Headline: string
+      Description: string option
+      Link: string
+      Poster: User option // I don't think this will get loaded.
+      PublishedDate: DateTimeOffset option
+      //UpdatedAt: DateTime
+      Votes: Vote list }

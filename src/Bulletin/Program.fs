@@ -20,10 +20,8 @@ let googleOptions: GoogleOptions -> unit =
         googleOptions.ClientSecret <- configuration["Google.Secret"]
 
 let configureServices (views: Map<string, Template>) (serviceCollection: IServiceCollection) =
-    // serviceCollection.AddHostedService<RSSCrawlerService>() |> ignore
-    serviceCollection.AddScoped<IViewEngine, ScribanViewEngine>(fun _ -> new ScribanViewEngine(views))
-    |> ignore
-
+    serviceCollection.AddHostedService<RSSCrawlerService>() |> ignore
+    serviceCollection.AddScoped<IViewEngine, ScribanViewEngine>(fun _ -> new ScribanViewEngine(views)) |> ignore
     // serviceCollection.AddAuthentication().AddGoogle(googleOptions) |> ignore
     serviceCollection
 
@@ -41,7 +39,7 @@ let scribanViews =
 
 [<EntryPoint>]
 let main args =
-    webHost args {
+    webHost args {        
         add_service (configureServices scribanViews)
         // use_authentication
         // use_authorization
