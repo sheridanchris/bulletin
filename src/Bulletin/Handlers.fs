@@ -10,26 +10,26 @@ open Persistence
 let scribanViewHandler (view: string) (model: 'a) : HttpHandler =
     withService<IViewEngine> (fun viewEngine -> Response.renderViewEngine viewEngine view model)
 
-let postsHandler : HttpHandler =
+let postsHandler: HttpHandler =
     let getScore (votes: PostVote option list) =
         votes
         |> List.filter Option.isSome
-        |> List.map (fun vote -> vote.Value.Type) 
-        |> List.sumBy (
-            function
+        |> List.map (fun vote -> vote.Value.Type)
+        |> List.sumBy (function
             | VoteType.Positive -> 1
             | VoteType.Negative -> -1
             | _ -> 0)
-        
+
     let toModel (post: Post * PostVote option list) =
         let post, votes = post
+
         {| headline = post.Headline
            score = getScore votes
            author = "automated bot, probably." // todo (actual username if it exists)
            upvoted = false // todo
            downvoted = false |} // todo
 
-    let handler (dbConnectionFactory: DbConnectionFactory): HttpHandler =
+    let handler (dbConnectionFactory: DbConnectionFactory) : HttpHandler =
         fun ctx ->
             task {
                 use connection = dbConnectionFactory ()
@@ -45,4 +45,4 @@ let postsHandler : HttpHandler =
                 do! scribanViewHandler "index" {| posts = posts |} ctx
             }
 
-    withService<DbConnectionFactory>(handler)
+    withService<DbConnectionFactory> (handler)

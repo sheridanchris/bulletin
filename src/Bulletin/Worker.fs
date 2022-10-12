@@ -34,12 +34,14 @@ let readSourceAsync (source: string) =
     }
 
 type RssWorker(connectionFactory: DbConnectionFactory) =
-    inherit BackgroundService() with
-        override _.ExecuteAsync(stoppingToken: CancellationToken): Task = 
+    inherit BackgroundService()
+    with
+        override _.ExecuteAsync(stoppingToken: CancellationToken) : Task =
             task {
-                while not(stoppingToken.IsCancellationRequested) do                    
+                while not (stoppingToken.IsCancellationRequested) do
                     use connection = connectionFactory ()
                     let! results = sources |> List.map readSourceAsync |> Task.WhenAll
+
                     for posts in results do
                         let! _ = connection |> insertPostsAsync posts
                         ()

@@ -12,7 +12,7 @@ open Worker
 open Persistence
 open Npgsql
 
-Dapper.FSharp.OptionTypes.register()
+Dapper.FSharp.OptionTypes.register ()
 
 let configuration = configuration [||] { add_env }
 
@@ -22,7 +22,8 @@ DeployChanges
     .WithScriptsFromFileSystem("migrations")
     .LogToConsole()
     .Build()
-    .PerformUpgrade() |> ignore
+    .PerformUpgrade()
+|> ignore
 
 let googleOptions: GoogleOptions -> unit =
     fun googleOptions ->
@@ -30,7 +31,8 @@ let googleOptions: GoogleOptions -> unit =
         googleOptions.ClientSecret <- configuration["GOOGLE_SECRET"]
 
 let configureServices (views: Map<string, Template>) (serviceCollection: IServiceCollection) =
-    let connectionFactory: DbConnectionFactory = fun () -> new NpgsqlConnection(configuration.GetConnectionString("Postgresql"))
+    let connectionFactory: DbConnectionFactory =
+        fun () -> new NpgsqlConnection(configuration.GetConnectionString("Postgresql"))
 
     // serviceCollection.AddAuthentication().AddGoogle(googleOptions) |> ignore
 
@@ -53,7 +55,7 @@ let scribanViews =
 
 [<EntryPoint>]
 let main args =
-    webHost args {        
+    webHost args {
         add_service (configureServices scribanViews)
         // use_authentication
         // use_authorization
@@ -61,9 +63,7 @@ let main args =
         use_caching
         use_static_files
 
-        endpoints
-            [ get "/" Handlers.postsHandler
-              get "/ping" (Response.ofPlainText "pong") ]
+        endpoints [ get "/" Handlers.postsHandler; get "/ping" (Response.ofPlainText "pong") ]
     }
 
     0

@@ -14,15 +14,17 @@ let postVotesTable = table'<PostVote> "PostVotes"
 let commentVotesTable = table'<CommentVote> "CommentVotes"
 
 let insertPostsAsync (posts: Post list) (connection: IDbConnection) =
-     insert {
-          into postsTable
-          values posts
-     } |> connection.InsertAsync
+    insert {
+        into postsTable
+        values posts
+    }
+    |> connection.InsertAsync
 
 let getPostsWithVotesAsync (connection: IDbConnection) =
-     select {
-          for post in postsTable do
-          leftJoin vote in postVotesTable on (post.Id = vote.PostId)
-          orderByDescending post.PublishedDate
-          selectAll
-     } |> connection.SelectAsyncOption<Post, PostVote>
+    select {
+        for post in postsTable do
+            leftJoin vote in postVotesTable on (post.Id = vote.PostId)
+            orderByDescending post.PublishedDate
+            selectAll
+    }
+    |> connection.SelectAsyncOption<Post, PostVote>
