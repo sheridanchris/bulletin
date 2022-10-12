@@ -1,10 +1,10 @@
 module Handlers
 
+open System
 open Falco
 open Falco.Middleware
 open ScribanEngine
 open Domain
-open Npgsql
 open Persistence
 
 let private fst3 (x, _, _) = x
@@ -31,8 +31,12 @@ let postsHandler: HttpHandler =
             |> Option.map (fun user -> user.Username)
             |> Option.defaultValue "automated bot, probably."
 
+        let score = votes |> getScore
+        let tagline = post.Tagline |> Option.defaultValue String.Empty
+
         {| headline = post.Headline
-           score = getScore votes
+           tagline = tagline
+           score = score
            author = author
            upvoted = false // todo
            downvoted = false |} // todo
