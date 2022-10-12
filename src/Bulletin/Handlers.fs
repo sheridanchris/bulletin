@@ -57,8 +57,7 @@ let postsHandler: HttpHandler =
                         let author =
                             values |> List.map third |> List.tryFind Option.isSome |> Option.flatten
 
-                        post, votes, author)
-                    |> List.map toModel
+                        toModel(post, votes, author))
 
                 do! scribanViewHandler "index" {| posts = posts |} ctx
             }
