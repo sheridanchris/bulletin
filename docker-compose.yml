@@ -2,7 +2,7 @@ services:
   postgresql:
     image: postgres
     environment:
-      POSTGRES_USER: postgres
+      PGUSER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ./dev_data/sqldb_postgres:/var/lib/postgresql/data
