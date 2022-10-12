@@ -32,10 +32,8 @@ let postsHandler: HttpHandler =
             |> Option.defaultValue "automated bot, probably."
 
         let score = votes |> getScore
-        let tagline = post.Tagline |> Option.defaultValue String.Empty
 
         {| headline = post.Headline
-           tagline = tagline
            score = score
            author = author
            upvoted = false // todo

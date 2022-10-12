@@ -22,7 +22,6 @@ let sources =
 let toPost (item: RSS.Item) =
     { Id = Guid.NewGuid()
       Headline = item.Title
-      Tagline = item.Description
       Link = item.Link
       PosterId = None
       PublishedDate = DateTime.UtcNow }

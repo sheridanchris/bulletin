@@ -7,7 +7,6 @@ type User = { Id: Guid; Username: string }
 type Post =
     { Id: Guid
       Headline: string
-      Tagline: string option
       Link: string
       PosterId: Guid option
       PublishedDate: DateTime } // when the article was published originally?? or on our site??

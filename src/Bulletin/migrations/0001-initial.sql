@@ -6,7 +6,6 @@ CREATE TABLE "Users"(
 CREATE TABLE "Posts"(
     "Id" UUID PRIMARY KEY,
     "Headline" TEXT NOT NULL,
-    "Tagline" TEXT,
     "Link" TEXT NOT NULL,
     "PosterId" UUID REFERENCES "Users"("Id"),
     "PublishedDate" TIMESTAMP
