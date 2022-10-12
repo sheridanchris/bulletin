@@ -25,6 +25,7 @@ let postsHandler : HttpHandler =
         let post, votes = post
         {| headline = post.Headline
            score = getScore votes
+           author = "automated bot, probably." // todo (actual username if it exists)
            upvoted = false // todo
            downvoted = false |} // todo
 
@@ -34,14 +35,14 @@ let postsHandler : HttpHandler =
                 use connection = dbConnectionFactory ()
                 let! posts = connection |> getPostsWithVotesAsync
 
-                let model =
+                let posts =
                     posts
                     |> Seq.toList
                     |> List.groupBy fst
                     |> List.map (fun (key, value) -> key, value |> List.map snd)
                     |> List.map toModel
 
-                do! scribanViewHandler "index" {| posts = model |} ctx
+                do! scribanViewHandler "index" {| posts = posts |} ctx
             }
 
     withService<DbConnectionFactory>(handler)
