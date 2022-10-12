@@ -1,31 +1,28 @@
 module Persistence
 
-open Microsoft.Data.Sqlite
+open System.Data
+open Dapper.FSharp
+open Dapper.FSharp.PostgreSQL
 open Domain
-open SqlFun
-open SqlFun.Sqlite
-open SqlFun.Queries
-open SqlFun.Transforms
-open SqlFun.GeneratorConfig
 
-let createConnection () = new SqliteConnection("Data Source=local.db")
-let generatorConfig = createDefaultConfig createConnection |> representDatesAsStrings
-let sql commandText = sql generatorConfig commandText
+type DbConnectionFactory = unit -> IDbConnection
 
-let run f = DbAction.run createConnection f
-let runAsync f = AsyncDb.run createConnection f
+let usersTable = table'<User> "Users"
+let postsTable = table'<Post> "Posts"
+let commentsTable = table'<Comment> "Comments"
+let postVotesTable = table'<PostVote> "PostVotes"
+let commentVotesTable = table'<CommentVote> "CommentVotes"
 
-let insertPost: Post -> AsyncDb<unit> =
-    sql "insert into posts (Headline, Description, Link, Poster, PublishedDate)
-         values (@Headline, @Description, @Link, @Poster, @PublishedDate)"
+let insertPostsAsync (posts: Post list) (connection: IDbConnection) =
+     insert {
+          into postsTable
+          values posts
+     } |> connection.InsertAsync
 
-let insertPosts: Post list -> AsyncDb<unit> =
-    sql "insert into posts (Headline, Description, Link, Poster, PublishedDate)
-         values (@Headline, @Description, @Link, @Poster, @PublishedDate)"
-
-let getPosts: unit -> AsyncDb<Post list> =
-    sql "select p.Id, p.Headline, p.Link, p.Poster, p.CreatedAt, p.UpdatedAt from posts as p 
-         left join votes as vote on post.Id = vote.PostId
-         left join users as user on user.id = post.AuthorId
-         order by post.Id, vote.PostId"
-    >> AsyncDb.map (Conventions.combine<_, Vote> >-> Conventions.combine<_, User>)
+let getPostsWithVotesAsync (connection: IDbConnection) =
+     select {
+          for post in postsTable do
+          leftJoin vote in postVotesTable on (post.Id = vote.PostId)
+          orderByDescending post.PublishedDate
+          selectAll
+     } |> connection.SelectAsyncOption<Post, PostVote>

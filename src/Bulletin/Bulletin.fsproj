@@ -8,20 +8,22 @@
     <Compile Include="Persistence.fs" />
     <Compile Include="ScribanEngine.fs" />
     <Compile Include="Handlers.fs" /> 
-    <Compile Include="RSSCrawlerService.fs" />
+    <Compile Include="Worker.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Dapper.FSharp" Version="3.4.0" />
+    <PackageReference Include="dbup-postgresql" Version="4.6.3" />
     <PackageReference Include="Falco" Version="4.0.0-beta2" />
     <PackageReference Include="FSharp.Data" Version="5.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.9" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.9" />
+    <PackageReference Include="Npgsql" Version="6.0.7" />
     <PackageReference Include="Scriban" Version="5.5.0" />
-    <PackageReference Include="SqlFun" Version="2.1.0" />
-    <PackageReference Include="System.Data.Sqlite" Version="1.0.116" />
+    <!-- <PackageReference Include="SqlFun" Version="2.1.0" /> -->
   </ItemGroup>
   <ItemGroup>
     <None Include="views/*" CopyToOutputDirectory="Always" />
     <None Include="wwwroot/*" CopyToOutputDirectory="Always" />
+    <None Include="migrations/*" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>

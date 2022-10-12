@@ -2,38 +2,33 @@ module Domain
 
 open System
 
-type User = { Id: int; Username: string }
+type User = { Id: Guid; Username: string }
+
+type Post =
+    { Id: Guid
+      Headline: string
+      Tagline: string option
+      Link: string
+      PosterId: Guid option
+      PublishedDate: DateTime } // when the article was published originally?? or on our site??
+
+type Comment =
+    { Id: Guid
+      PostId: int
+      UserId: int
+      Comment: string
+      ParentId: Guid option }
 
 type VoteType =
     | Positive = 1
     | Negative = 2
 
-type Vote =
-    { PostId: int
-      UserId: int
+type PostVote =
+    { PostId: Guid
+      VoterId: Guid
       Type: VoteType }
-
-// type Poster =
-//     | User of int
-//     | Robot
-
-type Comment =
-    { Id: int
-      PostId: int
-      UserId: int
-      ParentId: int option }
 
 type CommentVote =
-    { CommentId: int
-      UserId: int
+    { CommentId: Guid
+      VoterId: Guid
       Type: VoteType }
-
-type Post =
-    { Id: int
-      Headline: string
-      Description: string option
-      Link: string
-      Poster: User option // I don't think this will get loaded.
-      PublishedDate: DateTimeOffset option
-      //UpdatedAt: DateTime
-      Votes: Vote list }

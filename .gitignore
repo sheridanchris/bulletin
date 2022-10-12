@@ -512,4 +512,5 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/fsharp,visualstudiocode,visualstudio,rider
 
 appsettings.Development.json
-local.db
+.env
+dev_data

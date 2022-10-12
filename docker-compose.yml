@@ -1,0 +1,41 @@
+services:
+  postgresql:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./dev_data/sqldb_postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --requirepass "${REDIS_PASSWORD}"
+    volumes:
+      - ./dev_data/redis:/var/lib/redis/data
+    ports:
+      - "6379:6739"
+  webapi:
+    build: ./src/Bulletin/
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__Postgresql=Host=postgresql;Database=postgres;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - ConnectionStrings__Redis=redis,password=${REDIS_PASSWORD}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_SCRET=${GOOGLE_SECRET}
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_started

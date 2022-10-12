@@ -4,31 +4,44 @@ open Falco
 open Falco.Middleware
 open ScribanEngine
 open Domain
+open Npgsql
+open Persistence
 
 let scribanViewHandler (view: string) (model: 'a) : HttpHandler =
     withService<IViewEngine> (fun viewEngine -> Response.renderViewEngine viewEngine view model)
 
 let postsHandler : HttpHandler =
-    fun ctx ->
-        task {
-            let! posts = Persistence.getPosts () |> Persistence.runAsync
+    let getScore (votes: PostVote option list) =
+        votes
+        |> List.filter Option.isSome
+        |> List.map (fun vote -> vote.Value.Type) 
+        |> List.sumBy (
+            function
+            | VoteType.Positive -> 1
+            | VoteType.Negative -> -1
+            | _ -> 0)
+        
+    let toModel (post: Post * PostVote option list) =
+        let post, votes = post
+        {| headline = post.Headline
+           score = getScore votes
+           upvoted = false // todo
+           downvoted = false |} // todo
 
-            let getScore (post: Post) =
-                post.Votes
-                |> List.map (fun vote -> vote.Type) 
-                |> List.sumBy (
-                    function
-                    | VoteType.Positive -> 1
-                    | VoteType.Negative -> -1
-                    | _ -> 0)
-                
-            let toModel (post: Post) =
-                {| headline = post.Headline
-                   score = getScore post
-                   author = "" // todo
-                   upvoted = false // todo
-                   downvoted = false |} // todo
+    let handler (dbConnectionFactory: DbConnectionFactory): HttpHandler =
+        fun ctx ->
+            task {
+                use connection = dbConnectionFactory ()
+                let! posts = connection |> getPostsWithVotesAsync
 
-            let model = posts |> List.map toModel
-            do! scribanViewHandler "index" model ctx
-        }
+                let model =
+                    posts
+                    |> Seq.toList
+                    |> List.groupBy fst
+                    |> List.map (fun (key, value) -> key, value |> List.map snd)
+                    |> List.map toModel
+
+                do! scribanViewHandler "index" {| posts = model |} ctx
+            }
+
+    withService<DbConnectionFactory>(handler)
