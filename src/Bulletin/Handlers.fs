@@ -6,6 +6,9 @@ open Falco.Middleware
 open ScribanEngine
 open Domain
 open Persistence
+open Microsoft.AspNetCore.Authentication
+open Falco.Security
+open Microsoft.AspNetCore.Authentication.Google
 
 let private fst3 (x, _, _) = x
 let private snd3 (_, x, _) = x
@@ -13,6 +16,10 @@ let private third (_, _, x) = x
 
 let scribanViewHandler (view: string) (model: 'a) : HttpHandler =
     withService<IViewEngine> (fun viewEngine -> Response.renderViewEngine viewEngine view model)
+
+let googleOAuthHandler: HttpHandler =
+    let authenticationProperties = AuthenticationProperties(RedirectUri = "/")
+    Auth.challenge GoogleDefaults.AuthenticationScheme authenticationProperties
 
 let postsHandler: HttpHandler =
     let getScore (votes: PostVote list) =
