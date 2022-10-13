@@ -19,7 +19,7 @@
                     <button class="post-downvote{{ post.downvoted ? ' selected' : '' }}">▼</button>
                 </div>
                 <div class="post">
-                    <span class="post-headline">{{ post.headline }}</span>
+                    <span class="post-headline"><a href="{{ post.link }}">{{ post.headline }}</a></span>
                     <span class="post-details">{{ post.score }} points by {{ post.author }}</span>
                 </div>
             </div>

@@ -55,6 +55,7 @@ let postsHandler: HttpHandler =
 
         {|
             headline = post.Headline
+            link = post.Link
             score = score
             author = author
             upvoted = upvoted
