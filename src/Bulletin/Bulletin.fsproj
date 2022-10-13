@@ -16,6 +16,8 @@
     <PackageReference Include="dbup-postgresql" Version="4.6.3" />
     <PackageReference Include="Falco" Version="4.0.0-beta2" />
     <PackageReference Include="FSharp.Data" Version="5.0.2" />
+    <PackageReference Include="FsToolKit.ErrorHandling" Version="2.13.0" />
+    <PackageReference Include="FsToolKit.ErrorHandling.TaskResult" Version="2.13.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.9" />
     <PackageReference Include="Npgsql" Version="6.0.7" />
     <PackageReference Include="Scriban" Version="5.5.0" />

@@ -9,6 +9,7 @@ open Persistence
 open Microsoft.AspNetCore.Authentication
 open Falco.Security
 open Microsoft.AspNetCore.Authentication.Google
+open FsToolkit.ErrorHandling
 
 let private fst3 (x, _, _) = x
 let private snd3 (_, x, _) = x
@@ -46,29 +47,35 @@ let postsHandler: HttpHandler =
            upvoted = false // todo
            downvoted = false |} // todo
 
+    let postModels posts =
+        posts
+        |> Seq.toList
+        |> List.groupBy fst3
+        |> List.map (fun (post, values) ->
+            let votes =
+                values
+                |> List.map snd3
+                |> List.filter Option.isSome
+                |> List.map (fun x -> x.Value)
+
+            let author =
+                values
+                |> List.map third
+                |> List.tryFind Option.isSome
+                |> Option.flatten
+
+            toModel (post, votes, author))
+
     let handler (dbConnectionFactory: DbConnectionFactory) : HttpHandler =
         fun ctx ->
             task {
                 use connection = dbConnectionFactory ()
-                let! posts = connection |> getPostsWithVotesAsync
 
-                let posts =
-                    posts
-                    |> Seq.toList
-                    |> List.groupBy fst3
-                    |> List.map (fun (post, values) ->
-                        let votes =
-                            values
-                            |> List.map snd3
-                            |> List.filter Option.isSome
-                            |> List.map (fun x -> x.Value)
-
-                        let author =
-                            values |> List.map third |> List.tryFind Option.isSome |> Option.flatten
-
-                        toModel (post, votes, author))
-
-                do! scribanViewHandler "index" {| posts = posts |} ctx
+                return!
+                    connection
+                    |> getPostsWithVotesAsync
+                    |> Task.map postModels
+                    |> Task.map (fun postModels -> scribanViewHandler "index" {| posts = postModels |})
             }
 
     withService<DbConnectionFactory> handler
