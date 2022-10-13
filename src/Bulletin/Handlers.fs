@@ -31,7 +31,7 @@ let postsHandler: HttpHandler =
             | VoteType.Negative -> -1
             | _ -> 0)
 
-    let toModel postInfo =
+    let toModel currentUserId postInfo =
         let post, values = postInfo
 
         let votes =
@@ -50,17 +50,29 @@ let postsHandler: HttpHandler =
 
         let score = votes |> getScore
 
+        let upvoted, downvoted =
+            match currentUserId with
+            | None -> false, false
+            | Some userId ->
+                match votes |> List.tryFind (fun vote -> vote.VoterId = userId) with
+                | None -> false, false
+                | Some vote -> 
+                    match vote.Type with
+                    | VoteType.Positive -> true, false
+                    | VoteType.Negative -> false, true
+                    | _ -> false, false
+
         {| headline = post.Headline
            score = score
            author = author
-           upvoted = false // todo
-           downvoted = false |} // todo
+           upvoted = upvoted
+           downvoted = downvoted |}
 
-    let postModels posts =
+    let postModels currentUserId posts =
         posts
         |> Seq.toList
         |> List.groupBy fst3
-        |> List.map toModel
+        |> List.map (toModel currentUserId)
 
     let handler (dbConnectionFactory: DbConnectionFactory) : HttpHandler =
         fun ctx ->
@@ -70,7 +82,7 @@ let postsHandler: HttpHandler =
                 return!
                     connection
                     |> getPostsWithVotesAsync
-                    |> Task.map postModels
+                    |> Task.map (postModels None) // todo
                     |> Task.map (fun postModels -> scribanViewHandler "index" {| posts = postModels |} ctx)
             }
 
