@@ -75,7 +75,7 @@ let postsHandler: HttpHandler =
                     connection
                     |> getPostsWithVotesAsync
                     |> Task.map postModels
-                    |> Task.map (fun postModels -> scribanViewHandler "index" {| posts = postModels |})
+                    |> Task.map (fun postModels -> scribanViewHandler "index" {| posts = postModels |} ctx)
             }
 
     withService<DbConnectionFactory> handler
