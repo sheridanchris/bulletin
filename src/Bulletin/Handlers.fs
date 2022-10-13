@@ -33,7 +33,6 @@ let postsHandler: HttpHandler =
 
     let toModel currentUserId postInfo =
         let post, values = postInfo
-
         let votes = values |> List.choose snd3
 
         let author =
@@ -54,25 +53,26 @@ let postsHandler: HttpHandler =
         let upvoted, downvoted =
             postVoteType = Some VoteType.Positive, postVoteType = Some VoteType.Negative
 
-        {| headline = post.Headline
-           score = score
-           author = author
-           upvoted = upvoted
-           downvoted = downvoted |}
+        {|
+            headline = post.Headline
+            score = score
+            author = author
+            upvoted = upvoted
+            downvoted = downvoted
+        |}
 
     let postModels currentUserId posts =
         posts |> Seq.toList |> List.groupBy fst3 |> List.map (toModel currentUserId)
 
     let handler (dbConnectionFactory: DbConnectionFactory) : HttpHandler =
-        fun ctx ->
-            task {
-                use connection = dbConnectionFactory ()
+        fun ctx -> task {
+            use connection = dbConnectionFactory ()
 
-                return!
-                    connection
-                    |> getPostsWithVotesAsync
-                    |> Task.map (postModels None) // todo
-                    |> Task.map (fun postModels -> scribanViewHandler "index" {| posts = postModels |} ctx)
-            }
+            return!
+                connection
+                |> getPostsWithVotesAsync
+                |> Task.map (postModels None) // todo
+                |> Task.map (fun postModels -> scribanViewHandler "index" {| posts = postModels |} ctx)
+        }
 
     withService<DbConnectionFactory> handler

@@ -16,8 +16,7 @@ type ScribanViewEngine(views: Map<string, Template>) =
 
 module Response =
     let renderViewEngine (viewEngine: IViewEngine) (view: string) (model: 'a) : HttpHandler =
-        fun ctx ->
-            task {
-                let! html = viewEngine.RenderAsync(view, model)
-                return Response.ofHtmlString html ctx
-            }
+        fun ctx -> task {
+            let! html = viewEngine.RenderAsync(view, model)
+            return Response.ofHtmlString html ctx
+        }
