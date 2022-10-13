@@ -33,7 +33,9 @@ let postsHandler: HttpHandler =
 
     let toModel currentUserId postInfo =
         let post, values = postInfo
+
         let votes = values |> List.choose snd3
+        let score = votes |> getScore
 
         let author =
             values
@@ -42,8 +44,6 @@ let postsHandler: HttpHandler =
             |> Option.flatten
             |> Option.map (fun user -> user.Username)
             |> Option.defaultValue "automated bot, probably."
-
-        let score = votes |> getScore
 
         let postVoteType =
             currentUserId
