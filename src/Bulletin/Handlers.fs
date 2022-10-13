@@ -34,11 +34,7 @@ let postsHandler: HttpHandler =
     let toModel currentUserId postInfo =
         let post, values = postInfo
 
-        let votes =
-            values
-            |> List.map snd3
-            |> List.filter Option.isSome
-            |> List.map (fun x -> x.Value)
+        let votes = values |> List.choose snd3
 
         let author =
             values
