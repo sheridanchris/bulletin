@@ -31,11 +31,20 @@ let postsHandler: HttpHandler =
             | VoteType.Negative -> -1
             | _ -> 0)
 
-    let toModel (post: Post * PostVote list * User option) =
-        let post, votes, author = post
+    let toModel postInfo =
+        let post, values = postInfo
+
+        let votes =
+            values
+            |> List.map snd3
+            |> List.filter Option.isSome
+            |> List.map (fun x -> x.Value)
 
         let author =
-            author
+            values
+            |> List.map third
+            |> List.tryFind Option.isSome
+            |> Option.flatten
             |> Option.map (fun user -> user.Username)
             |> Option.defaultValue "automated bot, probably."
 
@@ -51,20 +60,7 @@ let postsHandler: HttpHandler =
         posts
         |> Seq.toList
         |> List.groupBy fst3
-        |> List.map (fun (post, values) ->
-            let votes =
-                values
-                |> List.map snd3
-                |> List.filter Option.isSome
-                |> List.map (fun x -> x.Value)
-
-            let author =
-                values
-                |> List.map third
-                |> List.tryFind Option.isSome
-                |> Option.flatten
-
-            toModel (post, votes, author))
+        |> List.map toModel
 
     let handler (dbConnectionFactory: DbConnectionFactory) : HttpHandler =
         fun ctx ->
