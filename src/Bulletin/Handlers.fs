@@ -50,16 +50,13 @@ let postsHandler: HttpHandler =
 
         let score = votes |> getScore
 
-        let upvoted, downvoted =
-            let postVoteType =
-                currentUserId
-                |> Option.bind (fun userId -> votes |> List.tryFind (fun vote -> vote.VoterId = userId))
-                |> Option.map (fun postVote -> postVote.Type)
+        let postVoteType =
+            currentUserId
+            |> Option.bind (fun userId -> votes |> List.tryFind (fun vote -> vote.VoterId = userId))
+            |> Option.map (fun postVote -> postVote.Type)
 
-            match postVoteType with
-            | Some VoteType.Positive -> true, false
-            | Some VoteType.Negative -> false, true
-            | Some _ | None -> false, false  
+        let upvoted, downvoted =
+            postVoteType = Some VoteType.Positive, postVoteType = Some VoteType.Negative
 
         {| headline = post.Headline
            score = score
