@@ -1,5 +1,6 @@
 module Persistence
 
+open System
 open System.Data
 open Dapper.FSharp
 open Dapper.FSharp.PostgreSQL
@@ -19,6 +20,16 @@ let insertPostsAsync (posts: Post list) (connection: IDbConnection) =
         values posts
     }
     |> connection.InsertAsync
+
+// NOTE: This exists for comparison checks.
+// While polling the RSS feed, ill compare the latest post with the current stories published date.
+let getLatestPostAsync (connection: IDbConnection) =
+    select {
+        for post in postsTable do
+            orderByDescending post.PublishedDate
+            take 1
+    }
+    |> connection.SelectAsync<{| PublishedDate: DateTime |}>
 
 let getPostsWithVotesAsync (connection: IDbConnection) =
     select {

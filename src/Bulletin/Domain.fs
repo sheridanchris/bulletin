@@ -10,7 +10,7 @@ type Post = {
     Link: string
     PosterId: Guid option
     PublishedDate: DateTime
-} // when the article was published originally?? or on our site??
+}
 
 type Comment = {
     Id: Guid

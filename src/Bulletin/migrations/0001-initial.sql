@@ -11,6 +11,8 @@ CREATE TABLE "Posts"(
     "PublishedDate" TIMESTAMP
 );
 
+CREATE UNIQUE INDEX idx_link ON "Posts"("Link");
+
 CREATE TABLE "Comments"(
     "Id" UUID PRIMARY KEY,
     "Comment" TEXT NOT NULL,
