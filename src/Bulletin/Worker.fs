@@ -74,6 +74,7 @@ type RssWorker(connectionFactory: DbConnectionFactory) =
 
             if not (List.isEmpty posts) then
                 // TODO: this can cause an issue if the same link *somehow* appears twice in an rss feed.
+                // This can happen when live updates or editing/revisions cause a new entry in the rss feed.
                 // This is my current theory although it may be wrong.
                 // The unique index on the link/url will cause an exception and cancel the batch insert.
                 // I could insert posts one at a time because there *should* only be a few updates per poll each time.
