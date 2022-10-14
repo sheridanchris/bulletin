@@ -17,6 +17,7 @@ let sources = [
     "http://rss.cnn.com/rss/cnn_topstories.rss"
     "https://feeds.nbcnews.com/nbcnews/public/news"
     "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
+    "https://globalnews.ca/feed"
 ]
 
 let toDateTime (offset: DateTimeOffset) = offset.UtcDateTime
@@ -35,14 +36,21 @@ let filterSource (latest: DateTime option) (post: Post) =
     | Some latest -> post.PublishedDate > latest
 
 let readSourceAsync (latest: DateTime option) (source: string) = task {
-    let! rss = RSS.AsyncLoad(source)
+    let! rssResult = RSS.AsyncLoad(source) |> Async.Catch
 
     return
-        rss.Channel.Items
-        |> Array.filter (fun x -> Option.isSome x.PubDate)
-        |> Array.map toPost
-        |> Array.filter (filterSource latest)
-        |> Array.toList
+        match rssResult with
+        | Choice1Of2 rss ->
+            rss.Channel.Items
+            |> Array.distinctBy (fun item -> item.Guid) // idk?
+            |> Array.filter (fun item -> Option.isSome item.PubDate)
+            |> Array.map toPost
+            |> Array.filter (filterSource latest)
+            |> Array.toList
+        | Choice2Of2 ex ->
+            // TODO: I need to do proper logging.
+            printfn "An exception has occured: %s" ex.StackTrace
+            []
 }
 
 type RssWorker(connectionFactory: DbConnectionFactory) =
