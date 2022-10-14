@@ -16,7 +16,6 @@ let pollingTimespan = TimeSpan.FromMinutes(30)
 let sources = [
     "http://rss.cnn.com/rss/cnn_topstories.rss"
     "https://feeds.nbcnews.com/nbcnews/public/news"
-    "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
     "https://globalnews.ca/feed"
 ]
 
@@ -74,6 +73,12 @@ type RssWorker(connectionFactory: DbConnectionFactory) =
                 |> List.collect id
 
             if not (List.isEmpty posts) then
+                // TODO: this can cause an issue if the same link *somehow* appears twice in an rss feed.
+                // This is my current theory although it may be wrong.
+                // The unique index on the link/url will cause an exception and cancel the batch insert.
+                // I could insert posts one at a time because there *should* only be a few updates per poll each time.
+                // (unless we're doing a cold start and reading the entire feed and saving everything)
+                // think about how to solve this while keeping batch inserts??? or maybe not, idk.
                 let! _ = connection |> insertPostsAsync posts
                 ()
 
