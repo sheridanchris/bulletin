@@ -65,7 +65,7 @@ type RssWorker(connectionFactory: DbConnectionFactory) =
                 |> List.filter (fun posts -> not (List.isEmpty posts))
                 |> List.collect id
 
-            if posts <> [] then
+            if List.isEmpty posts then
                 let! _ = connection |> insertPostsAsync posts
                 ()
 
