@@ -51,14 +51,13 @@ type RssWorker(connectionFactory: DbConnectionFactory) =
     override _.ExecuteAsync(stoppingToken: CancellationToken) : Task = task {
         while not (stoppingToken.IsCancellationRequested) do
             use connection = connectionFactory ()
-            let! latestPost = connection |> getLatestPostAsync
 
-            let latest =
-                match Seq.tryHead latestPost with
-                | Some latest -> Some latest.PublishedDate
-                | None -> None
+            let! latestPost =
+                connection
+                |> getLatestPostAsync
+                |> Task.map (fun dates -> dates |> Seq.tryHead |> Option.map (fun item -> item.PublishedDate))
 
-            let! results = sources |> List.map (readSourceAsync latest) |> Task.WhenAll
+            let! results = sources |> List.map (readSourceAsync latestPost) |> Task.WhenAll
 
             let posts =
                 results
