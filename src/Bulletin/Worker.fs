@@ -27,6 +27,7 @@ let toPost (item: RSS.Item) = {
     Link = item.Link
     PosterId = None
     PublishedDate = toDateTime item.PubDate.Value // this is filtered out. maybe I should be safe??? idk
+    Score = 0
 }
 
 let filterSource (latest: DateTime option) (post: Post) =

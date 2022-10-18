@@ -10,6 +10,7 @@ type Post = {
     Link: string
     PosterId: Guid option
     PublishedDate: DateTime
+    Score: int
 }
 
 type Comment = {

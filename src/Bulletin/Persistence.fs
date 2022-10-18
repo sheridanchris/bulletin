@@ -31,11 +31,22 @@ let getLatestPostAsync (connection: IDbConnection) =
     }
     |> connection.SelectAsync<{| PublishedDate: DateTime |}>
 
-let getPostsWithVotesAsync (connection: IDbConnection) =
+let getPostsAsync (connection: IDbConnection) =
     select {
         for post in postsTable do
             leftJoin vote in postVotesTable on (post.Id = vote.PostId)
             leftJoin user in usersTable on (post.PosterId = Some user.Id)
+            orderByDescending post.PublishedDate
+            selectAll
+    }
+    |> connection.SelectAsyncOption<Post, PostVote, User>
+
+let searchPostsAsync (searchParam: string) (connection: IDbConnection) =
+    select {
+        for post in postsTable do
+            leftJoin vote in postVotesTable on (post.Id = vote.PostId)
+            leftJoin user in usersTable on (post.PosterId = Some user.Id)
+            where (like post.Headline searchParam)
             orderByDescending post.PublishedDate
             selectAll
     }

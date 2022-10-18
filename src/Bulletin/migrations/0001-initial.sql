@@ -8,7 +8,8 @@ CREATE TABLE "Posts"(
     "Headline" TEXT NOT NULL,
     "Link" TEXT NOT NULL,
     "PosterId" UUID REFERENCES "Users"("Id"),
-    "PublishedDate" TIMESTAMP
+    "PublishedDate" TIMESTAMP NOT NULL,
+    "Score" INT NOT NULL
 );
 
 CREATE UNIQUE INDEX idx_link ON "Posts"("Link");
