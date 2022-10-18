@@ -3,13 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{45FCA066-B069-4D4B-95CC-89BF481D4B56}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A1188AAD-10F9-4F95-B101-DA7F080B29F9}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bulletin", "src\Bulletin\Bulletin.fsproj", "{0A3C35A2-BA26-4B74-8A07-88FC70717E8B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E47FF6A8-00B6-4070-8015-EDA5CF5CE4AC}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bulletin.Tests", "tests\Bulletin.Tests\Bulletin.Tests.fsproj", "{7C400991-4FEF-4730-8DFF-CFFBF40B9A9E}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bulletin", "src\Bulletin\Bulletin.fsproj", "{ECA0E128-8D84-4561-94D5-18BACD1207A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,17 +16,12 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0A3C35A2-BA26-4B74-8A07-88FC70717E8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A3C35A2-BA26-4B74-8A07-88FC70717E8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A3C35A2-BA26-4B74-8A07-88FC70717E8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A3C35A2-BA26-4B74-8A07-88FC70717E8B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7C400991-4FEF-4730-8DFF-CFFBF40B9A9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7C400991-4FEF-4730-8DFF-CFFBF40B9A9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7C400991-4FEF-4730-8DFF-CFFBF40B9A9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7C400991-4FEF-4730-8DFF-CFFBF40B9A9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECA0E128-8D84-4561-94D5-18BACD1207A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECA0E128-8D84-4561-94D5-18BACD1207A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECA0E128-8D84-4561-94D5-18BACD1207A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECA0E128-8D84-4561-94D5-18BACD1207A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{0A3C35A2-BA26-4B74-8A07-88FC70717E8B} = {45FCA066-B069-4D4B-95CC-89BF481D4B56}
-		{7C400991-4FEF-4730-8DFF-CFFBF40B9A9E} = {E47FF6A8-00B6-4070-8015-EDA5CF5CE4AC}
+		{ECA0E128-8D84-4561-94D5-18BACD1207A3} = {A1188AAD-10F9-4F95-B101-DA7F080B29F9}
 	EndGlobalSection
 EndGlobal
