@@ -2,37 +2,34 @@ module Domain
 
 open System
 
-type User = { Id: Guid; Username: string }
-
-type Post = {
-    Id: Guid
-    Headline: string
-    Link: string
-    PosterId: Guid option
-    PublishedDate: DateTime
-    Score: int
-}
-
-type Comment = {
-    Id: Guid
-    PostId: int
-    UserId: int
-    Comment: string
-    ParentId: Guid option
-}
+type UserId = UserId of Guid
+type PostId = PostId of Guid
 
 type VoteType =
     | Positive = 1
-    | Negative = 2
+    | Negative = -1
 
-type PostVote = {
-    PostId: Guid
-    VoterId: Guid
-    Type: VoteType
+type User = { UserId: UserId; Username: string }
+
+type Vote = { VoterId: UserId; VoteType: VoteType }
+
+type Post = {
+    Id: PostId
+    Headline: string
+    Link: string
+    Author: User option
+    PublishedDate: DateTime
+    Votes: Vote list
 }
 
-type CommentVote = {
-    CommentId: Guid
-    VoterId: Guid
-    Type: VoteType
-}
+module Post =
+    let authorName post =
+        post.Author
+        |> Option.map (fun user -> user.Username)
+        |> Option.defaultValue "automated bot, probably."
+
+    let findUserVote userId post =
+        post.Votes |> List.tryFind (fun vote -> vote.VoterId = userId)
+
+    let calculateScore post =
+        post.Votes |> List.sumBy (fun vote -> int vote.VoteType)

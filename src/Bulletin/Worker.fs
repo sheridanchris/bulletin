@@ -21,16 +21,15 @@ let sources = [
 
 let toDateTime (offset: DateTimeOffset) = offset.UtcDateTime
 
-let toPost (item: RSS.Item) = {
+let toPostView (item: RSS.Item) = {
     Id = Guid.NewGuid()
     Headline = item.Title
     Link = item.Link
     PosterId = None
     PublishedDate = toDateTime item.PubDate.Value // this is filtered out. maybe I should be safe??? idk
-    Score = 0
 }
 
-let filterSource (latest: DateTime option) (post: Post) =
+let filterSource (latest: DateTime option) (post: PostView) =
     match latest with
     | None -> true
     | Some latest -> post.PublishedDate > latest
@@ -44,7 +43,7 @@ let readSourceAsync (latest: DateTime option) (source: string) = task {
             rss.Channel.Items
             |> Array.distinctBy (fun item -> item.Guid) // idk?
             |> Array.filter (fun item -> Option.isSome item.PubDate)
-            |> Array.map toPost
+            |> Array.map toPostView
             |> Array.filter (filterSource latest)
             |> Array.toList
         | Choice2Of2 ex ->
