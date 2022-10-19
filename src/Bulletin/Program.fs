@@ -76,11 +76,10 @@ let main args =
         use_caching
         use_static_files
 
-        endpoints [
-            get "/" Handlers.postsHandler
-            get "/google-signin" Handlers.googleOAuthHandler
-            get "/ping" (Response.ofPlainText "pong")
-        ]
+        endpoints
+            [ get "/" Handlers.postsHandler
+              get "/google-signin" Handlers.googleOAuthHandler
+              get "/ping" (Response.ofPlainText "pong") ]
     }
 
     0

@@ -11,33 +11,29 @@ type DbConnectionFactory = unit -> IDbConnection
 
 type UserView = { Id: Guid; Username: string }
 
-type PostView = {
-    Id: Guid
-    Headline: string
-    Link: string
-    PosterId: Guid option
-    PublishedDate: DateTime
-}
+type PostView =
+    { Id: Guid
+      Headline: string
+      Link: string
+      PosterId: Guid option
+      PublishedDate: DateTime }
 
-type CommentView = {
-    Id: Guid
-    PostId: int
-    UserId: int
-    Comment: string
-    ParentId: Guid option
-}
+type CommentView =
+    { Id: Guid
+      PostId: int
+      UserId: int
+      Comment: string
+      ParentId: Guid option }
 
-type PostVoteView = {
-    PostId: Guid
-    VoterId: Guid
-    Type: VoteType
-}
+type PostVoteView =
+    { PostId: Guid
+      VoterId: Guid
+      Type: VoteType }
 
-type CommentVoteView = {
-    CommentId: Guid
-    VoterId: Guid
-    Type: VoteType
-}
+type CommentVoteView =
+    { CommentId: Guid
+      VoterId: Guid
+      Type: VoteType }
 
 let usersTable = table'<UserView> "Users"
 let postsTable = table'<PostView> "Posts"
@@ -52,10 +48,9 @@ let toDomainPost (posts: seq<PostView * PostVoteView option * UserView option>) 
         let votes =
             values
             |> Seq.choose snd3
-            |> Seq.map (fun voteView -> {
-                VoterId = UserId voteView.VoterId
-                VoteType = voteView.Type
-            })
+            |> Seq.map (fun voteView ->
+                { VoterId = UserId voteView.VoterId
+                  VoteType = voteView.Type })
             |> Seq.toList
 
         let author =
@@ -63,19 +58,16 @@ let toDomainPost (posts: seq<PostView * PostVoteView option * UserView option>) 
             |> Seq.map third
             |> Seq.tryFind Option.isSome
             |> Option.flatten
-            |> Option.map (fun userView -> {
-                UserId = UserId userView.Id
-                Username = userView.Username
-            })
+            |> Option.map (fun userView ->
+                { UserId = UserId userView.Id
+                  Username = userView.Username })
 
-        {
-            Id = PostId post.Id
-            Headline = post.Headline
-            Link = post.Link
-            Author = author
-            PublishedDate = post.PublishedDate
-            Votes = votes
-        })
+        { Id = PostId post.Id
+          Headline = post.Headline
+          Link = post.Link
+          Author = author
+          PublishedDate = post.PublishedDate
+          Votes = votes })
 
 let insertPostsAsync (posts: PostView list) (connection: IDbConnection) =
     insert {

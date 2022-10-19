@@ -29,33 +29,32 @@ let postsHandler: HttpHandler =
         let upvoted = userVote = Some VoteType.Positive
         let downvoted = userVote = Some VoteType.Negative
 
-        {|
-            headline = post.Headline
-            link = post.Link
-            score = Post.calculateScore post
-            author = Post.authorName post
-            upvoted = upvoted
-            downvoted = downvoted
-        |}
+        {| headline = post.Headline
+           link = post.Link
+           score = Post.calculateScore post
+           author = Post.authorName post
+           upvoted = upvoted
+           downvoted = downvoted |}
 
     let handler (dbConnectionFactory: DbConnectionFactory) : HttpHandler =
-        fun ctx -> task {
-            let queryReader = Request.getQuery ctx
-            let searchQuery = queryReader.GetString("search", "")
+        fun ctx ->
+            task {
+                let queryReader = Request.getQuery ctx
+                let searchQuery = queryReader.GetString("search", "")
 
-            use connection = dbConnectionFactory ()
+                use connection = dbConnectionFactory ()
 
-            let getPostsFunction =
-                if String.IsNullOrWhiteSpace searchQuery then
-                    getPostsAsync
-                else
-                    searchPostsAsync $"%%{searchQuery}%%"
+                let getPostsFunction =
+                    if String.IsNullOrWhiteSpace searchQuery then
+                        getPostsAsync
+                    else
+                        searchPostsAsync $"%%{searchQuery}%%"
 
-            return!
-                connection
-                |> getPostsFunction
-                |> Task.map (Seq.map (postModel None)) // todo
-                |> Task.map (fun postModels -> scribanViewHandler "index" {| posts = postModels |} ctx)
-        }
+                return!
+                    connection
+                    |> getPostsFunction
+                    |> Task.map (Seq.map (postModel None)) // todo
+                    |> Task.map (fun postModels -> scribanViewHandler "index" {| posts = postModels |} ctx)
+            }
 
     withService<DbConnectionFactory> handler

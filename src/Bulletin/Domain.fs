@@ -13,14 +13,13 @@ type User = { UserId: UserId; Username: string }
 
 type Vote = { VoterId: UserId; VoteType: VoteType }
 
-type Post = {
-    Id: PostId
-    Headline: string
-    Link: string
-    Author: User option
-    PublishedDate: DateTime
-    Votes: Vote list
-}
+type Post =
+    { Id: PostId
+      Headline: string
+      Link: string
+      Author: User option
+      PublishedDate: DateTime
+      Votes: Vote list }
 
 module Post =
     let authorName post =

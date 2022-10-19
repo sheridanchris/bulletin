@@ -10,5 +10,5 @@ indent_style = space
 indent_size = 4
 
 [*.{fs,fsi,fsx}]
-fsharp_multiline_block_brackets_on_same_column=true
-fsharp_experimental_stroustrup_style=true
+# fsharp_multiline_block_brackets_on_same_column=true
+# fsharp_experimental_stroustrup_style=true
