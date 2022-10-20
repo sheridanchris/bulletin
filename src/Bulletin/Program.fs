@@ -7,25 +7,18 @@ open Falco.HostBuilder
 open Scriban
 open ScribanEngine
 open System.IO
-open DbUp
 open Worker
-open Persistence
 open Npgsql
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
-
-Dapper.FSharp.OptionTypes.register ()
+open Marten
+open Data
+open Microsoft.FSharp.Quotations
+open Marten.Services
+open Marten.Schema
+open Weasel.Core
 
 let configuration = configuration [||] { add_env }
-
-DeployChanges
-    .To
-    .PostgresqlDatabase(configuration.GetConnectionString("Postgresql"))
-    .WithScriptsFromFileSystem("migrations")
-    .LogToConsole()
-    .Build()
-    .PerformUpgrade()
-|> ignore
 
 let authenticationOptions: AuthenticationOptions -> unit =
     fun authOptions ->
@@ -40,19 +33,39 @@ let googleOptions: GoogleOptions -> unit =
         googleOptions.CallbackPath <- "/google-callback"
 
 let configureServices (views: Map<string, Template>) (serviceCollection: IServiceCollection) =
-    let connectionFactory: DbConnectionFactory =
-        fun () -> new NpgsqlConnection(configuration.GetConnectionString("Postgresql"))
-
     serviceCollection
         .AddAuthentication(authenticationOptions)
         .AddCookie()
         .AddGoogle(googleOptions)
     |> ignore
 
+    serviceCollection.AddMarten(fun (options: StoreOptions) ->
+        options.Connection(configuration.GetConnectionString("Postgresql"))
+        // options.RegisterDocumentType<User>()
+        // options.RegisterDocumentType<Post>()
+        // options.RegisterDocumentType<Vote>()
+        // options.RegisterDocumentType<Comment>()
+
+        // options.Policies.AllDocumentsSoftDeleted() |> ignore
+
+        options
+            .Schema
+            .For<Post>()
+            .ForeignKey<User>(fun post -> post.AuthorId)
+            .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
+            .UniqueIndex(UniqueIndexType.Computed, Lambda.ofArity1 <@ fun post -> box post.Link @>)
+        |> ignore
+
+        options.Schema.For<Comment>().ForeignKey<User>(fun comment -> comment.AuthorId)
+        |> ignore
+
+        options.Schema.For<Vote>().ForeignKey<User>(fun vote -> vote.VoterId) |> ignore)
+    |> ignore
+
     serviceCollection
-        .AddSingleton<DbConnectionFactory>(connectionFactory)
         .AddScoped<IViewEngine, ScribanViewEngine>(fun _ -> new ScribanViewEngine(views))
-        .AddHostedService<RssWorker>()
+        .AddScoped<IScopedBackgroundService, RssWorker>()
+        .AddHostedService<RssWorkerBackgroundService>()
 
 let scribanViews =
     let root = Directory.GetCurrentDirectory()
@@ -77,9 +90,11 @@ let main args =
         use_static_files
 
         endpoints
-            [ get "/" Handlers.postsHandler
+            [ get "/{ordering?}" Handlers.postsHandler
               get "/google-signin" Handlers.googleOAuthHandler
               get "/ping" (Response.ofPlainText "pong") ]
+
+        not_found (Response.withStatusCode 404 >> Handlers.scribanViewHandler "404" {|  |})
     }
 
     0

@@ -4,12 +4,12 @@ open System
 open Falco
 open Falco.Middleware
 open ScribanEngine
-open Domain
-open Persistence
 open Microsoft.AspNetCore.Authentication
 open Falco.Security
 open Microsoft.AspNetCore.Authentication.Google
 open FsToolkit.ErrorHandling
+open Marten
+open Data
 
 let scribanViewHandler (view: string) (model: 'a) : HttpHandler =
     withService<IViewEngine> (fun viewEngine -> Response.renderViewEngine viewEngine view model)
@@ -19,42 +19,47 @@ let googleOAuthHandler: HttpHandler =
     Auth.challenge GoogleDefaults.AuthenticationScheme authenticationProperties
 
 let postsHandler: HttpHandler =
-    let postModel currentUserId post =
-        let userVote =
-            currentUserId
-            |> Option.map (fun userId -> Post.findUserVote userId post)
-            |> Option.flatten
-            |> Option.map (fun vote -> vote.VoteType)
-
-        let upvoted = userVote = Some VoteType.Positive
-        let downvoted = userVote = Some VoteType.Negative
-
-        {| headline = post.Headline
-           link = post.Link
-           score = Post.calculateScore post
-           author = Post.authorName post
-           upvoted = upvoted
-           downvoted = downvoted |}
-
-    let handler (dbConnectionFactory: DbConnectionFactory) : HttpHandler =
+    let handler (querySession: IQuerySession) : HttpHandler =
         fun ctx ->
             task {
-                let queryReader = Request.getQuery ctx
-                let searchQuery = queryReader.GetString("search", "")
+                let routeValues = Request.getRoute ctx
+                let queryParams = Request.getQuery ctx
 
-                use connection = dbConnectionFactory ()
+                let ordering =
+                    match routeValues.GetString("ordering", "") with
+                    | ordering when String.Equals("top", ordering, StringComparison.OrdinalIgnoreCase) -> TopScore
+                    | _ -> Latest
 
-                let getPostsFunction =
-                    if String.IsNullOrWhiteSpace searchQuery then
-                        getPostsAsync
-                    else
-                        searchPostsAsync $"%%{searchQuery}%%"
+                let searchQuery =
+                    match queryParams.GetString("search", "") with
+                    | "" -> None
+                    | value -> Some value
 
-                return!
-                    connection
-                    |> getPostsFunction
-                    |> Task.map (Seq.map (postModel None)) // todo
-                    |> Task.map (fun postModels -> scribanViewHandler "index" {| posts = postModels |} ctx)
+                let page = queryParams.GetInt("page", 1)
+                let pageSize = Math.Min(50, queryParams.GetInt("pageSize", 50))
+
+                let criteria =
+                    { Ordering = ordering
+                      SearchQuery = searchQuery
+                      Page = page
+                      PageSize = pageSize }
+
+                let! queryResults = getPostsAsync criteria querySession
+
+                let postModels =
+                    queryResults
+                    |> Seq.map (fun (post, author) ->
+                        {| headline = post.Headline
+                           link = post.Link
+                           score = post.Score
+                           upvoted = false
+                           downvoted = false
+                           author =
+                            author
+                            |> Option.map (fun user -> user.Username)
+                            |> Option.defaultValue "automated bot, probably." |})
+
+                do! scribanViewHandler "index" {| posts = postModels |} ctx
             }
 
-    withService<DbConnectionFactory> handler
+    withService handler

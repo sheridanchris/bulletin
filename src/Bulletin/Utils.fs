@@ -1,6 +1,10 @@
 [<AutoOpen>]
 module Utils
 
-let fst3 (x, _, _) = x
-let snd3 (_, x, _) = x
-let third (_, _, x) = x
+open System.Collections.Generic
+open FsToolkit.ErrorHandling
+
+module Dictionary =
+    let tryFindValue (key: 'key) (dict: Dictionary<'key, 'value>) =
+        let _, value = dict.TryGetValue(key)
+        value |> Option.ofNull
