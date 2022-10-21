@@ -17,6 +17,8 @@ open Microsoft.FSharp.Quotations
 open Marten.Services
 open Marten.Schema
 open Weasel.Core
+open System.Linq.Expressions
+open System
 
 let configuration = configuration [||] { add_env }
 
@@ -32,6 +34,9 @@ let googleOptions: GoogleOptions -> unit =
         googleOptions.SaveTokens <- true
         googleOptions.CallbackPath <- "/google-callback"
 
+let fullTextIndex (mappingExp: Marten.MartenRegistry.DocumentMappingExpression<_>, [<ParamArray>] expressions) =
+    mappingExp.FullTextIndex(``expressions`` = expressions)
+
 let configureServices (views: Map<string, Template>) (serviceCollection: IServiceCollection) =
     serviceCollection
         .AddAuthentication(authenticationOptions)
@@ -41,20 +46,14 @@ let configureServices (views: Map<string, Template>) (serviceCollection: IServic
 
     serviceCollection.AddMarten(fun (options: StoreOptions) ->
         options.Connection(configuration.GetConnectionString("Postgresql"))
-        // options.RegisterDocumentType<User>()
-        // options.RegisterDocumentType<Post>()
-        // options.RegisterDocumentType<Vote>()
-        // options.RegisterDocumentType<Comment>()
 
-        // options.Policies.AllDocumentsSoftDeleted() |> ignore
-
-        options
-            .Schema
-            .For<Post>()
-            .ForeignKey<User>(fun post -> post.AuthorId)
-            .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
-            .UniqueIndex(UniqueIndexType.Computed, Lambda.ofArity1 <@ fun post -> box post.Link @>)
-        |> ignore
+        let doc =
+            options
+                .Schema
+                .For<Post>()
+                .ForeignKey<User>(fun post -> post.AuthorId)
+                .FullTextIndex(exp (fun post -> box post.Headline))
+                .UniqueIndex(UniqueIndexType.Computed, Lambda.ofArity1 <@ fun post -> box post.Link @>)
 
         options.Schema.For<Comment>().ForeignKey<User>(fun comment -> comment.AuthorId)
         |> ignore
@@ -90,7 +89,7 @@ let main args =
         use_static_files
 
         endpoints
-            [ get "/{ordering?}" Handlers.postsHandler
+            [ get "/{ordering?}" (Middleware.withService<IQuerySession> Handlers.postsHandler)
               get "/google-signin" Handlers.googleOAuthHandler
               get "/ping" (Response.ofPlainText "pong") ]
 
