@@ -52,7 +52,7 @@ let configureServices (views: Map<string, Template>) (serviceCollection: IServic
                 .Schema
                 .For<Post>()
                 .ForeignKey<User>(fun post -> post.AuthorId)
-                .FullTextIndex(exp (fun post -> box post.Headline))
+                .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
                 .UniqueIndex(UniqueIndexType.Computed, Lambda.ofArity1 <@ fun post -> box post.Link @>)
 
         options.Schema.For<Comment>().ForeignKey<User>(fun comment -> comment.AuthorId)
