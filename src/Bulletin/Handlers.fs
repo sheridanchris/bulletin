@@ -25,15 +25,11 @@ let postsHandler (querySession: IQuerySession) : HttpHandler =
             let queryParams = Request.getQuery ctx
 
             let ordering =
-                match routeValues.GetString("ordering", "") with
-                | ordering when String.Equals("top", ordering, StringComparison.OrdinalIgnoreCase) -> TopScore
+                match routeValues.TryGetString("ordering") with
+                | Some ordering when String.Equals("top", ordering, StringComparison.OrdinalIgnoreCase) -> TopScore
                 | _ -> Latest
 
-            let searchQuery =
-                match queryParams.GetString("search", "") with
-                | "" -> None
-                | value -> Some value
-
+            let searchQuery = queryParams.TryGetString("search")
             let page = queryParams.GetInt("page", 1)
             let pageSize = Math.Min(50, queryParams.GetInt("pageSize", 50))
 
