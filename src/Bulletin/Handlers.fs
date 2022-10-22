@@ -29,15 +29,11 @@ let postsHandler (querySession: IQuerySession) : HttpHandler =
                 | Some ordering when String.Equals("top", ordering, StringComparison.OrdinalIgnoreCase) -> TopScore
                 | _ -> Latest
 
-            let searchQuery = queryParams.TryGetString("search")
-            let page = queryParams.GetInt("page", 1)
-            let pageSize = Math.Min(50, queryParams.GetInt("pageSize", 50))
-
             let criteria =
                 { Ordering = ordering
-                  SearchQuery = searchQuery
-                  Page = page
-                  PageSize = pageSize }
+                  SearchQuery = queryParams.TryGetString("search")
+                  Page = queryParams.GetInt("page", 1)
+                  PageSize = Math.Min(50, queryParams.GetInt("pageSize", 50)) }
 
             let! queryResults = getPostsAsync criteria querySession
 
