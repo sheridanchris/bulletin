@@ -47,13 +47,13 @@ let configureServices (views: Map<string, Template>) (serviceCollection: IServic
     serviceCollection.AddMarten(fun (options: StoreOptions) ->
         options.Connection(configuration.GetConnectionString("Postgresql"))
 
-        let doc =
-            options
-                .Schema
-                .For<Post>()
-                .ForeignKey<User>(fun post -> post.AuthorId)
-                .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
-                .UniqueIndex(UniqueIndexType.Computed, Lambda.ofArity1 <@ fun post -> box post.Link @>)
+        options
+            .Schema
+            .For<Post>()
+            .ForeignKey<User>(fun post -> post.AuthorId)
+            .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
+            .UniqueIndex(UniqueIndexType.Computed, (fun post -> box post.Link))
+        |> ignore
 
         options.Schema.For<Comment>().ForeignKey<User>(fun comment -> comment.AuthorId)
         |> ignore

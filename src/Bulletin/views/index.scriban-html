@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+    <title>📰 Bulletin</title>
+</head>
+
+<body>
+    <header>
+        <h1>📰 Bulletin</h1>
+    </header>
+    <article>
+        {{ for post in posts }}
+        <div class="post-wrapper">
+            <div class="post-voting">
+                <button class="post-upvote{{ post.upvoted ? ' selected' : '' }}">▲</button>
+                <button class="post-downvote{{ post.downvoted ? ' selected' : '' }}">▼</button>
+            </div>
+            <div class="post">
+                <span class="post-headline"><a href="{{ post.link }}">{{ post.headline }}</a></span>
+                <span class="post-details">{{ post.score }} points by {{ post.author }}</span>
+            </div>
+        </div>
+        {{ end }}
+
+        {{ if has_previous_page }}
+        <a href="javascript:setPage({{ page - 1 }})">Previous</a>
+        {{ end }}
+
+        {{~ for page in 1..pages ~}}
+        <a href="javascript:setPage({{ page }})" style="{{ page == current_page ? 'color: green;' : 'text-decoration: none;' }}">{{ page }}</a>
+        {{~ end ~}}
+
+        {{ if has_next_page }}
+        <a href="javascript:setPage({{ page + 1 }})">Next</a>
+        {{ end }}
+    </article>
+    <footer>
+        <a href="/google-signin">Login with Google</a>
+    </footer>
+</body>
+</html>

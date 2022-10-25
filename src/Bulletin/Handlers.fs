@@ -35,10 +35,8 @@ let postsHandler (querySession: IQuerySession) : HttpHandler =
                   Page = queryParams.GetInt("page", 1)
                   PageSize = Math.Min(50, queryParams.GetInt("pageSize", 50)) }
 
-            let! queryResults = getPostsAsync criteria querySession
-
-            let postModels =
-                queryResults
+            let postModels (paginatedResults: Paginated<Post * User option>) =
+                paginatedResults.Items
                 |> Seq.map (fun (post, author) ->
                     {| headline = post.Headline
                        link = post.Link
@@ -50,5 +48,15 @@ let postsHandler (querySession: IQuerySession) : HttpHandler =
                         |> Option.map (fun user -> user.Username)
                         |> Option.defaultValue "automated bot, probably." |})
 
-            do! scribanViewHandler "index" {| posts = postModels |} ctx
+            let! queryResults = getPostsAsync criteria querySession
+            let models = postModels queryResults
+
+            let responseModel =
+                {| posts = models
+                   current_page = queryResults.CurrentPage
+                   has_next_page = queryResults.HasNextPage
+                   has_previous_page = queryResults.HasPreviousPage
+                   pages = queryResults.PageCount |}
+
+            do! scribanViewHandler "index" responseModel ctx
         }

@@ -5,7 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Utils.fs" />
-    <Compile Include="Marten.FSharp.fs" />
     <Compile Include="Data.fs" />
     <Compile Include="ScribanEngine.fs" />
     <Compile Include="Handlers.fs" />
@@ -17,7 +16,7 @@
     <PackageReference Include="FSharp.Data" Version="5.0.2" />
     <PackageReference Include="FsToolKit.ErrorHandling" Version="3.0.0" />
     <PackageReference Include="FsToolKit.ErrorHandling.TaskResult" Version="3.0.0" />
-    <PackageReference Include="Marten" Version="5.10.1" />
+    <PackageReference Include="Marten.FSharp" Version="0.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.9" />
     <PackageReference Include="Scriban" Version="5.5.0" />
   </ItemGroup>

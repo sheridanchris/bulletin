@@ -81,7 +81,8 @@ type RssWorker(querySession: IQuerySession, documentSession: IDocumentSession) =
                         // I could insert posts one at a time because there *should* only be a few updates per poll each time.
                         // (unless we're doing a cold start and reading the entire feed and saving everything)
                         // think about how to solve this while keeping batch inserts??? or maybe not, idk.
-                        do! documentSession |> Session.storeMany posts |> Session.saveChangesAsync
+                        documentSession |> Session.storeMany posts
+                        do! documentSession |> Session.saveChangesTask CancellationToken.None
 
                     do! Task.Delay(pollingTimespan)
             }
