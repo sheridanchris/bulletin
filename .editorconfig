@@ -13,6 +13,7 @@ end_of_line = lf
 
 [*.{fs,fsi,fsx,config}]
 charset = utf-8
+max_line_length=100
 trim_trailing_whitespace = true
 fsharp_keep_max_number_of_blank_lines=1
 fsharp_max_array_or_list_number_of_items=1

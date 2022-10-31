@@ -8,17 +8,13 @@ open Scriban
 open ScribanEngine
 open System.IO
 open Worker
-open Npgsql
 open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Marten
 open Data
-open Microsoft.FSharp.Quotations
 open Marten.Services
 open Marten.Schema
 open Weasel.Core
-open System.Linq.Expressions
-open System
 
 let configuration = configuration [||] { add_env }
 
@@ -34,9 +30,6 @@ let googleOptions: GoogleOptions -> unit =
         googleOptions.SaveTokens <- true
         googleOptions.CallbackPath <- "/google-callback"
 
-let fullTextIndex (mappingExp: Marten.MartenRegistry.DocumentMappingExpression<_>, [<ParamArray>] expressions) =
-    mappingExp.FullTextIndex(``expressions`` = expressions)
-
 let configureServices (views: Map<string, Template>) (serviceCollection: IServiceCollection) =
     serviceCollection
         .AddAuthentication(authenticationOptions)
@@ -46,6 +39,15 @@ let configureServices (views: Map<string, Template>) (serviceCollection: IServic
 
     serviceCollection.AddMarten(fun (options: StoreOptions) ->
         options.Connection(configuration.GetConnectionString("Postgresql"))
+
+        let serializer =
+            new SystemTextJsonSerializer(
+                EnumStorage = EnumStorage.AsString,
+                Casing = Casing.CamelCase
+            )
+
+        // TODO(check out f# serialization) serializer.Customize(fun options -> options.Converters.Add(JsonFSharpConverter()))
+        options.Serializer(serializer)
 
         options
             .Schema

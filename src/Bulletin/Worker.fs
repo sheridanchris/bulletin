@@ -64,7 +64,7 @@ type RssWorker(querySession: IQuerySession, documentSession: IDocumentSession) =
         member _.DoWorkAsync(stoppingToken: CancellationToken) =
             task {
                 while not (stoppingToken.IsCancellationRequested) do
-                    let! latestPost = querySession |> latestPostAsync
+                    let! latestPost = querySession |> DataAccess.latestPostAsync stoppingToken
                     let! results = sources |> List.map (readSourceAsync latestPost) |> Task.WhenAll
 
                     let posts =
@@ -73,10 +73,8 @@ type RssWorker(querySession: IQuerySession, documentSession: IDocumentSession) =
                         |> List.filter (fun posts -> not (List.isEmpty posts))
                         |> List.collect id
 
-                    if not (List.isEmpty posts) then
-                        documentSession |> Session.storeMany posts
-                        do! documentSession |> Session.saveChangesTask CancellationToken.None
-
+                    documentSession |> Session.storeMany posts
+                    do! documentSession |> Session.saveChangesTask stoppingToken
                     do! Task.Delay(pollingTimespan)
             }
 

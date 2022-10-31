@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="Utils.fs" />
     <Compile Include="Data.fs" />
+    <Compile Include="DataAccess.fs" />
     <Compile Include="ScribanEngine.fs" />
     <Compile Include="Handlers.fs" />
     <Compile Include="Worker.fs" />
@@ -14,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Falco" Version="4.0.0-beta2" />
     <PackageReference Include="FSharp.Data" Version="5.0.2" />
+    <PackageReference Include="FSharp.SystemTextJson" Version="1.0.6" />
     <PackageReference Include="FsToolKit.ErrorHandling" Version="3.0.0" />
     <PackageReference Include="FsToolKit.ErrorHandling.TaskResult" Version="3.0.0" />
     <PackageReference Include="Marten.FSharp" Version="0.6.0" />
