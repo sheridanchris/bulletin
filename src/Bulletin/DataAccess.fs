@@ -7,16 +7,22 @@ open Marten
 open Marten.Pagination
 open FsToolkit.ErrorHandling
 open Data
+open System.Linq
 
-type PostOrdering =
+type Ordering =
+    | Top
     | Latest
-    | TopScore
+    | Oldest
 
 type PostCriteria =
-    { Ordering: PostOrdering
+    { Ordering: Ordering
       SearchQuery: string option
       Page: int
       PageSize: int }
+
+type CommentsCriteria =
+    { PostId: Guid
+      Ordering: Ordering }
 
 type Paginated<'a> =
     { Items: 'a seq
@@ -39,12 +45,9 @@ let getPostsAsync
     (querySession: IQuerySession)
     =
     task {
-        let join (users: Dictionary<Guid, User>) (posts: IPagedList<Post>) =
+        let createPaginatedPost (posts: IPagedList<Post>) =
             let author post =
-                post.AuthorId
-                |> Option.ofNullable
-                |> Option.map (fun authorId -> Dictionary.tryFindValue authorId users)
-                |> Option.flatten
+                post.AuthorName |> Option.defaultValue "automated bot, probably."
 
             { Items = posts |> Seq.map (fun post -> post, author post)
               CurrentPage = posts.PageNumber
@@ -55,22 +58,37 @@ let getPostsAsync
 
         let orderPosts =
             match criteria.Ordering with
+            | Top -> Queryable.orderByDescending <@ fun post -> post.Score @>
             | Latest -> Queryable.orderByDescending <@ fun post -> post.Published @>
-            | TopScore -> Queryable.orderByDescending <@ fun post -> post.Score @>
+            | Oldest -> Queryable.orderBy <@ fun post -> post.Published @>
 
         let filterPosts =
             match criteria.SearchQuery with
             | None -> id
             | Some query -> Queryable.filter <@ fun post -> post.Headline.PhraseSearch(query) @>
 
-        let users = Dictionary<Guid, User>()
-
         return!
             querySession
             |> Session.query<Post>
-            |> Queryable.includeDict <@ fun post -> post.AuthorId @> users
             |> filterPosts
             |> orderPosts
             |> Queryable.pagedListTask criteria.Page criteria.PageSize cancellationToken
-            |> Task.map (join users)
+            |> Task.map createPaginatedPost
     }
+
+let getCommentsAsync
+    (criteria: CommentsCriteria)
+    (cancellationToken: CancellationToken)
+    (querySession: IQuerySession)
+    =
+    let orderComments: IQueryable<Comment> -> IOrderedQueryable<Comment> =
+        match criteria.Ordering with
+        | Top -> Queryable.orderByDescending <@ fun comment -> comment.Score @>
+        | Latest -> Queryable.orderByDescending <@ fun comment -> comment.Published @>
+        | Oldest -> Queryable.orderBy <@ fun comment -> comment.Published @>
+
+    querySession
+    |> Session.query<Comment>
+    |> Queryable.filter <@ fun comment -> comment.PostId = criteria.PostId @>
+    |> orderComments
+    |> Queryable.pagedListTask 1 100 cancellationToken

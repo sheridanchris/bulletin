@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+    <title>📰 Bulletin</title>
+</head>
+
+<body>
+    <header>
+        <h1>📰 Bulletin</h1>
+    </header>
+    <article>
+        <p>Comments</p>
+        {{ func render(comments) }}
+            {{ for comment in comments }}
+            <div class="comment">
+                <p style="margin-left: {{ comment.depth * 20 }}px;">{{ comment.text }}</p>
+                <span class="comment-info">Posted by {{ comment.author }} {{ comment.published }} ago</span>
+                {{ if (comment.children | array.size) > 0 }}
+                <div class="replies">
+                    {{ render comment.children }}
+                </div>
+                {{ end }}
+            </div>
+            {{ end }}
+        {{ end }}
+
+        <div class="comment-list">
+            {{ render comments }}
+        </div>
+    </article>
+    <footer>
+        <a href="/google-signin">Login with Google</a>
+    </footer>
+</body>
+</html>

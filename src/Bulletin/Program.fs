@@ -15,6 +15,7 @@ open Data
 open Marten.Services
 open Marten.Schema
 open Weasel.Core
+open System.Text.Json.Serialization
 
 let configuration = configuration [||] { add_env }
 
@@ -46,18 +47,21 @@ let configureServices (views: Map<string, Template>) (serviceCollection: IServic
                 Casing = Casing.CamelCase
             )
 
-        // TODO(check out f# serialization) serializer.Customize(fun options -> options.Converters.Add(JsonFSharpConverter()))
+        serializer.Customize(fun options -> options.Converters.Add(JsonFSharpConverter()))
         options.Serializer(serializer)
 
         options
             .Schema
             .For<Post>()
-            .ForeignKey<User>(fun post -> post.AuthorId)
             .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
             .UniqueIndex(UniqueIndexType.Computed, (fun post -> box post.Link))
         |> ignore
 
-        options.Schema.For<Comment>().ForeignKey<User>(fun comment -> comment.AuthorId)
+        options
+            .Schema
+            .For<Comment>()
+            .ForeignKey<User>(fun comment -> comment.AuthorId)
+            .ForeignKey<Post>(fun post -> post.PostId)
         |> ignore
 
         options.Schema.For<Vote>().ForeignKey<User>(fun vote -> vote.VoterId) |> ignore)
@@ -91,11 +95,12 @@ let main args =
         use_static_files
 
         endpoints
-            [ get "/{ordering?}" (Middleware.withService<IQuerySession> Handlers.postsHandler)
+            [ get "/{ordering?}" (Middleware.withService Handlers.postsHandler)
+              get "/{postId}/comments" (Middleware.withService Handlers.commentsHandler)
               get "/google-signin" Handlers.googleOAuthHandler
               get "/ping" (Response.ofPlainText "pong") ]
 
-        not_found (Response.withStatusCode 404 >> Handlers.scribanViewHandler "404" {|  |})
+    // not_found (Response.withStatusCode 404 >> Response.ofHtmlString "404.html")
     }
 
     0

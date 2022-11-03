@@ -2,9 +2,7 @@ module Data
 
 open System
 
-type User =
-    { Id: Guid
-      Username: string }
+type User = { Id: string } // TODO: Id = username, need to evaluate tradeoffs.
 
 type VoteType =
     | Positive = 1
@@ -13,13 +11,17 @@ type VoteType =
 type Vote =
     { Id: Guid
       VoteType: VoteType
-      VoterId: Guid }
+      VoterId: string }
 
 type Comment =
     { Id: Guid
       Text: string
-      AuthorId: Guid
-      Subcomments: Comment list
+      Deleted: bool
+      PostId: Guid
+      AuthorId: string
+      Published: DateTime
+      Children: Comment list // TODO: Do I want to load them all at once?
+      Score: int
       Votes: Vote list }
 
 type Post =
@@ -27,7 +29,11 @@ type Post =
       Headline: string
       Published: DateTime
       Link: string
-      AuthorId: Guid Nullable
+
+      // this is a workaround
+      // this is a foreign key... BUT, optional foreign key's don't work with Marten
+      // AND strings can't be `Nullable<_>` afaik
+      AuthorName: string option
+
       Votes: Vote list
-      Score: int // is this required?
-      Comments: Comment list }
+      Score: int } // is this required?

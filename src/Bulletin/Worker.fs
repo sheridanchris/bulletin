@@ -22,14 +22,13 @@ let sources =
 
 let toDateTime (offset: DateTimeOffset) = offset.UtcDateTime
 
-let toPostView (item: RSS.Item) =
+let toPost (item: RSS.Item) =
     { Id = Guid.NewGuid()
       Headline = item.Title
       Published = toDateTime item.PubDate.Value
       Link = item.Link
-      AuthorId = None |> Option.toNullable // TODO: Any way to use an option here instead of nullable?
+      AuthorName = None
       Votes = []
-      Comments = []
       Score = 0 }
 
 let filterSource (latest: DateTime option) (post: Post) =
@@ -47,7 +46,7 @@ let readSourceAsync (latest: DateTime option) (source: string) =
                 rss.Channel.Items
                 |> Array.distinctBy (fun item -> item.Guid) // idk?
                 |> Array.filter (fun item -> Option.isSome item.PubDate)
-                |> Array.map toPostView
+                |> Array.map toPost
                 |> Array.filter (filterSource latest)
                 |> Array.toList
             | Choice2Of2 ex ->
