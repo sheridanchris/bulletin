@@ -8,7 +8,7 @@ open System
 open Data
 open FsToolkit.ErrorHandling
 open Marten
-open Marten.Linq
+open DataAccess
 open Microsoft.Extensions.DependencyInjection
 
 type RSS = XmlProvider<"http://rss.cnn.com/rss/cnn_topstories.rss">
@@ -63,7 +63,7 @@ type RssWorker(querySession: IQuerySession, documentSession: IDocumentSession) =
         member _.DoWorkAsync(stoppingToken: CancellationToken) =
             task {
                 while not (stoppingToken.IsCancellationRequested) do
-                    let! latestPost = querySession |> DataAccess.latestPostAsync stoppingToken
+                    let! latestPost = querySession |> latestPostAsync stoppingToken
                     let! results = sources |> List.map (readSourceAsync latestPost) |> Task.WhenAll
 
                     let posts =
@@ -72,7 +72,13 @@ type RssWorker(querySession: IQuerySession, documentSession: IDocumentSession) =
                         |> List.filter (fun posts -> not (List.isEmpty posts))
                         |> List.collect id
 
-                    documentSession |> Session.storeMany posts
+                    let urls = posts |> List.map (fun post -> post.Link) |> ResizeArray
+                    let! urlsInDb = querySession |> findPostsByUrls urls stoppingToken
+
+                    let distinctPosts =
+                        posts |> List.filter (fun post -> not (List.contains post.Link urlsInDb))
+
+                    documentSession |> Session.storeMany distinctPosts
                     do! documentSession |> Session.saveChangesTask stoppingToken
                     do! Task.Delay(pollingTimespan)
             }

@@ -39,6 +39,18 @@ let latestPostAsync (cancellationToken: CancellationToken) (querySession: IQuery
     |> Queryable.tryHeadTask cancellationToken
     |> TaskOption.map (fun post -> post.Published)
 
+let findPostsByUrls
+    (urls: ResizeArray<string>)
+    (cancellationToken: CancellationToken)
+    (querySession: IQuerySession)
+    =
+    querySession
+    |> Session.query<Post>
+    |> Queryable.filter <@ fun post -> urls.Contains(post.Link) @>
+    |> Queryable.toListTask cancellationToken
+    |> Task.map Seq.toList
+    |> Task.map (List.map (fun post -> post.Link))
+
 let getPostsAsync
     (criteria: PostCriteria)
     (cancellationToken: CancellationToken)
