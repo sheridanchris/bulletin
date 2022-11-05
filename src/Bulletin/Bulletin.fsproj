@@ -8,6 +8,7 @@
     <Compile Include="Data.fs" />
     <Compile Include="DataAccess.fs" />
     <Compile Include="ScribanEngine.fs" />
+    <Compile Include="Views.fs" />
     <Compile Include="Handlers.fs" />
     <Compile Include="Worker.fs" />
     <Compile Include="InitialData.fs" />
