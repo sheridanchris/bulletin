@@ -16,6 +16,7 @@ open Marten.Services
 open Marten.Schema
 open Weasel.Core
 open System.Text.Json.Serialization
+open InitialData
 
 let configuration = configuration [||] { add_env }
 
@@ -38,37 +39,41 @@ let configureServices (views: Map<string, Template>) (serviceCollection: IServic
         .AddGoogle(googleOptions)
     |> ignore
 
-    serviceCollection.AddMarten(fun (options: StoreOptions) ->
-        options.Connection(configuration.GetConnectionString("Postgresql"))
+    serviceCollection
+        .AddMarten(fun (options: StoreOptions) ->
+            options.Connection(configuration.GetConnectionString("Postgresql"))
 
-        let serializer =
-            new SystemTextJsonSerializer(
-                EnumStorage = EnumStorage.AsString,
-                Casing = Casing.CamelCase
-            )
+            let serializer =
+                SystemTextJsonSerializer(
+                    EnumStorage = EnumStorage.AsString,
+                    Casing = Casing.CamelCase
+                )
 
-        serializer.Customize(fun options -> options.Converters.Add(JsonFSharpConverter()))
-        options.Serializer(serializer)
+            serializer.Customize(fun options -> options.Converters.Add(JsonFSharpConverter()))
+            options.Serializer(serializer)
 
-        options
-            .Schema
-            .For<Post>()
-            .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
-            .UniqueIndex(UniqueIndexType.Computed, (fun post -> box post.Link))
-        |> ignore
+            options.RegisterDocumentType<NewsSource>()
 
-        options
-            .Schema
-            .For<Comment>()
-            .ForeignKey<User>(fun comment -> comment.AuthorId)
-            .ForeignKey<Post>(fun post -> post.PostId)
-        |> ignore
+            options
+                .Schema
+                .For<Post>()
+                .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
+                .UniqueIndex(UniqueIndexType.Computed, (fun post -> box post.Link))
+            |> ignore
 
-        options.Schema.For<Vote>().ForeignKey<User>(fun vote -> vote.VoterId) |> ignore)
+            options
+                .Schema
+                .For<Comment>()
+                .ForeignKey<User>(fun comment -> comment.AuthorId)
+                .ForeignKey<Post>(fun post -> post.PostId)
+            |> ignore
+
+            options.Schema.For<Vote>().ForeignKey<User>(fun vote -> vote.VoterId) |> ignore)
+        .InitializeWith(InitialData())
     |> ignore
 
     serviceCollection
-        .AddScoped<IViewEngine, ScribanViewEngine>(fun _ -> new ScribanViewEngine(views))
+        .AddScoped<IViewEngine, ScribanViewEngine>(fun _ -> ScribanViewEngine(views))
         .AddScoped<IScopedBackgroundService, RssWorker>()
         .AddHostedService<RssWorkerBackgroundService>()
 
@@ -97,8 +102,7 @@ let main args =
         endpoints
             [ get "/{ordering?}" (Middleware.withService Handlers.postsHandler)
               get "/{postId}/comments" (Middleware.withService Handlers.commentsHandler)
-              get "/google-signin" Handlers.googleOAuthHandler
-              get "/ping" (Response.ofPlainText "pong") ]
+              get "/google-signin" Handlers.googleOAuthHandler ]
 
     // not_found (Response.withStatusCode 404 >> Response.ofHtmlString "404.html")
     }

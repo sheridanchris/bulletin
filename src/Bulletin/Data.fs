@@ -2,7 +2,12 @@ module Data
 
 open System
 
-type User = { Id: string } // TODO: Id = username, need to evaluate tradeoffs.
+type NewsSource =
+    { Id: Guid
+      ShortName: string
+      RssFeed: string }
+
+type User = { Id: string }
 
 type VoteType =
     | Positive = 1

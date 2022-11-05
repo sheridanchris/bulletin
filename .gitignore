@@ -514,3 +514,4 @@ FodyWeavers.xsd
 appsettings.Development.json
 .env
 dev_data
+.idea/

@@ -32,6 +32,11 @@ type Paginated<'a> =
       HasNextPage: bool
       HasPreviousPage: bool }
 
+let getSourcesAsync (cancellationToken: CancellationToken) (querySession: IQuerySession) =
+    querySession
+    |> Session.query<NewsSource>
+    |> Queryable.toListTask cancellationToken
+
 let latestPostAsync (cancellationToken: CancellationToken) (querySession: IQuerySession) =
     querySession
     |> Session.query<Post>

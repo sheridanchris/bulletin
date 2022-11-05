@@ -15,11 +15,6 @@ type RSS = XmlProvider<"http://rss.cnn.com/rss/cnn_topstories.rss">
 
 let pollingTimespan = TimeSpan.FromMinutes(30)
 
-let sources =
-    [ "http://rss.cnn.com/rss/cnn_topstories.rss"
-      "https://feeds.nbcnews.com/nbcnews/public/news"
-      "https://globalnews.ca/feed" ]
-
 let toDateTime (offset: DateTimeOffset) = offset.UtcDateTime
 
 let toPost (item: RSS.Item) =
@@ -36,9 +31,9 @@ let filterSource (latest: DateTime option) (post: Post) =
     | None -> true
     | Some latest -> post.Published > latest
 
-let readSourceAsync (latest: DateTime option) (source: string) =
+let readSourceAsync (latest: DateTime option) (source: NewsSource) =
     task {
-        let! rssResult = RSS.AsyncLoad(source) |> Async.Catch
+        let! rssResult = RSS.AsyncLoad(source.RssFeed) |> Async.Catch
 
         return
             match rssResult with
@@ -62,9 +57,11 @@ type RssWorker(querySession: IQuerySession, documentSession: IDocumentSession) =
     interface IScopedBackgroundService with
         member _.DoWorkAsync(stoppingToken: CancellationToken) =
             task {
-                while not (stoppingToken.IsCancellationRequested) do
+                while not stoppingToken.IsCancellationRequested do
+                    let! sources = querySession |> getSourcesAsync stoppingToken
                     let! latestPost = querySession |> latestPostAsync stoppingToken
-                    let! results = sources |> List.map (readSourceAsync latestPost) |> Task.WhenAll
+
+                    let! results = sources |> Seq.map (readSourceAsync latestPost) |> Task.WhenAll
 
                     let posts =
                         results
