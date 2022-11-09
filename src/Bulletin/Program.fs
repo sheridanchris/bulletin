@@ -1,5 +1,4 @@
-﻿open Logger
-open Microsoft.Extensions.DependencyInjection
+﻿open Microsoft.Extensions.DependencyInjection
 open Microsoft.AspNetCore.Authentication.Google
 open Microsoft.Extensions.Configuration
 open Falco

@@ -15,7 +15,9 @@ let scribanViewHandler (view: string) (model: 'a) : HttpHandler =
     Services.inject<IViewEngine> (fun viewEngine -> Response.renderViewEngine viewEngine view model)
 
 let googleOAuthHandler: HttpHandler =
-    let authenticationProperties = AuthenticationProperties(RedirectUri = "/google-redirect")
+    let authenticationProperties =
+        AuthenticationProperties(RedirectUri = "/google-redirect")
+
     Auth.challenge GoogleDefaults.AuthenticationScheme authenticationProperties
 
 let googleRedirect: HttpHandler =
