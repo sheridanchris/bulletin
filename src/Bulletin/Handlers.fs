@@ -2,23 +2,28 @@ module Handlers
 
 open System
 open Falco
-open Falco.Middleware
 open ScribanEngine
 open Microsoft.AspNetCore.Authentication
 open Falco.Security
 open Microsoft.AspNetCore.Authentication.Google
 open FsToolkit.ErrorHandling
 open Marten
-open Data
 open DataAccess
 open System.Threading
 
 let scribanViewHandler (view: string) (model: 'a) : HttpHandler =
-    withService<IViewEngine> (fun viewEngine -> Response.renderViewEngine viewEngine view model)
+    Services.inject<IViewEngine> (fun viewEngine -> Response.renderViewEngine viewEngine view model)
 
 let googleOAuthHandler: HttpHandler =
-    let authenticationProperties = AuthenticationProperties(RedirectUri = "/")
+    let authenticationProperties = AuthenticationProperties(RedirectUri = "/google-redirect")
     Auth.challenge GoogleDefaults.AuthenticationScheme authenticationProperties
+
+let googleRedirect: HttpHandler =
+    fun ctx ->
+        task {
+            let claims = ctx.User.Claims |> Seq.map (fun claim -> claim.Type, claim.Value)
+            do! Response.ofJson claims ctx
+        }
 
 let postsHandler (querySession: IQuerySession) : HttpHandler =
     let ordering value =

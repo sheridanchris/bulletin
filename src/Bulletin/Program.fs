@@ -1,4 +1,5 @@
-﻿open Microsoft.Extensions.DependencyInjection
+﻿open Logger
+open Microsoft.Extensions.DependencyInjection
 open Microsoft.AspNetCore.Authentication.Google
 open Microsoft.Extensions.Configuration
 open Falco
@@ -49,10 +50,13 @@ let configureServices (views: Map<string, Template>) (serviceCollection: IServic
                     Casing = Casing.CamelCase
                 )
 
-            serializer.Customize(fun options -> options.Converters.Add(JsonFSharpConverter()))
-            options.Serializer(serializer)
+            // serializer.Customize(fun options -> options.Converters.Add(JsonFSharpConverter()))
+            //options.Serializer(serializer)
 
             options.RegisterDocumentType<NewsSource>()
+            options.RegisterDocumentType<User>()
+            options.RegisterDocumentType<Post>()
+            options.RegisterDocumentType<Comment>()
 
             options
                 .Schema
@@ -100,11 +104,10 @@ let main args =
         use_static_files
 
         endpoints
-            [ get "/{ordering?}" (Middleware.withService Handlers.postsHandler)
-              get "/{postId}/comments" (Middleware.withService Handlers.commentsHandler)
+            [ get "/{ordering?}" (Services.inject Handlers.postsHandler)
+              get "/{postId}/comments" (Services.inject Handlers.commentsHandler)
               get "/google-signin" Handlers.googleOAuthHandler ]
 
-    // not_found (Response.withStatusCode 404 >> Response.ofHtmlString "404.html")
     }
 
     0

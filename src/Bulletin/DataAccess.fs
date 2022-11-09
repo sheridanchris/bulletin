@@ -32,6 +32,14 @@ type Paginated<'a> =
       HasNextPage: bool
       HasPreviousPage: bool }
 
+let toPaginated (mapping: 'a -> 'b) (pagedList: IPagedList<'a>) : Paginated<'b> =
+    { Items = pagedList |> Seq.map mapping
+      CurrentPage = pagedList.PageNumber
+      PageSize = pagedList.PageSize
+      PageCount = pagedList.PageCount
+      HasNextPage = pagedList.HasNextPage
+      HasPreviousPage = pagedList.HasPreviousPage }
+
 let getSourcesAsync (cancellationToken: CancellationToken) (querySession: IQuerySession) =
     querySession
     |> Session.query<NewsSource>
@@ -45,16 +53,14 @@ let latestPostAsync (cancellationToken: CancellationToken) (querySession: IQuery
     |> TaskOption.map (fun post -> post.Published)
 
 let findPostsByUrls
-    (urls: ResizeArray<string>)
+    (links: string[])
     (cancellationToken: CancellationToken)
     (querySession: IQuerySession)
     =
     querySession
     |> Session.query<Post>
-    |> Queryable.filter <@ fun post -> urls.Contains(post.Link) @>
+    |> Queryable.filter <@ fun post -> post.Link.IsOneOf(links) @>
     |> Queryable.toListTask cancellationToken
-    |> Task.map Seq.toList
-    |> Task.map (List.map (fun post -> post.Link))
 
 let getPostsAsync
     (criteria: PostCriteria)
@@ -62,16 +68,9 @@ let getPostsAsync
     (querySession: IQuerySession)
     =
     task {
-        let createPaginatedPost (posts: IPagedList<Post>) =
-            let author post =
-                post.AuthorName |> Option.defaultValue "automated bot, probably."
-
-            { Items = posts |> Seq.map (fun post -> post, author post)
-              CurrentPage = posts.PageNumber
-              PageSize = posts.PageSize
-              PageCount = posts.PageCount
-              HasNextPage = posts.HasNextPage
-              HasPreviousPage = posts.HasPreviousPage }
+        let createPaginatedPost =
+            let defaultAuthorName = "automated bot, probably."
+            toPaginated (fun post -> post, post.AuthorName |> Option.defaultValue defaultAuthorName)
 
         let orderPosts =
             match criteria.Ordering with

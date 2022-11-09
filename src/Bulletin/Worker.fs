@@ -59,21 +59,21 @@ type RssWorker(querySession: IQuerySession, documentSession: IDocumentSession) =
             task {
                 while not stoppingToken.IsCancellationRequested do
                     let! sources = querySession |> getSourcesAsync stoppingToken
-                    let! latestPost = querySession |> latestPostAsync stoppingToken
 
+                    let! latestPost = querySession |> latestPostAsync stoppingToken
                     let! results = sources |> Seq.map (readSourceAsync latestPost) |> Task.WhenAll
 
-                    let posts =
-                        results
-                        |> Array.toList
-                        |> List.filter (fun posts -> not (List.isEmpty posts))
-                        |> List.collect id
+                    let posts = results |> Array.toList |> List.collect id
+                    let links = [| for post in posts -> post.Link |]
 
-                    let urls = posts |> List.map (fun post -> post.Link) |> ResizeArray
-                    let! urlsInDb = querySession |> findPostsByUrls urls stoppingToken
+                    let! urlsInDb =
+                        querySession
+                        |> findPostsByUrls links stoppingToken
+                        |> Task.map (Seq.map (fun post -> post.Link))
 
+                    // TODO: instead of filtering out the post, I should probably set it to `updated`.
                     let distinctPosts =
-                        posts |> List.filter (fun post -> not (List.contains post.Link urlsInDb))
+                        posts |> List.filter (fun post -> not (urlsInDb |> Seq.contains post.Link))
 
                     documentSession |> Session.storeMany distinctPosts
                     do! documentSession |> Session.saveChangesTask stoppingToken

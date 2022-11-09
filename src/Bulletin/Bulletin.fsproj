@@ -15,7 +15,7 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Falco" Version="4.0.0-beta2" />
+    <PackageReference Include="Falco" Version="4.0.0" />
     <PackageReference Include="FSharp.Data" Version="5.0.2" />
     <PackageReference Include="FSharp.SystemTextJson" Version="1.0.6" />
     <PackageReference Include="FsToolKit.ErrorHandling" Version="3.0.0" />
