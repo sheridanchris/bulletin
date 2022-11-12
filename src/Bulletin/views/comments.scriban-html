@@ -5,37 +5,76 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
-    <title>📰 Bulletin</title>
+    <link rel="stylesheet" href="../../comments.css">
+    <link rel="icon" href="../../news.png">
+    <script src="../../script.js"></script>
+    <title>Bulletin</title>
 </head>
 
 <body>
-    <header>
-        <h1>📰 Bulletin</h1>
+    <header class="header">
+        <h1 class="title">Bulletin</h1>
     </header>
-    <article>
-        <p>Comments</p>
+    <article class="container">
+        <h1 class="articleTitle">This is the title of the article.</h1>
+        <div class="comment">
+            <label class="commentUsername">Comment as NAME</label>
+            <form action="postLink">
+                <textarea class="thoughts" spellcheck="false" type="text" id="userThoughts" placeholder="What are your thoughts?" rows="4" cols="50"></textarea>
+                <button class="btnSubmitComment">
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M4,10V14H13L9.5,17.5L11.92,19.92L19.84,12L11.92,4.08L9.5,6.5L13,10H4Z" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+        <!-- Start of the comments -->
         {{ func render(comments) }}
             {{ for comment in comments }}
-            <div class="comment">
-                <p style="margin-left: {{ comment.depth * 20 }}px;">{{ comment.text }}</p>
-                <span class="comment-info">Posted by {{ comment.author }} {{ comment.published }} ago</span>
-                {{ if (comment.children | array.size) > 0 }}
-                <div class="replies">
-                    {{ render comment.children }}
+        <div class="comment-container opened" id="firstComment">
+            <div class="comment-card">
+                <div class="title">
+                    <img class="profilePicture" src="../../account.png" alt="My User Picture" width="25">
+                    <h3 class="commentTitle">{{ comment.author }}</h3>
+                </div>
+                <span class="time">{{ comment.published }} ago</span>
+                <p class="margin-left: {{ comment.depth * 20 }}px;">{{ comment.text }}</p>
+                <div class="commentFooter">
+                    <div class="score">
+                        <span class="addScore" title="Add points">
+                            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                            </svg>
+                        </span>
+                        <span class="minusScore" title="Minus points">
+                            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M19,13H5V11H19V13Z" />
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="addComment" title="Add a reply">
+                        <svg class="replyBtn" style="width:24px;height:24px" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                        </svg>
+                    </div>
+                    <div>Score: 2</div>
+                    <div class="commentReplies">Replies: 2</div>
+                    {{ if (comment.children | array.size) > 0 }}
+                    <div class="replies">
+                        {{ render comment.children }}
+                    </div>
+                    {{ end }}
                 </div>
                 {{ end }}
-            </div>
             {{ end }}
-        {{ end }}
 
-        <div class="comment-list">
-            {{ render comments }}
+            <div>
+                {{ render comments }}
+            </div>
         </div>
     </article>
     <footer>
-        <a href="/google-signin">Login with Google</a>
+        <a class="signin" href="/google-signin">Login with Google</a>
     </footer>
 </body>
 </html>

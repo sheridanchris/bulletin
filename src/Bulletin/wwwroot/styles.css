@@ -1,0 +1,232 @@
+
+:root {
+    --mainTextColor: #FFFFFF;
+    --mainBackgroundColor: #1a1a1a;
+    --hoverUpVote: #00FF00;
+    --hoverDownVote: #E04338;
+    --borderColor: #343434;
+    --linkColor: #00FFFF;
+    --dropdownButtonColor: #04AA6D;
+    --dropdownText: #000000;
+    --dropdownHoverText: #DDDFFF;
+    --dropdownBackgroundColor: #F1F1F1;
+    --dropdownHover: #3E8E41;
+}
+
+body {
+    background-color: var(--mainBackgroundColor);
+    max-width: 1200px;
+    padding: 8px 0;
+    margin: 0 auto;
+    font-size: 16px;
+    font-family: serif;
+    overflow-x: hidden;
+}
+
+html {
+    box-sizing: border-box;
+    height: 100%;
+}
+
+header {
+    padding: 16px 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    color: var(--mainTextColor);
+}
+
+footer {
+    position: relative;
+    left: 40%;
+}
+
+.container {
+    max-width: 1200px;
+    padding: 1em;
+}
+
+.btnDropdown {
+    background-color: var(--dropdownButtonColor);
+    color: var(--mainTextColor);
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    position: relative;
+    left: 445px;
+    top: 50px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdownContent {
+    display: none;
+    position: absolute;
+    left: 400px;
+    top: 100px;
+    background-color: var(--dropdownBackgroundColor);
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    border-radius: 10px;
+}
+
+.dropdownContent a{
+    color: var(--dropdownText);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdownContent a:hover {
+    background-color: var(--dropdownHoverText);
+    border-radius: 10px;
+}
+
+.dropdown:hover .dropdownContent {
+    display: block;
+}
+
+.dropdown:hover .btnDropdown {
+    background-color: var(--dropdownHover);
+    cursor: pointer;
+}
+
+.post-wrapper,
+.post-voting,
+.post {
+    display: flex;
+}
+
+.post-wrapper:first-of-type {
+    border-top: var(--borderColor) 1px solid;
+}
+
+.post-wrapper:last-of-type {
+    border-bottom: var(--borderColor) 1px solid;
+}
+
+.post-wrapper {
+    flex-direction: column;
+    padding: 8px;
+    gap: 16px;
+}
+
+.post-voting {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.post-voting button {
+    background: none;
+    border: none;
+    color: var(--mainTextColor);
+    cursor: pointer;
+    height: 16px;
+}
+
+.post-up {
+    position: relative;
+    right: 53%;
+    top: 40px;
+}
+
+.post-up:hover {
+    color: var(--hoverUpVote);
+}
+
+.post-down {
+    position: relative;
+    right: 53%;
+    top: 40px;
+}
+
+.post-down:hover {
+    color: var(--hoverDownVote);
+}
+
+.post {
+    flex-direction: column;
+}
+
+.post-headline {
+    font-weight: bold;
+}
+
+.post-headline a {
+    color: #5DB0D7;
+    text-decoration: none;
+}
+
+.post-details {
+    font-size: 0.8rem;
+    color: #848484;
+}
+
+.comments {
+    color: var(--linkColor);
+}
+
+.pagination a {
+    background-color: transparent;
+    border: none;
+    color: var(--mainTextColor);
+    padding: 0 5px;
+    position: relative;
+    left: 39%;
+}
+
+.right-arrow {
+    position: relative;
+    top: 5px;
+}
+
+.left-arrow {
+    position: relative;
+    top: 5px;
+}
+
+.firstPageBtn:hover,
+.secondPageBtn:hover,
+.thirdPageBtn:hover,
+.right-arrow:hover,
+.left-arrow:hover {
+    color: var(--linkColor);
+    cursor: pointer;
+}
+
+.signin {
+    color: var(--linkColor);
+}
+
+@media (max-width: 800px) {
+    .container {
+        padding: 1em;
+    }
+    .btnDropdown {
+        display: none;
+    }
+    .post {
+        position: relative;
+        left: 10px;
+        bottom: 10px;
+    }
+}
+
+@media (max-width: 900px) {
+    .container {
+        padding: 1em;
+    }
+    .btnDropdown {
+        display: none;
+    }
+    .posts {
+        position: relative;
+        left: 100px;
+    }
+}
