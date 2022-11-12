@@ -1,0 +1,257 @@
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --mainTextColor: #FFFFFF;
+    --mainBackgroundColor: #1a1a1a;
+    --hoverUpVote: #00FF00;
+    --hoverDownVote: #E04338;
+    --borderColor: #343434;
+    --linkColor: #00FFFF;
+    --hoverColor: #DDDFFF;
+}
+
+html {
+    font-size: 16px;
+    min-height: 100%;
+}
+
+body {
+    background-color: var(--mainBackgroundColor);
+    max-width: 1200px;
+    padding: 8px 0;
+    margin: 0 auto;
+    font-size: 16px;
+    font-family: serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+html {
+    box-sizing: border-box;
+    height: 100%;
+}
+
+header {
+    padding: 16px 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    color: var(--mainTextColor);
+}
+
+footer {
+    position: relative;
+    left: 40%;
+}
+
+.container {
+    padding: 1em;
+    border: var(--borderColor) 1px solid;
+    border-radius: 10px;
+    color: var(--mainTextColor);
+    width: min(90%, 1140px);
+    margin: 3rem auto;
+    position: relative;
+    left: 10px;
+}
+
+.articleTitle {
+    text-align: center;
+    position: relative;
+    bottom: 10px;
+}
+
+.commentUsername {
+    position: relative;
+    left: 32%;
+}
+
+.thoughts {
+    resize: none;
+    position: relative;
+    left: 31.5%;
+    background-color: transparent;
+    border-radius: 10px;
+    text-align: center;
+    color: var(--mainTextColor);
+}
+
+.btnSubmitComment {
+    position: relative;
+    left: 340px;
+    bottom: 20px;
+    background: transparent;
+    border: none;
+    border-radius: 25%;
+    color: var(--mainTextColor);
+}
+
+.btnSubmitComment:hover {
+    color: var(--hoverColor);
+    cursor: pointer;
+}
+
+.comment-container {
+    display: none;
+    position: relative;
+}
+
+.title {
+    display: flex;
+    flex-direction: row;
+}
+
+.commentTitle {
+    padding-left: 10px;
+}
+
+.addComment:hover {
+    color: var(--hoverColor);
+    cursor: pointer;
+}
+
+.comment-container.opened {
+    display: block;
+}
+
+.comment {
+    position:static;
+    right: 100px;
+}
+
+.comment-container::before {
+    content: "";
+    background-color: #585858;
+    position: absolute;
+    min-height: 100%;
+    width: 1px;
+    left: -10px;
+}
+
+.comment-container:not(:first-child) {
+    margin-left: 3rem;
+    margin-top: 1rem;
+}
+
+.comment-card {
+    padding: 20px;
+    background-color: #1a1a1a;
+    border: 1px solid rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    min-width: 100%;
+    box-shadow: 0 0 30px rgba(5, 5, 5, 0.3);
+}
+
+.comment-card a, .comment-card p {
+    margin-bottom: 1rem;
+}
+
+.commentFooter {
+    display: flex;
+    font-size: medium;
+    opacity: .6;
+    gap: 30px;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    top: 10px;
+}
+
+.commentFooter span {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.score {
+    width: 100%;
+}
+
+.addScore:hover,
+.minusScore:hover {
+    color: var(--hoverColor);
+    cursor: pointer;
+}
+
+.commentReplies {
+    cursor: pointer;
+}
+
+.time {
+    display: flex;
+    margin-right: 10px;
+}
+
+.repliedAt {
+    position: relative;
+    top: 45px;
+    right: 10px;
+}
+
+.pagination a {
+    background-color: transparent;
+    border: none;
+    color: var(--mainTextColor);
+    padding: 0 5px;
+    position: relative;
+    left: 42%;
+}
+
+.right-arrow {
+    position: relative;
+    top: 5px;
+}
+
+.left-arrow {
+    position: relative;
+    top: 5px;
+}
+
+.firstPageBtn:hover,
+.secondPageBtn:hover,
+.thirdPageBtn:hover,
+.right-arrow:hover,
+.left-arrow:hover {
+    color: var(--linkColor);
+    cursor: pointer;
+}
+
+.signin {
+    color: var(--linkColor);
+    position: relative;
+    left: 50px;
+}
+
+.copyright {
+    color: var(--linkColor);
+    position: relative;
+    right: 145px;
+    top: 35px;
+    text-decoration: none;
+    letter-spacing: 5px;
+}
+
+@media (max-width: 800px) {
+
+    .container {
+        position: relative;
+        left: -2px;
+    }
+
+    .comment-container {
+        position: relative;
+        left: -21px;
+    }
+    
+    .signin {
+        position: relative;
+        left: -20px;
+    }
+}
+
+@media (max-width: 600px){
+    /* Add query for 600px devices */
+}

@@ -5,17 +5,81 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="news.png">
     <script src="script.js"></script>
     <title>📰 Bulletin</title>
 </head>
 
 <body>
-    <header>
-        <h1>📰 Bulletin</h1>
+    <header class="header">
+        <h1 class="title">📰 Bulletin</h1>
+        <div class="dropdown">
+            <button class="btnDropdown">Sort by...  ▼</button>
+            <div class="dropdownContent">
+                <a href="#">Oldest</a>
+                <a href="#">Newest</a>
+                <a href="#">Top Score</a>
+            </div>
+        </div>
     </header>
-    <article>
+    <article class="container">
         {{ for post in posts }}
+        <div class="post-wrapper">
+            <div class="posts">
+                <div class="post-voting">
+                    <button class="post-up">▲</button>
+                    <button class="post-down">▼</button>
+                </div>
+                <div class="post">
+                    <span class="post-headline">
+                        <a href="{{ post.link }}">{{ post.headline }}</a>
+                    </span>
+                    <a class="comments" href="/{{ post.id }}/comments">Comments</a>
+                    <span class="post-details">{{ post.score }} points, posted by {{ post.author }} {{ post.published }} ago</span>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+
+        <div class="pagination">
+            <a class="left-arrow" href="javascript:setPage({{ page - 1 }})">
+                <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M10.05 16.94V12.94H18.97L19 10.93H10.05V6.94L5.05 11.94Z" />
+                </svg>
+            </a>
+
+            {{~ for page in 1..pages ~}}
+            <a href="javascript:setPage({{ page }})" style="{{ page == current_page ? 'color: green;' : 'text-decoration: none;' }}">{{ page }}</a>
+            {{~ end ~}}
+
+            {{ if has_next_page }}
+            <a class="right-arrow" href="javascript:setPage({{ page + 1 }})">
+                <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M14 16.94V12.94H5.08L5.05 10.93H14V6.94L19 11.94Z" />
+                </svg>
+            </a>
+            {{ end }}
+        </div>
+
+        <!-- {{ if has_previous_page }}
+        <a href="javascript:setPage({{ page - 1 }})">Previous</a>
+        {{ end }}
+
+        {{~ for page in 1..pages ~}}
+        <a href="javascript:setPage({{ page }})"
+            style="{{ page == current_page ? 'color: green;' : 'text-decoration: none;' }}">{{ page }}</a>
+        {{~ end ~}}
+
+        {{ if has_next_page }}
+        <a href="javascript:setPage({{ page + 1 }})">Next</a>
+        {{ end }} -->
+
+        <footer class='signin'>
+            <a href="/google-signin">Login with Google</a>
+        </footer>
+    </article>
+        <!-- {{ for post in posts }}
         <div class="post-wrapper">
             <div class="post-voting">
                 <button class="post-upvote{{ post.upvoted ? ' selected' : '' }}">▲</button>
@@ -45,7 +109,7 @@
     </article>
     <footer>
         <a href="/google-signin">Login with Google</a>
-    </footer>
+    </footer> -->
 </body>
 
 </html>
