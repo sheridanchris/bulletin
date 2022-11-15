@@ -32,14 +32,26 @@ let newsSources: NewsSource list = [
 
   {
     Id = Guid.NewGuid()
-    ShortName = "Reuters"
-    RssFeed = "https://cdn.feedcontrol.net/8/1114-wioSIX3uu8MEj.xml"
+    ShortName = "GlobalNews CA"
+    RssFeed = "https://globalnews.ca/feed"
   }
 
   {
     Id = Guid.NewGuid()
-    ShortName = "GlobalNews CA"
-    RssFeed = "https://globalnews.ca/feed"
+    ShortName = "BBC"
+    RssFeed = "http://feeds.bbci.co.uk/news/rss.xml"
+  }
+
+  {
+    Id = Guid.NewGuid()
+    ShortName = "The Guardian"
+    RssFeed = "https://www.theguardian.com/us/rss"
+  }
+
+  {
+    Id = Guid.NewGuid()
+    ShortName = "CNBC"
+    RssFeed = "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"
   }
 ]
 

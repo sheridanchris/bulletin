@@ -25,4 +25,5 @@ type Post =
     Published: DateTime
     Link: string
     AuthorName: string option
-    Score: int }
+    Score: int
+    FeedName: string }

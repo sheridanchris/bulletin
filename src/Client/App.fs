@@ -104,7 +104,7 @@ let Post (post: PostModel) =
               Html.p [
                 prop.className "text-sm"
                 prop.text
-                  $"{post.Score} votes • Posted by {post.Author |> Option.defaultValue author} {post.PublishedAt} ago • 0 comments"
+                  $"{post.Score} votes • Posted by {post.Author |> Option.defaultValue author} {post.PublishedAt} ago • Source: {post.Source}"
               ]
             ]
           ]

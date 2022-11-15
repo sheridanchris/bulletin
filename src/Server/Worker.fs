@@ -17,13 +17,14 @@ let pollingTimespan = TimeSpan.FromMinutes(30)
 
 let toDateTime (offset: DateTimeOffset) = offset.UtcDateTime
 
-let toPost (item: RSS.Item) = {
+let toPost (shortName: string) (item: RSS.Item) = {
   Id = Guid.NewGuid()
   Headline = item.Title
   Published = item.PubDate |> Option.defaultValue DateTimeOffset.UtcNow |> toDateTime
   Link = item.Link
   AuthorName = None
   Score = 0
+  FeedName = shortName
 }
 
 let filterSource (latest: DateTime option) (post: Post) =
@@ -39,7 +40,7 @@ let readSourceAsync (latest: DateTime option) (source: NewsSource) = task {
     | Choice1Of2 rss ->
       rss.Channel.Items
       |> Array.distinctBy (fun item -> item.Link)
-      |> Array.map toPost
+      |> Array.map (toPost source.ShortName)
       |> Array.filter (filterSource latest)
       |> Array.toList
     | Choice2Of2 ex ->

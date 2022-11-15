@@ -31,6 +31,7 @@ let toPostModel (upvoted: bool) (downvoted: bool) (post: Post) : PostModel =
     Score = post.Score
     Upvoted = upvoted
     Downvoted = downvoted
+    Source = post.FeedName
   }
 
 let getPosts (querySession: IQuerySession) (context: HttpContext) (getPostsModel: GetPostsModel) = task {

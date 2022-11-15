@@ -29,6 +29,7 @@ type PostModel = {
   Score: int
   Upvoted: bool
   Downvoted: bool
+  Source: string
 }
 
 type Paginated<'a> = {
