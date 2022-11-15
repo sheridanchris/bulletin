@@ -61,16 +61,3 @@ let getPostVotesAsync
   |> Session.query<PostVote>
   |> Queryable.filter <@ fun vote -> vote.PostId.IsOneOf(postIds) && vote.VoterId = userId @>
   |> Queryable.toListTask cancellationToken
-
-// let getCommentsAsync (criteria: GetCommentsModel) (cancellationToken: CancellationToken) (querySession: IQuerySession) =
-//   let orderComments: IQueryable<Comment> -> IOrderedQueryable<Comment> =
-//     match criteria.Ordering with
-//     | Top -> Queryable.orderByDescending <@ fun comment -> comment.Score @>
-//     | Latest -> Queryable.orderByDescending <@ fun comment -> comment.Published @>
-//     | Oldest -> Queryable.orderBy <@ fun comment -> comment.Published @>
-//
-//   querySession
-//   |> Session.query<Comment>
-//   |> Queryable.filter <@ fun comment -> comment.PostId = criteria.PostId @>
-//   |> orderComments
-//   |> Queryable.pagedListTask 1 100 cancellationToken

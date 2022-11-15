@@ -1,10 +1,8 @@
 module App
 
-open System
 open Fable.Core
 open Fable.React
 open Feliz
-open Browser.Types
 open Elmish
 open Shared
 
