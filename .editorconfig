@@ -7,16 +7,17 @@ root = true
 [*]
 insert_final_newline = true
 indent_style = space
-indent_size = 4
+indent_size = 2
 trim_trailing_whitespace = true
 end_of_line = lf
 
 [*.{fs,fsi,fsx,config}]
 charset = utf-8
-max_line_length=100
 trim_trailing_whitespace = true
 fsharp_keep_max_number_of_blank_lines=1
 fsharp_max_array_or_list_number_of_items=1
 fsharp_max_record_number_of_items=1
 fsharp_array_or_list_multiline_formatter=number_of_items
 fsharp_record_multiline_formatter=number_of_items
+fsharp_multiline_block_brackets_on_same_column=true
+fsharp_experimental_stroustrup_style=true
