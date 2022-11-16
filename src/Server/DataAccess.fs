@@ -53,7 +53,7 @@ let getPostsAsync (criteria: GetPostsModel) (cancellationToken: CancellationToke
 
 let getPostVotesAsync
   (postIds: Guid[])
-  (userId: string)
+  (userId: Guid)
   (cancellationToken: CancellationToken)
   (querySession: IQuerySession)
   =
@@ -61,3 +61,24 @@ let getPostVotesAsync
   |> Session.query<PostVote>
   |> Queryable.filter <@ fun vote -> vote.PostId.IsOneOf(postIds) && vote.VoterId = userId @>
   |> Queryable.toListTask cancellationToken
+
+type GetUserFilter =
+  | FindById of Guid
+  | FindByUsername of string
+  | FindByEmailAddress of string
+
+let tryFindUserAsync (filter: GetUserFilter) (querySession: IQuerySession) =
+  let filter (queryable: IQueryable<User>) : IQueryable<User> =
+    match filter with
+    | FindById id -> queryable |> Queryable.filter <@ fun user -> user.Id = id @>
+    | FindByUsername username -> queryable |> Queryable.filter <@ fun user -> user.Username = username @>
+    | FindByEmailAddress email -> queryable |> Queryable.filter <@ fun user -> user.EmailAddress = email @>
+
+  querySession
+  |> Session.query<User>
+  |> filter
+  |> Queryable.tryHeadTask CancellationToken.None
+
+let saveUserAsync (user: User) (documentSession: IDocumentSession) =
+  documentSession |> Session.storeSingle user
+  documentSession |> Session.saveChangesTask CancellationToken.None

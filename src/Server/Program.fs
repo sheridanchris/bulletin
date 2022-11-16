@@ -1,7 +1,9 @@
 ﻿open System
+open Fable.Remoting.Server
+open Microsoft.AspNetCore.Authentication
+open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
-open Microsoft.AspNetCore.Authentication.Google
 open Microsoft.Extensions.Configuration
 open Giraffe
 open Worker
@@ -12,19 +14,17 @@ open Marten.Schema
 open Weasel.Core
 open System.Text.Json.Serialization
 open InitialData
-open Saturn
-open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
+open Saturn
 
 let configuration: IConfiguration =
   ConfigurationBuilder().AddEnvironmentVariables().Build()
 
-let googleOptions: GoogleOptions -> unit =
-  fun googleOptions ->
-    googleOptions.ClientId <- configuration["GOOGLE_CLIENT_ID"]
-    googleOptions.ClientSecret <- configuration["GOOGLE_SECRET"]
-    googleOptions.SaveTokens <- true
-    googleOptions.CallbackPath <- "/google-callback"
+let cookieAuthenticationOptions: CookieAuthenticationOptions -> unit =
+  fun options ->
+    options.Cookie.Name <- "Session"
+    options.Cookie.HttpOnly <- true
+    options.Cookie.SameSite <- SameSiteMode.Strict
 
 let configureStore: StoreOptions -> unit =
   fun options ->
@@ -85,7 +85,7 @@ let remotingHandler: HttpHandler =
 let app = application {
   url "http://*:5000"
   service_config configureServices
-  use_google_oauth_with_config googleOptions
+  use_cookies_authentication_with_config cookieAuthenticationOptions
   use_static "public"
   use_response_caching
   use_router remotingHandler

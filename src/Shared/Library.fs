@@ -2,7 +2,13 @@
 
 open System
 
-type UserModel = { Username: string }
+// TODO: Model validation.
+
+type UserModel = {
+  Id: Guid
+  Username: string
+  EmailAddress: string
+}
 
 type CurrentUser =
   | Anonymous
@@ -18,6 +24,17 @@ type GetPostsModel = {
   SearchQuery: string
   Page: int
   PageSize: int
+}
+
+type LoginRequest = {
+  Username: string
+  Password: string
+}
+
+type CreateAccountRequest = {
+  Username: string
+  EmailAddress: string
+  Password: string
 }
 
 type PostModel = {
@@ -41,7 +58,16 @@ type Paginated<'a> = {
   HasPreviousPage: bool
 }
 
+type LoginError = | InvalidUsernameAndOrPassword
+
+type CreateAccountError =
+  | UsernameTaken
+  | EmailAddressTaken
+
 type ServerApi = {
+  Login: LoginRequest -> Async<Result<UserModel, LoginError>>
+  CreateAccount: CreateAccountRequest -> Async<Result<UserModel, CreateAccountError>>
+  GetCurrentUser: unit -> Async<CurrentUser>
   GetPosts: GetPostsModel -> Async<Paginated<PostModel>>
 }
 
