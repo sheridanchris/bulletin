@@ -2,7 +2,7 @@
 A news aggregation app written with F# using Fable, Feliz, and Saturn!  
 Uses RSS feeds and a background service to automatically fetch new stories every 30mins.
  
-![image](https://user-images.githubusercontent.com/105478675/202022581-45718e9b-a78b-41f6-8823-b9bf405700a5.png)
+![image](https://user-images.githubusercontent.com/105478675/202519620-3df1894b-f418-441e-89ad-9117b953fe72.png)
 
 Development:
 ```
