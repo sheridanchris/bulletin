@@ -45,22 +45,21 @@ let init () =
   getPostsFromServerCmd getPostsModel
 
 let handleVoteResult (state: State) (voteResult: VoteResult) =
-
-  let id, upvoted, downvoted =
+  let postModel =
     match voteResult with
-    | VoteResult.Positive id -> id, true, false
-    | VoteResult.Negative id -> id, false, true
-    | VoteResult.NoVote id -> id, false, false
+    | VoteResult.Positive model -> model
+    | VoteResult.Negative model -> model
+    | VoteResult.NoVote model -> model
+
+  // let id, upvoted, downvoted =
+  //   match voteResult with
+  //   | VoteResult.Positive id -> id, true, false,
+  //   | VoteResult.Negative id -> id, false, true
+  //   | VoteResult.NoVote id -> id, false, false
 
   let posts =
     state.Posts.Items
-    |> List.updateIf
-         (fun post -> post.Id = id)
-         (fun post ->
-           { post with
-               Upvoted = upvoted
-               Downvoted = downvoted
-           })
+    |> List.updateIf (fun post -> post.Id = postModel.Id) (fun _ -> postModel)
 
   let newPosts = { state.Posts with Items = posts }
   { state with Posts = newPosts }

@@ -43,13 +43,6 @@ let configureStore: StoreOptions -> unit =
       .UniqueIndex(UniqueIndexType.Computed, (fun post -> box post.Link))
     |> ignore
 
-    options
-      .Schema
-      .For<PostVote>()
-      .ForeignKey<User>(fun vote -> vote.VoterId)
-      .ForeignKey<Post>(fun vote -> vote.PostId)
-    |> ignore
-
     options.AutoCreateSchemaObjects <- AutoCreate.CreateOrUpdate
 
 let configureServices (serviceCollection: IServiceCollection) =

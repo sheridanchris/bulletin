@@ -1,6 +1,7 @@
 ﻿namespace Shared
 
 open System
+open Microsoft.FSharp.Core
 
 // TODO: Model validation.
 
@@ -65,12 +66,13 @@ type CreateAccountError =
   | EmailAddressTaken
 
 type VoteResult =
-  | Positive of Guid
-  | Negative of Guid
-  | NoVote of Guid
+  | Positive of PostModel
+  | Negative of PostModel
+  | NoVote of PostModel
 
 type VoteError =
   | Unauthorized
+  | PostNotFound
 
 type ServerApi = {
   Login: LoginRequest -> Async<Result<UserModel, LoginError>>

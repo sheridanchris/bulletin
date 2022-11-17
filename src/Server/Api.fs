@@ -21,8 +21,12 @@ let toPaginated (mapping: 'a -> 'b) (pagedList: IPagedList<'a>) : Paginated<'b> 
   HasPreviousPage = pagedList.HasPreviousPage
 }
 
+let calculateScore votes =
+  votes |> List.sumBy (fun vote -> int vote.VoteType)
+
 let toPostModel (upvoted: bool) (downvoted: bool) (post: Post) : PostModel =
   let published = DateTime.friendlyDifference post.Published DateTime.UtcNow
+  let score = calculateScore post.Votes
 
   {
     Id = post.Id
@@ -30,7 +34,7 @@ let toPostModel (upvoted: bool) (downvoted: bool) (post: Post) : PostModel =
     Link = post.Link
     PublishedAt = published
     Author = post.AuthorName
-    Score = post.Score
+    Score = score
     Upvoted = upvoted
     Downvoted = downvoted
     Source = post.FeedName
@@ -104,6 +108,11 @@ let getCurrentUser (querySession: IQuerySession) (context: HttpContext) = task {
     return user |> Option.map User |> Option.defaultValue Anonymous
 }
 
+let getVoteType (voteType: VoteType) =
+  let upvoted = voteType = VoteType.Positive
+  let downvoted = voteType = VoteType.Negative
+  upvoted, downvoted
+
 let getPosts (querySession: IQuerySession) (context: HttpContext) (getPostsModel: GetPostsModel) = task {
   let! posts = querySession |> getPostsAsync getPostsModel CancellationToken.None
 
@@ -112,21 +121,17 @@ let getPosts (querySession: IQuerySession) (context: HttpContext) (getPostsModel
     |> Option.ofNull
     |> Option.map Guid.Parse
 
-  match nameIdentifier with
-  | None -> return toPaginated (toPostModel false false) posts
-  | Some userId ->
-    let ids = [| for post in posts -> post.Id |]
-    let! votes = getPostVotesAsync ids userId CancellationToken.None querySession
-
-    return
+  return
+    match nameIdentifier with
+    | None -> toPaginated (toPostModel false false) posts
+    | Some userId ->
       posts
       |> toPaginated (fun post ->
-        let vote = votes |> Seq.tryFind (fun vote -> vote.PostId = post.Id)
-
         let upvoted, downvoted =
-          match vote with
-          | None -> false, false
-          | Some vote -> vote.VoteType = VoteType.Positive, vote.VoteType = VoteType.Negative
+          post.Votes
+          |> List.tryFind (fun vote -> vote.VoterId = userId)
+          |> Option.map (fun vote -> getVoteType vote.VoteType)
+          |> Option.defaultValue (false, false)
 
         toPostModel upvoted downvoted post)
 }
@@ -140,13 +145,13 @@ let toggleVote
   (documentSession: IDocumentSession)
   =
   taskResult {
-    let typeToResult voteType =
+    let typeToResult postModel =
       if voteType = VoteType.Positive then
-        VoteResult.Positive postId
+        VoteResult.Positive postModel
       elif voteType = VoteType.Negative then
-        VoteResult.Negative postId
+        VoteResult.Negative postModel
       else
-        VoteResult.NoVote postId
+        VoteResult.NoVote postModel
 
     let! nameIdentifier =
       context.User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -154,29 +159,62 @@ let toggleVote
       |> Option.map Guid.Parse
       |> Result.requireSome VoteError.Unauthorized
 
-    let! vote = querySession |> tryFindVoteAsync postId nameIdentifier
+    let! post =
+      querySession
+      |> tryFindPostAsync postId
+      |> TaskResult.requireSome VoteError.PostNotFound
 
-    match vote with
-    | Some vote ->
-      if vote.VoteType = voteType then
-        do! documentSession |> deleteVoteAsync vote
-        return VoteResult.NoVote postId
-      else
-        let newVote = { vote with VoteType = voteType }
-        do! documentSession |> saveVoteAsync newVote
-        return typeToResult voteType
+    let userVote =
+      post.Votes |> List.tryFindWithIndex (fun vote -> vote.VoterId = nameIdentifier)
+
+    match userVote with
+    | Some(index, vote) ->
+      let post, resultFunc, upvoted, downvoted =
+        if vote.VoteType = voteType then
+          let newVotes = List.removeAt index post.Votes
+          let newScore = calculateScore newVotes
+
+          { post with
+              Votes = List.removeAt index post.Votes
+              Score = newScore
+          },
+          VoteResult.NoVote,
+          false,
+          false
+        else
+          let newVotes = List.updateAt index { vote with VoteType = voteType } post.Votes
+          let newScore = calculateScore newVotes
+
+          let newPost =
+            { post with
+                Votes = newVotes
+                Score = newScore
+            }
+
+          let upvoted, downvoted = getVoteType voteType
+          newPost, typeToResult, upvoted, downvoted
+
+      do! documentSession |> savePostAsync post
+      let postModel = toPostModel upvoted downvoted post
+      return resultFunc postModel
     | None ->
-      do!
-        documentSession
-        |> saveVoteAsync
-             {
-               Id = Guid.NewGuid()
-               VoterId = nameIdentifier
-               PostId = postId
-               VoteType = voteType
-             }
+      let vote = {
+        VoterId = nameIdentifier
+        VoteType = voteType
+      }
 
-      return typeToResult voteType
+      let upvoted, downvoted = getVoteType voteType
+      let newVotes = vote :: post.Votes
+      let newScore = calculateScore newVotes
+
+      let post =
+        { post with
+            Votes = newVotes
+            Score = newScore
+        }
+
+      do! documentSession |> savePostAsync post
+      return typeToResult (toPostModel upvoted downvoted post)
   }
 
 let serverApi (context: HttpContext) : ServerApi =

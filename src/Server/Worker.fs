@@ -23,6 +23,7 @@ let toPost (shortName: string) (item: RSS.Item) = {
   Published = item.PubDate |> Option.defaultValue DateTimeOffset.UtcNow |> toDateTime
   Link = item.Link
   AuthorName = None
+  Votes = []
   Score = 0
   FeedName = shortName
 }

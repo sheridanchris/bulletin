@@ -20,9 +20,7 @@ type VoteType =
   | Negative = -1
 
 type PostVote = {
-  Id: Guid
-  VoteType: VoteType
-  PostId: Guid
+  VoteType: VoteType // can only be 1 or -1 -- this is a primitive :(
   VoterId: Guid
 }
 
@@ -32,6 +30,7 @@ type Post = {
   Published: DateTime
   Link: string
   AuthorName: string option
+  Votes: PostVote list
   Score: int
   FeedName: string
 }

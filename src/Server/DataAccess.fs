@@ -51,25 +51,10 @@ let getPostsAsync (criteria: GetPostsModel) (cancellationToken: CancellationToke
     |> Queryable.pagedListTask criteria.Page criteria.PageSize cancellationToken
 }
 
-let getPostVotesAsync
-  (postIds: Guid[])
-  (userId: Guid)
-  (cancellationToken: CancellationToken)
-  (querySession: IQuerySession)
-  =
+let tryFindPostAsync (postId: Guid) (querySession: IQuerySession) =
   querySession
-  |> Session.query<PostVote>
-  |> Queryable.filter <@ fun vote -> vote.PostId.IsOneOf(postIds) && vote.VoterId = userId @>
-  |> Queryable.toListTask cancellationToken
-
-let tryFindVoteAsync
-  (postId: Guid)
-  (userId: Guid)
-  (querySession: IQuerySession)
-  =
-  querySession
-  |> Session.query<PostVote>
-  |> Queryable.filter <@ fun vote -> vote.PostId = postId && vote.VoterId = userId @>
+  |> Session.query<Post>
+  |> Queryable.filter <@ fun post -> post.Id = postId @>
   |> Queryable.tryHeadTask CancellationToken.None
 
 type GetUserFilter =
@@ -93,10 +78,6 @@ let saveUserAsync (user: User) (documentSession: IDocumentSession) =
   documentSession |> Session.storeSingle user
   documentSession |> Session.saveChangesTask CancellationToken.None
 
-let saveVoteAsync (vote: PostVote) (documentSession: IDocumentSession) =
-  documentSession |> Session.storeSingle vote
-  documentSession |> Session.saveChangesTask CancellationToken.None
-
-let deleteVoteAsync (vote: PostVote) (documentSession: IDocumentSession) =
-  documentSession |> Session.deleteByGuid<PostVote> vote.Id
+let savePostAsync (post: Post) (documentSession: IDocumentSession) =
+  documentSession |> Session.storeSingle post
   documentSession |> Session.saveChangesTask CancellationToken.None
