@@ -20,7 +20,7 @@ type VoteType =
   | Negative = -1
 
 type PostVote = {
-  VoteType: VoteType // can only be 1 or -1 -- this is a primitive :(
+  VoteType: VoteType
   VoterId: Guid
 }
 
