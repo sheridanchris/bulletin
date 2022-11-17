@@ -59,6 +59,7 @@ let signIn (querySession: IQuerySession) (context: HttpContext) (loginRequest: L
 let createAccount
   (querySession: IQuerySession)
   (documentSession: IDocumentSession)
+  (context: HttpContext)
   (createAccountRequest: CreateAccountRequest)
   =
   taskResult {
@@ -85,6 +86,7 @@ let createAccount
     }
 
     do! documentSession |> saveUserAsync user
+    do! Auth.signInWithProperties Auth.defaultProperties context user
     return toUserModel user
   }
 
@@ -135,7 +137,7 @@ let serverApi (context: HttpContext) : ServerApi =
 
   {
     Login = fun request -> signIn querySession context request |> Async.AwaitTask
-    CreateAccount = fun request -> createAccount querySession documentSession request |> Async.AwaitTask
+    CreateAccount = fun request -> createAccount querySession documentSession context request |> Async.AwaitTask
     GetCurrentUser = fun () -> getCurrentUser querySession context |> Async.AwaitTask
     GetPosts = fun model -> getPosts querySession context model |> Async.AwaitTask
   }
