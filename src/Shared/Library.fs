@@ -50,7 +50,7 @@ type PostModel = {
 }
 
 type Paginated<'a> = {
-  Items: 'a seq
+  Items: 'a list
   CurrentPage: int
   PageSize: int
   PageCount: int
@@ -64,10 +64,20 @@ type CreateAccountError =
   | UsernameTaken
   | EmailAddressTaken
 
+type VoteResult =
+  | Positive of Guid
+  | Negative of Guid
+  | NoVote of Guid
+
+type VoteError =
+  | Unauthorized
+
 type ServerApi = {
   Login: LoginRequest -> Async<Result<UserModel, LoginError>>
   CreateAccount: CreateAccountRequest -> Async<Result<UserModel, CreateAccountError>>
   GetCurrentUser: unit -> Async<CurrentUser>
+  ToggleUpvote: Guid -> Async<Result<VoteResult, VoteError>>
+  ToggleDownvote: Guid -> Async<Result<VoteResult, VoteError>>
   GetPosts: GetPostsModel -> Async<Paginated<PostModel>>
 }
 

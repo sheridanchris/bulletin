@@ -62,6 +62,16 @@ let getPostVotesAsync
   |> Queryable.filter <@ fun vote -> vote.PostId.IsOneOf(postIds) && vote.VoterId = userId @>
   |> Queryable.toListTask cancellationToken
 
+let tryFindVoteAsync
+  (postId: Guid)
+  (userId: Guid)
+  (querySession: IQuerySession)
+  =
+  querySession
+  |> Session.query<PostVote>
+  |> Queryable.filter <@ fun vote -> vote.PostId = postId && vote.VoterId = userId @>
+  |> Queryable.tryHeadTask CancellationToken.None
+
 type GetUserFilter =
   | FindById of Guid
   | FindByUsername of string
@@ -81,4 +91,12 @@ let tryFindUserAsync (filter: GetUserFilter) (querySession: IQuerySession) =
 
 let saveUserAsync (user: User) (documentSession: IDocumentSession) =
   documentSession |> Session.storeSingle user
+  documentSession |> Session.saveChangesTask CancellationToken.None
+
+let saveVoteAsync (vote: PostVote) (documentSession: IDocumentSession) =
+  documentSession |> Session.storeSingle vote
+  documentSession |> Session.saveChangesTask CancellationToken.None
+
+let deleteVoteAsync (vote: PostVote) (documentSession: IDocumentSession) =
+  documentSession |> Session.deleteByGuid<PostVote> vote.Id
   documentSession |> Session.saveChangesTask CancellationToken.None

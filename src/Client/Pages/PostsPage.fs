@@ -22,8 +22,10 @@ type Msg =
   | SetOrdering of string
   | GetPostsFromServer of Paginated<PostModel>
   | ExternalMsg of ExternalMsg
-  | Upvote of Guid
-  | Downvote of Guid
+  | ToggleUpvote of Guid
+  | ToggleDownvote of Guid
+  | ToggleUpvoteResult of Result<VoteResult, VoteError>
+  | ToggleDownvoteResult of Result<VoteResult, VoteError>
 
 let getPostsFromServerCmd model =
   Cmd.OfAsync.perform Remoting.serverApi.GetPosts model GetPostsFromServer
@@ -41,6 +43,27 @@ let init () =
     Posts = Paginated.empty ()
   },
   getPostsFromServerCmd getPostsModel
+
+let handleVoteResult (state: State) (voteResult: VoteResult) =
+
+  let id, upvoted, downvoted =
+    match voteResult with
+    | VoteResult.Positive id -> id, true, false
+    | VoteResult.Negative id -> id, false, true
+    | VoteResult.NoVote id -> id, false, false
+
+  let posts =
+    state.Posts.Items
+    |> List.updateIf
+         (fun post -> post.Id = id)
+         (fun post ->
+           { post with
+               Upvoted = upvoted
+               Downvoted = downvoted
+           })
+
+  let newPosts = { state.Posts with Items = posts }
+  { state with Posts = newPosts }
 
 let update (msg: Msg) (state: State) =
   match msg with
@@ -70,8 +93,12 @@ let update (msg: Msg) (state: State) =
 
     { state with Model = model }, getPostsFromServerCmd model
   | GetPostsFromServer posts -> { state with Posts = posts }, Cmd.none
-  | Upvote postId -> state, Cmd.none // TODO: this
-  | Downvote postId -> state, Cmd.none // TODO: this
+  | ToggleUpvote postId -> state, Cmd.OfAsync.perform Remoting.serverApi.ToggleUpvote postId ToggleUpvoteResult
+  | ToggleDownvote postId -> state, Cmd.OfAsync.perform Remoting.serverApi.ToggleDownvote postId ToggleDownvoteResult
+  | ToggleUpvoteResult(Ok result)
+  | ToggleDownvoteResult(Ok result) -> handleVoteResult state result, Cmd.none
+  | ToggleUpvoteResult(Error _)
+  | ToggleDownvoteResult(Error _) -> state, Cmd.none
   | ExternalMsg _ -> state, Cmd.none // this only exists to be relayed to the App component
 
 [<JSX.Component>]
@@ -211,7 +238,7 @@ let Posts currentUser state dispatch =
         </div>
       </div>
       <div className="flex flex-col items-stretch">
-        {let post = Post (Upvote >> dispatch) (Downvote >> dispatch)
+        {let post = Post (ToggleUpvote >> dispatch) (ToggleDownvote >> dispatch)
          state.Posts.Items |> Seq.map post}
       </div>
       {Pagination

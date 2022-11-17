@@ -13,7 +13,7 @@ open FsToolkit.ErrorHandling
 open DataAccess
 
 let toPaginated (mapping: 'a -> 'b) (pagedList: IPagedList<'a>) : Paginated<'b> = {
-  Items = pagedList |> Seq.map mapping
+  Items = pagedList |> Seq.map mapping |> Seq.toList
   CurrentPage = int pagedList.PageNumber
   PageSize = int pagedList.PageSize
   PageCount = int pagedList.PageCount
@@ -131,6 +131,54 @@ let getPosts (querySession: IQuerySession) (context: HttpContext) (getPostsModel
         toPostModel upvoted downvoted post)
 }
 
+// TODO: This should be under a secured API variant.
+let toggleVote
+  (context: HttpContext)
+  (postId: Guid)
+  (voteType: VoteType)
+  (querySession: IQuerySession)
+  (documentSession: IDocumentSession)
+  =
+  taskResult {
+    let typeToResult voteType =
+      if voteType = VoteType.Positive then
+        VoteResult.Positive postId
+      elif voteType = VoteType.Negative then
+        VoteResult.Negative postId
+      else
+        VoteResult.NoVote postId
+
+    let! nameIdentifier =
+      context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+      |> Option.ofNull
+      |> Option.map Guid.Parse
+      |> Result.requireSome VoteError.Unauthorized
+
+    let! vote = querySession |> tryFindVoteAsync postId nameIdentifier
+
+    match vote with
+    | Some vote ->
+      if vote.VoteType = voteType then
+        do! documentSession |> deleteVoteAsync vote
+        return VoteResult.NoVote postId
+      else
+        let newVote = { vote with VoteType = voteType }
+        do! documentSession |> saveVoteAsync newVote
+        return typeToResult voteType
+    | None ->
+      do!
+        documentSession
+        |> saveVoteAsync
+             {
+               Id = Guid.NewGuid()
+               VoterId = nameIdentifier
+               PostId = postId
+               VoteType = voteType
+             }
+
+      return typeToResult voteType
+  }
+
 let serverApi (context: HttpContext) : ServerApi =
   let querySession = context.GetService<IQuerySession>()
   let documentSession = context.GetService<IDocumentSession>()
@@ -139,5 +187,13 @@ let serverApi (context: HttpContext) : ServerApi =
     Login = fun request -> signIn querySession context request |> Async.AwaitTask
     CreateAccount = fun request -> createAccount querySession documentSession context request |> Async.AwaitTask
     GetCurrentUser = fun () -> getCurrentUser querySession context |> Async.AwaitTask
+    ToggleUpvote =
+      fun postId ->
+        toggleVote context postId VoteType.Positive querySession documentSession
+        |> Async.AwaitTask
+    ToggleDownvote =
+      fun postId ->
+        toggleVote context postId VoteType.Negative querySession documentSession
+        |> Async.AwaitTask
     GetPosts = fun model -> getPosts querySession context model |> Async.AwaitTask
   }
