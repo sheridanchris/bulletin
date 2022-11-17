@@ -168,21 +168,22 @@ let toggleVote
       post.Votes |> List.tryFindWithIndex (fun vote -> vote.VoterId = nameIdentifier)
 
     match userVote with
-    | Some(index, vote) ->
+    | Some(index, userVote) ->
       let post, resultFunc, upvoted, downvoted =
-        if vote.VoteType = voteType then
+        if userVote.VoteType = voteType then
           let newVotes = List.removeAt index post.Votes
           let newScore = calculateScore newVotes
+          let upvoted, downvoted = false, false
 
           { post with
               Votes = List.removeAt index post.Votes
               Score = newScore
           },
           VoteResult.NoVote,
-          false,
-          false
+          upvoted,
+          downvoted
         else
-          let newVotes = List.updateAt index { vote with VoteType = voteType } post.Votes
+          let newVotes = List.updateAt index { userVote with VoteType = voteType } post.Votes
           let newScore = calculateScore newVotes
 
           let newPost =
