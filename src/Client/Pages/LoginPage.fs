@@ -3,7 +3,10 @@ module LoginPage
 open System
 open Elmish
 open Fable.Core
-open Feliz
+open Lit
+open Lit.Elmish
+open LitStore
+open LitRouter
 open Shared
 
 type State = {
@@ -12,14 +15,11 @@ type State = {
   Error: string
 }
 
-type ExternalMsg = UserLoggedIn of UserModel
-
 type Msg =
   | SetUsername of string
   | SetPassword of string
   | Submit
   | GotLoginResponse of Result<UserModel, LoginError>
-  | ExternalMsg of ExternalMsg
 
 let init () =
   {
@@ -42,34 +42,36 @@ let update (msg: Msg) (state: State) =
         Password = state.Password
       }
       GotLoginResponse
-  | GotLoginResponse(Ok user) -> state, Cmd.ofMsg (user |> UserLoggedIn |> ExternalMsg)
+  | GotLoginResponse(Ok user) ->
+    state,
+    Cmd.batch [
+      Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.LoggedIn user))
+      Cmd.navigate "/"
+    ]
   | GotLoginResponse(Error loginError) ->
     match loginError with
     | InvalidUsernameAndOrPassword -> { state with Error = "Invalid username and/or password." }, Cmd.none
-  | ExternalMsg _ -> state, Cmd.none
 
-let Component (state: State) (dispatch: Msg -> unit) =
-  JSX.jsx
+[<HookComponent>]
+let Component () =
+  let state, dispatch = Hook.useElmish (init, update)
+
+  let renderError errorMsg =
+    html
+      $"""
+      <p class="text-red-500">{errorMsg}</p>
+      """
+
+  html
     $"""
-    <div className="flex flex-col gap-y-3 justify-center items-center h-screen">
+    <div class="flex flex-col gap-y-3 justify-center items-center h-screen">
       {if String.IsNullOrWhiteSpace state.Error then
-         Html.none
+         Lit.nothing
        else
-         Html.p [
-           prop.className "text-red-500"
-           prop.text state.Error
-         ]}
-         {Html.input [
-            prop.placeholder "username"
-            prop.className "border border-black"
-            prop.onTextChange (SetUsername >> dispatch)
-          ]}
-          {Html.input [
-             prop.placeholder "password"
-             prop.type' "password"
-             prop.className "border border-black"
-             prop.onTextChange (SetPassword >> dispatch)
-           ]}
-      <button onClick={fun _ -> dispatch Submit}>Login</button>
+         renderError state.Error}
+
+      <input placeholder="username" class="border border-black" @change={EvVal(SetUsername >> dispatch)} />
+      <input placeholder="password" type="password" class="border border-black" @change={EvVal(SetPassword >> dispatch)} />
+      <button @click={Ev(fun _ -> dispatch Submit)}>Login</button>
     </div>
     """

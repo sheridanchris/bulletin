@@ -1,9 +1,11 @@
 module PostsPage
 
 open System
-open Elmish
 open Fable.Core
-open Feliz
+open Lit
+open LitStore
+open LitRouter
+open Lit.Elmish
 open Shared
 
 type State = {
@@ -11,24 +13,21 @@ type State = {
   Posts: Paginated<PostModel>
 }
 
-type ExternalMsg =
-  | NavigateToLogin
-  | NavigateToRegister
-
 type Msg =
   | Search
   | SetPage of int
   | SetSearchQuery of string
   | SetOrdering of string
   | GetPostsFromServer of Paginated<PostModel>
-  | ExternalMsg of ExternalMsg
+  | NavigateToLogin
+  | NavigateToRegister
   | ToggleUpvote of Guid
   | ToggleDownvote of Guid
   | ToggleUpvoteResult of Result<VoteResult, VoteError>
   | ToggleDownvoteResult of Result<VoteResult, VoteError>
 
 let getPostsFromServerCmd model =
-  Cmd.OfAsync.perform Remoting.serverApi.GetPosts model GetPostsFromServer
+  Elmish.Cmd.OfAsync.perform Remoting.serverApi.GetPosts model GetPostsFromServer
 
 let init () =
   let getPostsModel = {
@@ -51,12 +50,6 @@ let handleVoteResult (state: State) (voteResult: VoteResult) =
     | VoteResult.Negative model -> model
     | VoteResult.NoVote model -> model
 
-  // let id, upvoted, downvoted =
-  //   match voteResult with
-  //   | VoteResult.Positive id -> id, true, false,
-  //   | VoteResult.Negative id -> id, false, true
-  //   | VoteResult.NoVote id -> id, false, false
-
   let posts =
     state.Posts.Items
     |> List.updateIf (fun post -> post.Id = postModel.Id) (fun _ -> postModel)
@@ -69,13 +62,13 @@ let update (msg: Msg) (state: State) =
   | Search -> state, getPostsFromServerCmd state.Model
   | SetPage page ->
     if page < 0 || page > state.Posts.PageCount then
-      state, Cmd.none
+      state, Elmish.Cmd.none
     else
       let model = { state.Model with Page = page }
       { state with Model = model }, getPostsFromServerCmd model
   | SetSearchQuery query ->
     let model = { state.Model with SearchQuery = query }
-    { state with Model = model }, Cmd.none
+    { state with Model = model }, Elmish.Cmd.none
   | SetOrdering ordering ->
     let ordering =
       match ordering with
@@ -91,16 +84,18 @@ let update (msg: Msg) (state: State) =
       }
 
     { state with Model = model }, getPostsFromServerCmd model
-  | GetPostsFromServer posts -> { state with Posts = posts }, Cmd.none
-  | ToggleUpvote postId -> state, Cmd.OfAsync.perform Remoting.serverApi.ToggleUpvote postId ToggleUpvoteResult
-  | ToggleDownvote postId -> state, Cmd.OfAsync.perform Remoting.serverApi.ToggleDownvote postId ToggleDownvoteResult
+  | NavigateToLogin -> state, Cmd.navigate "login"
+  | NavigateToRegister -> state, Cmd.navigate "register"
+  | GetPostsFromServer posts -> { state with Posts = posts }, Elmish.Cmd.none
+  | ToggleUpvote postId -> state, Elmish.Cmd.OfAsync.perform Remoting.serverApi.ToggleUpvote postId ToggleUpvoteResult
+  | ToggleDownvote postId ->
+    state, Elmish.Cmd.OfAsync.perform Remoting.serverApi.ToggleDownvote postId ToggleDownvoteResult
   | ToggleUpvoteResult(Ok result)
-  | ToggleDownvoteResult(Ok result) -> handleVoteResult state result, Cmd.none
+  | ToggleDownvoteResult(Ok result) -> handleVoteResult state result, Elmish.Cmd.none
   | ToggleUpvoteResult(Error _)
-  | ToggleDownvoteResult(Error _) -> state, Cmd.none
-  | ExternalMsg _ -> state, Cmd.none // this only exists to be relayed to the App component
+  | ToggleDownvoteResult(Error _) -> state, Elmish.Cmd.none
 
-[<JSX.Component>]
+[<HookComponent>]
 let Post (upvote: Guid -> unit) (downvote: Guid -> unit) (post: PostModel) =
   let author = post.Author |> Option.defaultValue "automated bot"
 
@@ -116,24 +111,24 @@ let Post (upvote: Guid -> unit) (downvote: Guid -> unit) (post: PostModel) =
     else
       "hover:text-red-500 text-black"
 
-  JSX.jsx
+  html
     $"""
-    <div className="border border-black">
-      <div className="flex flex-row gap-x-2">
-        <div className="flex flex-col justify-items-center">
-          <button className={upvoteClasses} onClick={fun _ -> upvote post.Id}>▲</button>
-          <button className={downvoteClasses} onClick={fun _ -> downvote post.Id}>▼</button>
+    <div class="border border-black">
+      <div class="flex flex-row gap-x-2">
+        <div class="flex flex-col justify-items-center">
+          <button class={upvoteClasses} @click={Ev(fun _ -> upvote post.Id)}>▲</button>
+          <button class={downvoteClasses} @click={Ev(fun _ -> downvote post.Id)}>▼</button>
         </div>
         <div>
           <div>
             <a href={post.Link} target="_blank">
-              <h1 className="text-lg hover:underline hover:decoration-solid">
+              <h1 class="text-lg hover:underline hover:decoration-solid">
                 {post.Title}
               </h1>
             </a>
           </div>
           <div>
-            <p className="text-sm">
+            <p class="text-sm">
               {post.Score} votes • Posted by {author} {post.PublishedAt} ago • Source: {post.Source}
             </p>
           </div>
@@ -142,7 +137,7 @@ let Post (upvote: Guid -> unit) (downvote: Guid -> unit) (post: PostModel) =
     </div>
     """
 
-[<JSX.Component>]
+[<HookComponent>]
 let Pagination
   (currentPage: int)
   (numberOfPages: int)
@@ -152,91 +147,76 @@ let Pagination
   (goToNext: unit -> unit)
   (goToPage: int -> unit)
   =
-  JSX.jsx
+  let goToPreviousBtn =
+    html $"<button @click={fun () -> goToPrevious ()}>Previous</button>"
+
+  let goToNextBtn = html $"<button @click={fun () -> goToNext ()}>Next</button>"
+
+  let paginationBtn isSelected index =
+    let classes =
+      if isSelected then
+        "text-green-700 underline decoration-solid"
+      else
+        ""
+
+    html
+      $"""
+      <button class="hover:underline hover:decoration-solid {classes}" @click={fun () -> goToPage index}>{string index}</button>
+      """
+
+  html
     $"""
-    <div className="flex flex-row gap-x-3 justify-center">
-      {if hasPrevious then
-         Html.button [
-           prop.text "Previous"
-           prop.onClick (fun _ -> goToPrevious ())
-         ]
-       else
-         Html.none}
+    <div class="flex flex-row gap-x-3 justify-center">
+      {if hasPrevious then goToPreviousBtn else Lit.nothing}
 
       {[
          for i in 1..numberOfPages do
            let isSelected = currentPage = i
-
-           let classes =
-             if isSelected then
-               "text-green-700 underline decoration-solid"
-             else
-               ""
-
-           Html.button [
-             prop.text (string i)
-             prop.onClick (fun _ -> goToPage i)
-             prop.className $"hover:underline hover:decoration-solid {classes}"
-           ]
+           paginationBtn isSelected i
        ]}
 
-      {if hasNext then
-         Html.button [
-           prop.text "Next"
-           prop.onClick (fun _ -> goToNext ())
-         ]
-       else
-         Html.none}
+      {if hasNext then goToNextBtn else Lit.nothing}
     </div>
     """
 
-[<JSX.Component>]
-let Posts currentUser state dispatch =
-  JSX.jsx
+[<HookComponent>]
+let Component () =
+  let state, dispatch = Hook.useElmish (init, update)
+  let store = Hook.useStore (ApplicationContext.store)
+
+  let renderAnonymous =
+    html
+      $"""
+      <button @click={Ev(fun _ -> dispatch NavigateToLogin)}>Login</button>
+      <button @click={Ev(fun _ -> dispatch NavigateToRegister)}>Register</button>
+      """
+
+  let renderUser (user: UserModel) =
+    html
+      $"""
+      <p>Welcome {user.Username}</p>
+      """
+
+  html
     $"""
     <div>
-      <div className="flex flex-row w-full">
-        <div className="mr-auto">
-        {Html.input [
-           prop.placeholder "search query"
-           prop.onChange (SetSearchQuery >> dispatch)
-         ]}
-          <button onClick={fun _ -> dispatch Search}>Search</button>
-          {Html.select [
-             prop.className "ml-3"
-             prop.onChange (SetOrdering >> dispatch)
-             prop.children [
-               Html.option [
-                 prop.text "Top"
-                 prop.selected (state.Model.Ordering = Ordering.Top)
-               ]
-               Html.option [
-                 prop.text "Latest"
-                 prop.selected (state.Model.Ordering = Ordering.Latest)
-               ]
-               Html.option [
-                 prop.text "Oldest"
-                 prop.selected (state.Model.Ordering = Ordering.Oldest)
-               ]
-             ]
-           ]}
+      <div class="flex flex-row w-full">
+        <div class="mr-auto">
+          <input placeholder="search query" @change="{EvVal(SetSearchQuery >> dispatch)}" />
+          <button @click={Ev(fun _ -> dispatch Search)}>Search</button>
+          <select class="ml-3" @change={EvVal(SetOrdering >> dispatch)}>
+            <option @selected={state.Model.Ordering = Ordering.Top}>Top</option>
+            <option @selected={state.Model.Ordering = Ordering.Latest}>Latest</option>
+            <option @selected={state.Model.Ordering = Ordering.Oldest}>Oldest</option>
+          </select>
         </div>
-        <div className="flex mr-2 ml-auto gap-x-3">
-        {match currentUser with
-         | Anonymous -> [
-             Html.button [
-               prop.text "Login"
-               prop.onClick (fun _ -> dispatch (ExternalMsg NavigateToLogin))
-             ]
-             Html.button [
-               prop.text "Register"
-               prop.onClick (fun _ -> dispatch (ExternalMsg NavigateToRegister))
-             ]
-           ]
-         | User user -> [ Html.p $"Welcome {user.Username}" ]}
+        <div class="flex mr-2 ml-auto gap-x-3">
+        {match store.User with
+         | Anonymous -> renderAnonymous
+         | User user -> renderUser user}
         </div>
       </div>
-      <div className="flex flex-col items-stretch">
+      <div class="flex flex-col items-stretch">
         {let post = Post (ToggleUpvote >> dispatch) (ToggleDownvote >> dispatch)
          state.Posts.Items |> Seq.map post}
       </div>
