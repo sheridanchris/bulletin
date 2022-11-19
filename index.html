@@ -5,11 +5,17 @@
   <title>Bulletin</title>
   <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Used to hide custom components until they are defined and prevent a flash of unstyled content -->
+  <style>
+    *:not(:defined) {
+      display: none
+    }
+  </style>
 </head>
 
 <body>
-  <div id="app-container"></div>
-  <script type="module" src="./dist/Program.jsx"></script>
+  <my-app></my-app>
+  <script type="module" src="./dist/App.js"></script>
 </body>
 
 </html>

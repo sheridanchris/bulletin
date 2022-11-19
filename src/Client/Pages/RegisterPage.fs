@@ -4,8 +4,11 @@ open System
 open Elmish
 open Fable.Core
 open Fable.Remoting.Client
-open Feliz
 open Shared
+open Lit
+open Lit.Elmish
+open LitStore
+open LitRouter
 
 type State = {
   Username: string
@@ -15,8 +18,6 @@ type State = {
   Error: string
 }
 
-type ExternalMsg = AccountCreated of UserModel
-
 type Msg =
   | SetUsername of string
   | SetEmailAddress of string
@@ -24,7 +25,6 @@ type Msg =
   | SetConfirmPassword of string
   | Submit
   | GotResponse of Result<UserModel, CreateAccountError>
-  | ExternalMsg of ExternalMsg
 
 let init () =
   {
@@ -74,46 +74,39 @@ let update (msg: Msg) (state: State) =
         Password = state.Password
       }
       GotResponse
-  | GotResponse(Ok userModel) -> state, Cmd.ofMsg (userModel |> AccountCreated |> ExternalMsg)
+  | GotResponse(Ok userModel) ->
+    state,
+    Cmd.batch [
+      Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.LoggedIn userModel))
+      Cmd.navigate "/"
+    ]
   | GotResponse(Error creationError) ->
     match creationError with
     | UsernameTaken -> { state with Error = "That username already exists" }, Cmd.none
     | EmailAddressTaken -> { state with Error = "That email address already exists" }, Cmd.none
-  | ExternalMsg _ -> state, Cmd.none
 
-let Component (state: State) (dispatch: Msg -> unit) =
-  JSX.jsx
+[<HookComponent>]
+let Component () =
+  let state, dispatch = Hook.useElmish (init, update)
+
+  let renderError errorMsg =
+    html
+      $"""
+      <p class="text-red-500">{errorMsg}</p>
+      """
+
+  html
     $"""
-    <div className="flex flex-col gap-y-3 justify-center items-center h-screen">
+    <div class="flex flex-col gap-y-3 justify-center items-center h-screen">
       {if String.IsNullOrWhiteSpace state.Error then
-         Html.none
+         Lit.nothing
        else
-         Html.p [
-           prop.className "text-red-500"
-           prop.text state.Error
-         ]}
-         {Html.input [
-            prop.placeholder "username"
-            prop.className "border border-black"
-            prop.onTextChange (SetUsername >> dispatch)
-          ]}
-         {Html.input [
-            prop.placeholder "email address"
-            prop.className "border border-black"
-            prop.onTextChange (SetEmailAddress >> dispatch)
-          ]}
-          {Html.input [
-             prop.placeholder "password"
-             prop.type' "password"
-             prop.className "border border-black"
-             prop.onTextChange (SetPassword >> dispatch)
-           ]}
-          {Html.input [
-             prop.placeholder "confirm password"
-             prop.type' "password"
-             prop.className "border border-black"
-             prop.onTextChange (SetConfirmPassword >> dispatch)
-           ]}
-      <button onClick={fun _ -> dispatch Submit}>Create Account</button>
+         renderError state.Error}
+
+      <input placeholder="username" class="border border-black" @change={EvVal(SetUsername >> dispatch)} />
+      <input placeholder="email address" class="border border-black" @change={EvVal(SetEmailAddress >> dispatch)} />
+      <input placeholder="password" type="password" class="border border-black" @change={EvVal(SetPassword >> dispatch)} />
+      <input placeholder="confirm password" type="password" class="border border-black" @change={EvVal(SetConfirmPassword >> dispatch)} />
+      <button @click={Ev(fun _ -> dispatch Submit)}>Register</button>
     </div>
     """

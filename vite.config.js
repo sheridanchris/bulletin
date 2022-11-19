@@ -1,8 +1,12 @@
 
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  build: {
+    commonjsOptions: {
+      include: ["/node_modules"]
+    }
+  },
   server: {
     proxy: {
       '/api': {
@@ -13,6 +17,5 @@ export default defineConfig({
     watch: {
       ignored: ['**/dev_data/**']
     }
-  },
-  plugins: [react()]
+  }
 })
