@@ -205,9 +205,9 @@ let Component () =
           <input placeholder="search query" @change="{EvVal(SetSearchQuery >> dispatch)}" />
           <button @click={Ev(fun _ -> dispatch Search)}>Search</button>
           <select class="ml-3" @change={EvVal(SetOrdering >> dispatch)}>
-            <option @selected={state.Model.Ordering = Ordering.Top}>Top</option>
-            <option @selected={state.Model.Ordering = Ordering.Latest}>Latest</option>
-            <option @selected={state.Model.Ordering = Ordering.Oldest}>Oldest</option>
+            <option ?selected={state.Model.Ordering = Ordering.Top}>Top</option>
+            <option ?selected={state.Model.Ordering = Ordering.Latest}>Latest</option>
+            <option ?selected={state.Model.Ordering = Ordering.Oldest}>Oldest</option>
           </select>
         </div>
         <div class="flex mr-2 ml-auto gap-x-3">
