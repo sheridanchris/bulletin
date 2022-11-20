@@ -67,7 +67,7 @@ let update (msg: Msg) (state: State) =
   | Submit ->
     state,
     Cmd.OfAsync.perform
-      Remoting.serverApi.CreateAccount
+      Remoting.unsecuredServerApi.CreateAccount
       {
         Username = state.Username
         EmailAddress = state.EmailAddress

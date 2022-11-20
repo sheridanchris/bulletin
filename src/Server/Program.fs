@@ -1,6 +1,5 @@
 ﻿open System
 open Fable.Remoting.Server
-open Microsoft.AspNetCore.Authentication
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
@@ -13,7 +12,6 @@ open Marten.Services
 open Marten.Schema
 open Weasel.Core
 open System.Text.Json.Serialization
-open InitialData
 open Fable.Remoting.Giraffe
 open Saturn
 
@@ -38,16 +36,29 @@ let configureStore: StoreOptions -> unit =
 
     options
       .Schema
+      .For<RssFeed>()
+      .UniqueIndex(UniqueIndexType.Computed, (fun feed -> box feed.RssFeedUrl))
+    |> ignore
+
+    options
+      .Schema
       .For<Post>()
       .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
       .UniqueIndex(UniqueIndexType.Computed, (fun post -> box post.Link))
+      .ForeignKey<RssFeed>(fun post -> post.Feed)
+    |> ignore
+
+    options
+      .Schema
+      .For<FeedSubscription>()
+      .ForeignKey<User>(fun subscription -> subscription.UserId)
+      .ForeignKey<RssFeed>(fun subscription -> subscription.FeedId)
     |> ignore
 
     options.AutoCreateSchemaObjects <- AutoCreate.CreateOrUpdate
 
 let configureServices (serviceCollection: IServiceCollection) =
-  serviceCollection.AddMarten(configureStore).InitializeWith(InitialData())
-  |> ignore
+  serviceCollection.AddMarten(configureStore) |> ignore
 
   serviceCollection
     .AddScoped<IScopedBackgroundService, RssWorker>()
@@ -68,12 +79,26 @@ let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
 
 let routeBuilder (typeName: string) (methodName: string) = $"/api/{typeName}/{methodName}"
 
-let remotingHandler: HttpHandler =
+let remotingOptions () =
   Remoting.createApi ()
   |> Remoting.withErrorHandler errorHandler
   |> Remoting.withRouteBuilder routeBuilder
-  |> Remoting.fromContext Api.serverApi
+
+let unsecuredServerApi: HttpHandler =
+  remotingOptions ()
+  |> Remoting.fromContext CompositionRoot.unsecuredServerApi
   |> Remoting.buildHttpHandler
+
+let securedServerApi: HttpHandler =
+  remotingOptions ()
+  |> Remoting.fromContext CompositionRoot.securedServerApi
+  |> Remoting.buildHttpHandler
+
+let handler: HttpHandler =
+  choose [
+    unsecuredServerApi
+    Auth.requiresAuthentication (setStatusCode 401) >=> securedServerApi
+  ]
 
 let app = application {
   url "http://*:5000"
@@ -81,7 +106,7 @@ let app = application {
   use_cookies_authentication_with_config cookieAuthenticationOptions
   use_static "public"
   use_response_caching
-  use_router remotingHandler
+  use_router handler
 }
 
 run app

@@ -1,36 +1,41 @@
 module Data
 
 open System
+open FSharp.UMX
 
-type NewsSource = {
-  Id: Guid
-  ShortName: string
-  RssFeed: string
+[<Measure>]
+type FeedId
+
+[<Measure>]
+type UserId
+
+[<Measure>]
+type PostId
+
+type RssFeed = {
+  Id: Guid<FeedId>
+  RssFeedUrl: string
 }
 
 type User = {
-  Id: Guid
+  Id: Guid<UserId>
   Username: string
   EmailAddress: string
   PasswordHash: string
 }
 
-type VoteType =
-  | Positive = 1
-  | Negative = -1
-
-type PostVote = {
-  VoteType: VoteType
-  VoterId: Guid
+type FeedSubscription = {
+  Id: Guid
+  UserId: Guid<UserId>
+  FeedId: Guid<FeedId>
+  FeedName: string
 }
 
 type Post = {
-  Id: Guid
+  Id: Guid<PostId>
   Headline: string
-  Published: DateTime
+  PublishedAt: DateTime
+  LastUpdatedAt: DateTime
   Link: string
-  AuthorName: string option
-  Votes: PostVote list
-  Score: int
-  FeedName: string
+  Feed: Guid<FeedId>
 }

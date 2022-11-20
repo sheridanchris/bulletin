@@ -9,7 +9,9 @@
     <Compile Include="ApplicationContext.fs" />
     <Compile Include="Pages\LoginPage.fs" />
     <Compile Include="Pages\RegisterPage.fs" />
-    <Compile Include="Pages\PostsPage.fs" />
+    <Compile Include="Pages\FeedPage.fs" />
+    <Compile Include="Pages\SubscriptionsPage.fs" />
+    <Compile Include="Pages\NotFoundPage.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>

@@ -11,7 +11,7 @@ type Msg =
   | SetCurrentUser of CurrentUser
 
 let init () =
-  { User = Anonymous }, Cmd.OfAsync.perform Remoting.serverApi.GetCurrentUser () SetCurrentUser
+  { User = Anonymous }, Cmd.OfAsync.perform Remoting.unsecuredServerApi.GetCurrentUser () SetCurrentUser
 
 let update (msg: Msg) (model: Model) =
   match msg with

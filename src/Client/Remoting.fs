@@ -3,8 +3,12 @@ module Remoting
 open Fable.Remoting.Client
 open Shared
 
-let serverApi: ServerApi =
+let unsecuredServerApi: UnsecuredServerApi =
   Remoting.createApi ()
   |> Remoting.withBaseUrl "/api"
-  |> Remoting.buildProxy<ServerApi>
+  |> Remoting.buildProxy<UnsecuredServerApi>
 
+let securedServerApi: SecuredServerApi =
+  Remoting.createApi ()
+  |> Remoting.withBaseUrl "/api"
+  |> Remoting.buildProxy<SecuredServerApi>
