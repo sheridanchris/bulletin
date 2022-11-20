@@ -16,6 +16,6 @@ let defaultProperties =
   let expires = issued.AddDays(6)
   AuthenticationProperties(IsPersistent = true, IssuedUtc = issued, ExpiresUtc = expires, AllowRefresh = true)
 
-let signInWithProperties (options: AuthenticationProperties) (context: HttpContext) (user: User) =
+let signInWithProperties (properties: AuthenticationProperties) (context: HttpContext) (user: User) =
   let claimsPrincipal = user |> claims |> claimsIdentity |> ClaimsPrincipal
-  context.SignInAsync(claimsPrincipal, options)
+  context.SignInAsync(claimsPrincipal, properties)

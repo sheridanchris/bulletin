@@ -16,13 +16,14 @@ type CurrentUser =
   | User of UserModel
 
 type Ordering =
-  | Top
-  | Latest
+  | Newest
   | Oldest
+  | Updated
 
-type GetPostsModel = {
+type GetFeedRequest = {
   Ordering: Ordering
-  SearchQuery: string
+  SearchQuery: string option
+  Feed: Guid option
   Page: int
   PageSize: int
 }
@@ -38,15 +39,17 @@ type CreateAccountRequest = {
   Password: string
 }
 
+type SubscribeToFeedRequest = {
+  FeedName: string
+  FeedUrl: string
+}
+
 type PostModel = {
   Id: Guid
   Title: string
   Link: string
   PublishedAt: string
-  Author: string option
-  Score: int
-  Upvoted: bool
-  Downvoted: bool
+  UpdatedAt: string
   Source: string
 }
 
@@ -59,28 +62,31 @@ type Paginated<'a> = {
   HasPreviousPage: bool
 }
 
+type SubscribedFeed = {
+  Name: string
+  FeedUrl: string
+  FeedId: Guid
+}
+
 type LoginError = | InvalidUsernameAndOrPassword
 
 type CreateAccountError =
   | UsernameTaken
   | EmailAddressTaken
 
-type VoteResult =
-  | Positive of PostModel
-  | Negative of PostModel
-  | NoVote of PostModel
+type SubscribeToFeedError =
+  | AlreadySubscribed
 
-type VoteError =
-  | Unauthorized
-  | PostNotFound
-
-type ServerApi = {
+type UnsecuredServerApi = {
   Login: LoginRequest -> Async<Result<UserModel, LoginError>>
   CreateAccount: CreateAccountRequest -> Async<Result<UserModel, CreateAccountError>>
   GetCurrentUser: unit -> Async<CurrentUser>
-  ToggleUpvote: Guid -> Async<Result<VoteResult, VoteError>>
-  ToggleDownvote: Guid -> Async<Result<VoteResult, VoteError>>
-  GetPosts: GetPostsModel -> Async<Paginated<PostModel>>
+}
+
+type SecuredServerApi = {
+  GetSubscribedFeeds: unit -> Async<SubscribedFeed list>
+  GetUserFeed: GetFeedRequest -> Async<Paginated<PostModel>>
+  SubscribeToFeed: SubscribeToFeedRequest -> Async<Result<SubscribedFeed, SubscribeToFeedError>>
 }
 
 module Paginated =

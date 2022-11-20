@@ -36,7 +36,7 @@ let update (msg: Msg) (state: State) =
   | Submit ->
     state,
     Cmd.OfAsync.perform
-      Remoting.serverApi.Login
+      Remoting.unsecuredServerApi.Login
       {
         Username = state.Username
         Password = state.Password
@@ -58,9 +58,7 @@ let Component () =
 
   let renderError errorMsg =
     html
-      $"""
-      <p class="text-red-500">{errorMsg}</p>
-      """
+      $"""<p class="text-red-500">{errorMsg}</p>"""
 
   html
     $"""
@@ -73,5 +71,6 @@ let Component () =
       <input placeholder="username" class="border border-black" @change={EvVal(SetUsername >> dispatch)} />
       <input placeholder="password" type="password" class="border border-black" @change={EvVal(SetPassword >> dispatch)} />
       <button @click={Ev(fun _ -> dispatch Submit)}>Login</button>
+      <a href="/#/register">Don't have an account?</a>
     </div>
     """
