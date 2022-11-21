@@ -75,8 +75,11 @@ type RssWorker(querySession: IQuerySession, documentSession: IDocumentSession) =
         let updatedPosts =
           posts
           |> List.map (fun post ->
+            // This **should** be the 'UpdatedAt' DateTime for already published posts
+            let published = post.PublishedAt
+
             match postsInDb |> Seq.tryFind (fun p -> p.Link = post.Link) with
-            | Some post -> { post with LastUpdatedAt = DateTime.UtcNow } // TODO: Idk if this DateTime is correct?
+            | Some post -> { post with LastUpdatedAt = published }
             | None -> post)
 
         documentSession |> Session.storeMany updatedPosts

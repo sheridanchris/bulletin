@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
@@ -7,6 +7,7 @@
     <Compile Include="Remoting.fs" />
     <Compile Include="Helpers.fs" />
     <Compile Include="ApplicationContext.fs" />
+    <Compile Include="Pages\HomePage.fs" />
     <Compile Include="Pages\LoginPage.fs" />
     <Compile Include="Pages\RegisterPage.fs" />
     <Compile Include="Pages\FeedPage.fs" />
