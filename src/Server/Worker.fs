@@ -14,7 +14,7 @@ open FSharp.UMX
 
 type RSS = XmlProvider<"http://rss.cnn.com/rss/cnn_topstories.rss">
 
-let pollingTimespan = TimeSpan.FromHours(30)
+let pollingTimespan = TimeSpan.FromMinutes(30)
 
 let toDateTime (offset: DateTimeOffset) = offset.UtcDateTime
 
