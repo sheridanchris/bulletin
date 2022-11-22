@@ -86,27 +86,56 @@ let update (msg: Msg) (state: State) =
     | EmailAddressTaken -> { state with Error = "That email address already exists" }, Cmd.none
 
 [<HookComponent>]
+let FormInput (id: string) (labelValue: string) (inputType: string) (placeholder: string) (onChanged: string -> unit) =
+  html
+    $"""
+    <div class="flex flex-col mb-5">
+      <label for={id} class="mb-1 text-xs tracking-wide text-gray-600">
+        {labelValue}
+      </label>
+      <input
+        id={id}
+        type={inputType}
+        class="text-sm placeholder-gray-500 pl-3 pr-4 rounded-2xl border border-gray-400 py-2 focus:outline-none focus:border-blue-400"
+        placeholder={placeholder}
+        @change={EvVal(onChanged)} />
+    </div>
+    """
+
+[<HookComponent>]
 let Component () =
   let state, dispatch = Hook.useElmish (init, update)
 
   let renderError errorMsg =
-    html
-      $"""
-      <p class="text-red-500">{errorMsg}</p>
-      """
+    html $"""<p class="text-red-500">{errorMsg}</p>"""
 
   html
     $"""
-    <div class="flex flex-col gap-y-3 justify-center items-center h-screen">
-      {if String.IsNullOrWhiteSpace state.Error then
-         Lit.nothing
-       else
-         renderError state.Error}
-
-      <input placeholder="username" class="border border-black" @change={EvVal(SetUsername >> dispatch)} />
-      <input placeholder="email address" class="border border-black" @change={EvVal(SetEmailAddress >> dispatch)} />
-      <input placeholder="password" type="password" class="border border-black" @change={EvVal(SetPassword >> dispatch)} />
-      <input placeholder="confirm password" type="password" class="border border-black" @change={EvVal(SetConfirmPassword >> dispatch)} />
-      <button @click={Ev(fun _ -> dispatch Submit)}>Register</button>
+    <div class="min-h-screen flex items-center justify-center">
+      <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow-md sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+        <div class="space-y-6" action="#">
+          <h5 class="text-xl font-medium text-gray-900 dark:text-white">Create your account</h5>
+          <div>
+            <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your username</label>
+            <input @change={EvVal(SetUsername >> dispatch)} type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="username" required>
+          </div>
+          <div>
+            <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email address</label>
+            <input @change={EvVal(SetEmailAddress >> dispatch)} type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="username" required>
+          </div>
+          <div>
+            <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your password</label>
+            <input @change={EvVal(SetPassword >> dispatch)} type="password" name="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+          </div>
+          <div>
+            <label for="confirm-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Confirm your password</label>
+            <input @change={EvVal(SetConfirmPassword >> dispatch)} type="password" name="confirm-password" id="confirm-password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+          </div>
+          <button @click={Ev(fun _ -> dispatch Submit)} class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Login</button>
+          <div class="text-sm font-medium text-gray-500 dark:text-gray-300">
+            Already have an account? <a href="/#/login" class="text-blue-700 hover:underline dark:text-blue-500">Login</a>
+          </div>
+        </div>
+      </div>
     </div>
     """

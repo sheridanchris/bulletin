@@ -1,5 +1,6 @@
 module SubscriptionsPage
 
+open System
 open Lit
 open Lit.Elmish
 open Shared
@@ -10,6 +11,7 @@ type State = {
   FeedName: string
   FeedUrl: string
   SubscribedFeeds: SubscribedFeed list
+  Error: string
 }
 
 type Msg =
@@ -24,6 +26,7 @@ let init () =
     FeedName = ""
     FeedUrl = ""
     SubscribedFeeds = []
+    Error = ""
   },
   Elmish.Cmd.OfAsync.perform Remoting.securedServerApi.GetSubscribedFeeds () SetSubscribedFeeds
 
@@ -43,17 +46,29 @@ let update (msg: Msg) (state: State) =
       SubscriptionResult
   | SubscriptionResult result ->
     match result with
-    | Ok subscribedFeed -> { state with SubscribedFeeds = subscribedFeed :: state.SubscribedFeeds }, Elmish.Cmd.none
-    | Error error -> state, Elmish.Cmd.none // TODO: this.
+    | Ok subscribedFeed ->
+      { state with
+          SubscribedFeeds = subscribedFeed :: state.SubscribedFeeds
+          FeedName = ""
+          FeedUrl = ""
+      },
+      Elmish.Cmd.none
+    | Error error ->
+      match error with
+      | AlreadySubscribed -> { state with Error = "You are already subscribed to that feed" }, Elmish.Cmd.none
 
 let tableRow (subscribedFeed: SubscribedFeed) =
   html
     $"""
-    <tr>
-      <td>{subscribedFeed.Name}</td>
-      <td>{subscribedFeed.FeedUrl}</td>
-      <td>
-        <button>Delete</button>
+    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+      <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+          {subscribedFeed.Name}
+      </th>
+      <td class="py-4 px-6">
+          {subscribedFeed.FeedUrl}
+      </td>
+      <td class="py-4 px-6">
+          <button  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Delete</button>
       </td>
     </tr>
     """
@@ -62,17 +77,42 @@ let tableRow (subscribedFeed: SubscribedFeed) =
 let Component () =
   let state, dispatch = Hook.useElmish (init, update)
 
+  let renderError error =
+    html $"""<p class="text-red-500">{error}</p>"""
+
   html
     $"""
-    <input placeholder="feed name" @change={EvVal(SetFeedName >> dispatch)} />
-    <input placeholder="feed url" @change={EvVal(SetFeedUrl >> dispatch)} />
-    <button @click={Ev(fun _ -> dispatch Subscribe)}>Subscribe</button>
-    <table>
-      <tr>
-        <th>Feed Name</th>
-        <th>Feed Url</th>
-        <th>Actions</th>
-      </tr>
-      {state.SubscribedFeeds |> List.map tableRow}
-    </table>
+    <div class="w-full flex flex-col gap-y-3 justify-center items-center pt-20">
+      <div class="flex flex-col sm:flex-row justify-center items-center w-full gap-x-3">
+        <div class="mb-6">
+          <label for="feed-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Feed name</label>
+          <input @change={EvVal(SetFeedName >> dispatch)} placeholder="feed name" type="text" id="feed-name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        </div>
+        <div class="mb-6">
+          <label for="feed-url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">RSS feed url</label>
+          <input @change={EvVal(SetFeedUrl >> dispatch)} placeholder="feed url" type="text" id="feed-url" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        </div>
+        <button @click={Ev(fun _ -> dispatch Subscribe)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Subscribe</button>
+      </div>
+      <div class="overflow-x-auto relative">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" class="py-3 px-6">
+                  Feed
+              </th>
+              <th scope="col" class="py-3 px-6">
+                  RSS Url
+              </th>
+              <th scope="col" class="py-3 px-6">
+                  Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {state.SubscribedFeeds |> List.map tableRow}
+          </tbody>
+        </table>
+      </div>
+    </div>
     """

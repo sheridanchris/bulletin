@@ -62,7 +62,9 @@ let getUserFeedAsync (criteria: GetFeedRequest) (subscribedFeeds: Guid<FeedId> a
   let filterPostsByFeed (queryable: IQueryable<Post>) =
     match criteria.Feed with
     | None -> queryable
-    | Some feedId -> queryable |> Queryable.filter <@ fun post -> post.Feed = %feedId @>
+    | Some feedId ->
+      let feedId = %feedId
+      queryable |> Queryable.filter <@ fun post -> post.Feed = feedId @>
 
   let filterPostsByHeadline (queryable: IQueryable<Post>) =
     match criteria.SearchQuery with
@@ -78,12 +80,6 @@ let getUserFeedAsync (criteria: GetFeedRequest) (subscribedFeeds: Guid<FeedId> a
   |> filterPostsByHeadline
   |> orderPosts
   |> Queryable.pagedListAsync criteria.Page criteria.PageSize
-
-let tryFindPostAsync (postId: Guid<PostId>) (querySession: IQuerySession) =
-  querySession
-  |> Session.query<Post>
-  |> Queryable.filter <@ fun post -> post.Id = postId @>
-  |> Queryable.tryHeadAsync
 
 type GetUserFilter =
   | FindById of Guid<UserId>
