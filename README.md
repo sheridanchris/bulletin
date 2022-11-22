@@ -1,7 +1,7 @@
 # bulletin
  A personalized rss reader written with F# using Fable.Lit, Saturn, and Elmish! 
  
-![image](https://user-images.githubusercontent.com/105478675/202519620-3df1894b-f418-441e-89ad-9117b953fe72.png)
+![image](https://user-images.githubusercontent.com/105478675/203181881-c614bc92-532b-4b29-aa93-0cfa54206886.png)
 
 Development:
 ```
