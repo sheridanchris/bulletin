@@ -82,7 +82,12 @@ let update (msg: Msg) (state: State) =
       | true, value -> Some value
       | false, _ -> None
 
-    let model = { state.Model with Feed = feedId }
+    let model =
+      { state.Model with
+          Feed = feedId
+          Page = 1
+      }
+
     { state with Model = model }, getUserFeedFromServerCmd model
 
 [<HookComponent>]
