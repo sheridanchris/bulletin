@@ -5,8 +5,6 @@ open Lit
 open Lit.Elmish
 open Shared
 
-// TODO: Filter by feed.
-
 type State = {
   Model: GetFeedRequest
   Posts: Paginated<PostModel>
