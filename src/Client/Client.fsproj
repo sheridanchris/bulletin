@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="Remoting.fs" />
     <Compile Include="Helpers.fs" />
+    <Compile Include="ValidatedInput.fs" />
     <Compile Include="ApplicationContext.fs" />
     <Compile Include="Pages\HomePage.fs" />
     <Compile Include="Pages\LoginPage.fs" />
@@ -21,6 +22,7 @@
     <PackageReference Include="Fable.LitRouter" Version="1.0.0-beta-005" />
     <PackageReference Include="Fable.LitStore" Version="1.0.0-beta-001" />
     <PackageReference Include="Fable.Remoting.Client" Version="7.24.0" />
+    <PackageReference Include="Validus" Version="4.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.fsproj" />

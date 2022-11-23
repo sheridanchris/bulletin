@@ -4,12 +4,15 @@ open System
 open Lit
 open Lit.Elmish
 open Shared
+open ValidatedInput
+open Validus
+open Validus.Operators
 
 // TODO: Delete feed.
 
 type State = {
-  FeedName: string
-  FeedUrl: string
+  FeedName: ValidationState<string>
+  FeedUrl: ValidationState<string>
   SubscribedFeeds: SubscribedFeed list
   Error: string
 }
@@ -23,8 +26,8 @@ type Msg =
 
 let init () =
   {
-    FeedName = ""
-    FeedUrl = ""
+    FeedName = ValidationState.createInvalidWithNoErrors "Feed name" String.Empty
+    FeedUrl = ValidationState.createInvalidWithNoErrors "Feed url" String.Empty
     SubscribedFeeds = []
     Error = ""
   },
@@ -32,27 +35,32 @@ let init () =
 
 let update (msg: Msg) (state: State) =
   match msg with
-  | SetFeedName feedName -> { state with FeedName = feedName }, Elmish.Cmd.none
-  | SetFeedUrl feedUrl -> { state with FeedUrl = feedUrl }, Elmish.Cmd.none
+  | SetFeedName feedName ->
+    let feedNameValidator = Check.String.notEmpty
+    let feedNameState = ValidationState.create (feedNameValidator "Feed name") feedName
+    { state with FeedName = feedNameState }, Elmish.Cmd.none
+  | SetFeedUrl feedUrl ->
+    let feedUrlValidator = Check.String.notEmpty // TODO: Check for valid url???????
+    let feedUrlState = ValidationState.create (feedUrlValidator "Feed url") feedUrl
+    { state with FeedUrl = feedUrlState }, Elmish.Cmd.none
   | SetSubscribedFeeds subscribedFeeds -> { state with SubscribedFeeds = subscribedFeeds }, Elmish.Cmd.none
   | Subscribe ->
-    state,
-    Elmish.Cmd.OfAsync.perform
-      Remoting.securedServerApi.SubscribeToFeed
-      {
-        FeedName = state.FeedName
-        FeedUrl = state.FeedUrl
-      }
-      SubscriptionResult
+    let cmd =
+      match state.FeedName, state.FeedUrl with
+      | Valid feedName, Valid feedUrl ->
+        Elmish.Cmd.OfAsync.perform
+          Remoting.securedServerApi.SubscribeToFeed
+          {
+            FeedName = feedName
+            FeedUrl = feedUrl
+          }
+          SubscriptionResult
+      | _ -> Elmish.Cmd.none
+
+    state, cmd
   | SubscriptionResult result ->
     match result with
-    | Ok subscribedFeed ->
-      { state with
-          SubscribedFeeds = subscribedFeed :: state.SubscribedFeeds
-          FeedName = ""
-          FeedUrl = ""
-      },
-      Elmish.Cmd.none
+    | Ok subscribedFeed -> { state with SubscribedFeeds = subscribedFeed :: state.SubscribedFeeds }, Elmish.Cmd.none
     | Error error ->
       match error with
       | AlreadySubscribed -> { state with Error = "You are already subscribed to that feed" }, Elmish.Cmd.none
@@ -84,11 +92,11 @@ let Component () =
     $"""
     <div class="w-full flex flex-col gap-y-3 justify-center items-center pt-20">
       <div class="flex flex-col sm:flex-row justify-center items-center w-full gap-x-3">
-        <div class="mb-6">
+        <div class="mb-6" colspan="3">
           <label for="feed-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Feed name</label>
           <input @change={EvVal(SetFeedName >> dispatch)} placeholder="feed name" type="text" id="feed-name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
         </div>
-        <div class="mb-6">
+        <div class="mb-6" colspan="3">
           <label for="feed-url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">RSS feed url</label>
           <input @change={EvVal(SetFeedUrl >> dispatch)} placeholder="feed url" type="text" id="feed-url" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
         </div>

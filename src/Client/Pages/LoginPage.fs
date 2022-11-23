@@ -8,11 +8,13 @@ open Lit.Elmish
 open LitStore
 open LitRouter
 open Shared
+open Validus
+open ValidatedInput
 
 type State = {
-  Username: string
-  Password: string
-  Error: string
+  Username: ValidationState<string>
+  Password: ValidationState<string>
+  Alert: string
 }
 
 type Msg =
@@ -23,25 +25,35 @@ type Msg =
 
 let init () =
   {
-    Username = ""
-    Password = ""
-    Error = ""
+    Username = ValidationState.createInvalidWithNoErrors "Username" String.Empty
+    Password = ValidationState.createInvalidWithNoErrors "Password" String.Empty
+    Alert = ""
   },
   Cmd.none
 
+let notEmptyValidator =
+  Check.WithMessage.String.notEmpty (sprintf "%s must not be empty.")
+
 let update (msg: Msg) (state: State) =
   match msg with
-  | SetUsername username -> { state with Username = username }, Cmd.none
-  | SetPassword password -> { state with Password = password }, Cmd.none
+  | SetUsername username ->
+    let usernameState = ValidationState.create (notEmptyValidator "Username") username
+    { state with Username = usernameState }, Cmd.none
+  | SetPassword password ->
+    let passwordState = ValidationState.create (notEmptyValidator "Password") password
+    { state with Password = passwordState }, Cmd.none
   | Submit ->
-    state,
-    Cmd.OfAsync.perform
-      Remoting.unsecuredServerApi.Login
-      {
-        Username = state.Username
-        Password = state.Password
-      }
-      GotLoginResponse
+    match state.Username, state.Password with
+    | Valid username, Valid password ->
+      state,
+      Cmd.OfAsync.perform
+        Remoting.unsecuredServerApi.Login
+        {
+          Username = username
+          Password = password
+        }
+        GotLoginResponse
+    | _ -> state, Elmish.Cmd.none
   | GotLoginResponse(Ok user) ->
     state,
     Cmd.batch [
@@ -50,14 +62,11 @@ let update (msg: Msg) (state: State) =
     ]
   | GotLoginResponse(Error loginError) ->
     match loginError with
-    | InvalidUsernameAndOrPassword -> { state with Error = "Invalid username and/or password." }, Cmd.none
+    | InvalidUsernameAndOrPassword -> { state with Alert = "Invalid username and/or password." }, Cmd.none
 
 [<HookComponent>]
 let Component () =
   let state, dispatch = Hook.useElmish (init, update)
-
-  let renderError errorMsg =
-    html $"""<p class="text-red-500">{errorMsg}</p>"""
 
   html
     $"""
@@ -67,11 +76,13 @@ let Component () =
           <h5 class="text-xl font-medium text-gray-900 dark:text-white">Sign in to your account</h5>
           <div>
             <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your username</label>
-            <input @change={EvVal(SetUsername >> dispatch)} type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="username" required>
+            <input @change={EvVal(SetUsername >> dispatch)} type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="username">
+            {ErrorComponent "text-sm text-red-500" "Username" state.Username}
           </div>
           <div>
             <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your password</label>
-            <input @change={EvVal(SetPassword >> dispatch)} type="password" name="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+            <input @change={EvVal(SetPassword >> dispatch)} type="password" name="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+            {ErrorComponent "text-sm text-red-500" "Password" state.Password}
           </div>
           <button @click={Ev(fun _ -> dispatch Submit)} class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Login</button>
           <div class="text-sm font-medium text-gray-500 dark:text-gray-300">
