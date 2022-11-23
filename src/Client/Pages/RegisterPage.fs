@@ -62,7 +62,6 @@ let passwordValidator =
   <+> stringExistsValidator Char.IsUpper (sprintf "%s must contain an uppercase character.")
   <+> stringHasSymbolValidator (sprintf "%s must contain a symbol.")
 
-// Just directly create the validation error here.
 let confirmPasswordValidator (password: ValidationState<string>) (validationMessage: ValidationMessage) =
   let rule (confirmPassword: string) =
     let password = ValidationState.value password
