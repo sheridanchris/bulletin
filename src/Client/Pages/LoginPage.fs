@@ -25,8 +25,8 @@ type Msg =
 
 let init () =
   {
-    Username = ValidationState.createInvalidWithNoErrors "Username" ""
-    Password = ValidationState.createInvalidWithNoErrors "Password" ""
+    Username = ValidationState.createInvalidWithNoErrors "Username" String.Empty
+    Password = ValidationState.createInvalidWithNoErrors "Password" String.Empty
     Alert = ""
   },
   Cmd.none
