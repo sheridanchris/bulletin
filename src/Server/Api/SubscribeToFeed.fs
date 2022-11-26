@@ -37,6 +37,7 @@ let private createNewFeedAndSubscription
     return
       Ok
         {
+          Id = %rssFeedSubscription.Id
           Name = rssFeedSubscription.FeedName
           FeedUrl = rssFeed.RssFeedUrl
           FeedId = %rssFeed.Id
@@ -59,9 +60,10 @@ let private createNewSubscriptionForFeed
     do! saveFeedSubscription subscription
 
     return {
+      Id = %subscription.Id
       Name = subscription.FeedName
       FeedUrl = feed.RssFeedUrl
-      FeedId = %subscription.Id
+      FeedId = %subscription.FeedId
     }
   }
 

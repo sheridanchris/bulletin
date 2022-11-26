@@ -44,6 +44,8 @@ type SubscribeToFeedRequest = {
   FeedUrl: string
 }
 
+type DeleteFeedRequest = { FeedId: Guid }
+
 type PostModel = {
   Id: Guid
   Title: string
@@ -63,6 +65,7 @@ type Paginated<'a> = {
 }
 
 type SubscribedFeed = {
+  Id: Guid
   Name: string
   FeedUrl: string
   FeedId: Guid
@@ -74,8 +77,11 @@ type CreateAccountError =
   | UsernameTaken
   | EmailAddressTaken
 
-type SubscribeToFeedError =
-  | AlreadySubscribed
+type SubscribeToFeedError = | AlreadySubscribed
+
+type DeleteFeedError = | NotFound
+
+type DeleteFeedResponse = Deleted of Guid
 
 type UnsecuredServerApi = {
   Login: LoginRequest -> Async<Result<UserModel, LoginError>>
@@ -87,6 +93,7 @@ type SecuredServerApi = {
   GetSubscribedFeeds: unit -> Async<SubscribedFeed list>
   GetUserFeed: GetFeedRequest -> Async<Paginated<PostModel>>
   SubscribeToFeed: SubscribeToFeedRequest -> Async<Result<SubscribedFeed, SubscribeToFeedError>>
+  DeleteFeed: DeleteFeedRequest -> Async<Result<DeleteFeedResponse, DeleteFeedError>>
 }
 
 module Paginated =

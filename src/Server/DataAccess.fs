@@ -110,3 +110,7 @@ let saveFeedSubscriptionAsync (feedSubscription: FeedSubscription) (documentSess
 let savePostAsync (post: Post) (documentSession: IDocumentSession) =
   documentSession |> Session.storeSingle post
   documentSession |> Session.saveChangesAsync
+
+let deleteFeedSubscription (subscriptionId: Guid<FeedSubscriptionId>) (documentSession: IDocumentSession) =
+  documentSession |> Session.deleteByGuid<FeedSubscription> (%subscriptionId)
+  documentSession |> Session.saveChangesAsync

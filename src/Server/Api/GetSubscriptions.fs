@@ -9,6 +9,7 @@ open FSharp.UMX
 type SubscribedFeedsService = unit -> Async<SubscribedFeed list>
 
 let private getSubscribedFeed (subscription: FeedSubscription, rssFeed: RssFeed) = {
+  Id = %subscription.Id
   Name = subscription.FeedName
   FeedUrl = rssFeed.RssFeedUrl
   FeedId = %subscription.FeedId

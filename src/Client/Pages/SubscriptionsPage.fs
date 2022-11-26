@@ -7,9 +7,6 @@ open Lit.Elmish
 open Shared
 open ValidatedInput
 open Validus
-open Validus.Operators
-
-// TODO: Delete feed.
 
 type State = {
   FeedName: ValidationState<string>
@@ -23,7 +20,9 @@ type Msg =
   | SetFeedUrl of string
   | SetSubscribedFeeds of SubscribedFeed list
   | Subscribe
+  | DeleteFeed of Guid
   | SubscriptionResult of Result<SubscribedFeed, SubscribeToFeedError>
+  | DeleteFeedResult of Result<DeleteFeedResponse, DeleteFeedError>
 
 let init () =
   {
@@ -67,8 +66,20 @@ let update (msg: Msg) (state: State) =
       | AlreadySubscribed ->
         let alert = Danger { Reason = "You are already subscribed to that feed." }
         { state with Alert = alert }, Elmish.Cmd.none
+  | DeleteFeed feedId ->
+    state, Elmish.Cmd.OfAsync.perform Remoting.securedServerApi.DeleteFeed { FeedId = feedId } DeleteFeedResult
+  | DeleteFeedResult(Ok(Deleted id)) ->
+    let subscribedFeed =
+      state.SubscribedFeeds
+      |> List.indexed
+      |> List.tryFind (fun (_, subscription) -> subscription.Id = id)
 
-let tableRow (subscribedFeed: SubscribedFeed) =
+    match subscribedFeed with
+    | Some(index, _) -> { state with SubscribedFeeds = List.removeAt index state.SubscribedFeeds }, Elmish.Cmd.none
+    | None -> state, Elmish.Cmd.none
+  | DeleteFeedResult(Error _) -> state, Elmish.Cmd.none
+
+let tableRow (deleteFeed: Guid -> unit) (subscribedFeed: SubscribedFeed) =
   html
     $"""
     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
@@ -79,7 +90,7 @@ let tableRow (subscribedFeed: SubscribedFeed) =
           {subscribedFeed.FeedUrl}
       </td>
       <td class="py-4 px-6">
-          <button  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Delete</button>
+          <button @click={Ev(fun _ -> deleteFeed subscribedFeed.FeedId)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Delete</button>
       </td>
     </tr>
     """
@@ -119,7 +130,7 @@ let Component () =
             </tr>
           </thead>
           <tbody>
-            {state.SubscribedFeeds |> List.map tableRow}
+            {state.SubscribedFeeds |> List.map (tableRow (DeleteFeed >> dispatch))}
           </tbody>
         </table>
       </div>

@@ -66,6 +66,9 @@ let userToSharedModel: UserToSharedModel =
     EmailAddress = user.EmailAddress
   }
 
+let deleteSubscription (documentSession: IDocumentSession) : DeleteFeedSubscription =
+  fun subscriptionId -> deleteFeedSubscription subscriptionId documentSession
+
 let unsecuredServerApi (httpContext: HttpContext) : UnsecuredServerApi =
   let querySession = httpContext.GetService<IQuerySession>()
   let documentSession = httpContext.GetService<IDocumentSession>()
@@ -104,4 +107,9 @@ let securedServerApi (httpContext: HttpContext) : SecuredServerApi =
         (getFeedSubscription querySession)
         (saveRssFeed documentSession)
         (saveFeedSubscription documentSession)
+    DeleteFeed =
+      DeleteFeed.deleteFeedService
+        (getCurrentUserId httpContext)
+        (getFeedSubscription querySession)
+        (deleteSubscription documentSession)
   }

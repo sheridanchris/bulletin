@@ -12,6 +12,9 @@ type UserId
 [<Measure>]
 type PostId
 
+[<Measure>]
+type FeedSubscriptionId
+
 type RssFeed = {
   Id: Guid<FeedId>
   RssFeedUrl: string
@@ -25,7 +28,7 @@ type User = {
 }
 
 type FeedSubscription = {
-  Id: Guid
+  Id: Guid<FeedSubscriptionId>
   UserId: Guid<UserId>
   FeedId: Guid<FeedId>
   FeedName: string
