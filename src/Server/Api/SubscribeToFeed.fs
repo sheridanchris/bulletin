@@ -50,22 +50,19 @@ let private createNewSubscriptionForFeed
   (feed: RssFeed)
   (feedName: string)
   =
-  async {
-    let! feedSubscription = getFeedSubscription currentUserId feed.Id
+  asyncResult {
+    do!
+      getFeedSubscription currentUserId feed.Id
+      |> AsyncResult.requireNone AlreadySubscribed
 
-    match feedSubscription with
-    | Some _ -> return Error AlreadySubscribed
-    | None ->
-      let subscription = createSubscription currentUserId feed feedName
-      do! saveFeedSubscription subscription
+    let subscription = createSubscription currentUserId feed feedName
+    do! saveFeedSubscription subscription
 
-      return
-        Ok
-          {
-            Name = subscription.FeedName
-            FeedUrl = feed.RssFeedUrl
-            FeedId = %subscription.Id
-          }
+    return {
+      Name = subscription.FeedName
+      FeedUrl = feed.RssFeedUrl
+      FeedId = %subscription.Id
+    }
   }
 
 let subscribeToFeedService

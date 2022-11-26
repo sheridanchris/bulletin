@@ -1,6 +1,7 @@
 module RegisterPage
 
 open System
+open Alerts
 open Elmish
 open Fable.Core
 open Fable.Remoting.Client
@@ -18,7 +19,7 @@ type State = {
   EmailAddress: ValidationState<string>
   Password: ValidationState<string>
   ConfirmPassword: ValidationState<string>
-  Alert: string
+  Alert: Alert
 }
 
 type Msg =
@@ -35,7 +36,7 @@ let init () =
     EmailAddress = ValidationState.createInvalidWithNoErrors "Email address" String.Empty
     Password = ValidationState.createInvalidWithNoErrors "Password" String.Empty
     ConfirmPassword = ValidationState.createInvalidWithNoErrors "Confirm password" String.Empty
-    Alert = ""
+    Alert = NothingToWorryAbout
   },
   Cmd.none
 
@@ -74,7 +75,7 @@ let update (msg: Msg) (state: State) =
   | SetUsername username ->
     { state with Username = ValidationState.create (usernameValidator "Username") username }, Cmd.none
   | SetEmailAddress emailAddress ->
-    { state with EmailAddress = ValidationState.create (usernameValidator "Email address") emailAddress }, Cmd.none
+    { state with EmailAddress = ValidationState.create (emailAddressValidator "Email address") emailAddress }, Cmd.none
   | SetPassword password ->
     let passwordState = ValidationState.create (passwordValidator "Password") password
 
@@ -117,9 +118,13 @@ let update (msg: Msg) (state: State) =
       Cmd.navigate "/"
     ]
   | GotResponse(Error creationError) ->
-    match creationError with
-    | UsernameTaken -> { state with Alert = "That username already exists" }, Cmd.none
-    | EmailAddressTaken -> { state with Alert = "That email address already exists" }, Cmd.none
+    let reason =
+      match creationError with
+      | UsernameTaken -> "That username is not available."
+      | EmailAddressTaken -> "That email address is not available."
+
+    let alert = Danger { Reason = reason }
+    { state with Alert = alert }, Cmd.none
 
 [<HookComponent>]
 let FormInput (id: string) (labelValue: string) (inputType: string) (placeholder: string) (onChanged: string -> unit) =
@@ -147,7 +152,8 @@ let Component () =
 
   html
     $"""
-    <div class="min-h-screen flex items-center justify-center">
+    <div class="min-h-screen flex flex-col items-center justify-center">
+      {AlertComponent state.Alert}
       <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow-md sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
         <div class="space-y-6" action="#">
           <h5 class="text-xl font-medium text-gray-900 dark:text-white">Create your account</h5>

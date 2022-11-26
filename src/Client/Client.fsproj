@@ -7,6 +7,7 @@
     <Compile Include="Remoting.fs" />
     <Compile Include="Helpers.fs" />
     <Compile Include="ValidatedInput.fs" />
+    <Compile Include="Alerts.fs" />
     <Compile Include="ApplicationContext.fs" />
     <Compile Include="Pages\HomePage.fs" />
     <Compile Include="Pages\LoginPage.fs" />

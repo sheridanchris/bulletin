@@ -1,6 +1,7 @@
 module SubscriptionsPage
 
 open System
+open Alerts
 open Lit
 open Lit.Elmish
 open Shared
@@ -14,7 +15,7 @@ type State = {
   FeedName: ValidationState<string>
   FeedUrl: ValidationState<string>
   SubscribedFeeds: SubscribedFeed list
-  Error: string
+  Alert: Alert
 }
 
 type Msg =
@@ -29,7 +30,7 @@ let init () =
     FeedName = ValidationState.createInvalidWithNoErrors "Feed name" String.Empty
     FeedUrl = ValidationState.createInvalidWithNoErrors "Feed url" String.Empty
     SubscribedFeeds = []
-    Error = ""
+    Alert = NothingToWorryAbout
   },
   Elmish.Cmd.OfAsync.perform Remoting.securedServerApi.GetSubscribedFeeds () SetSubscribedFeeds
 
@@ -63,7 +64,9 @@ let update (msg: Msg) (state: State) =
     | Ok subscribedFeed -> { state with SubscribedFeeds = subscribedFeed :: state.SubscribedFeeds }, Elmish.Cmd.none
     | Error error ->
       match error with
-      | AlreadySubscribed -> { state with Error = "You are already subscribed to that feed" }, Elmish.Cmd.none
+      | AlreadySubscribed ->
+        let alert = Danger { Reason = "You are already subscribed to that feed." }
+        { state with Alert = alert }, Elmish.Cmd.none
 
 let tableRow (subscribedFeed: SubscribedFeed) =
   html
@@ -85,12 +88,10 @@ let tableRow (subscribedFeed: SubscribedFeed) =
 let Component () =
   let state, dispatch = Hook.useElmish (init, update)
 
-  let renderError error =
-    html $"""<p class="text-red-500">{error}</p>"""
-
   html
     $"""
     <div class="w-full flex flex-col gap-y-3 justify-center items-center pt-20">
+      {AlertComponent state.Alert}
       <div class="flex flex-col sm:flex-row justify-center items-center w-full gap-x-3">
         <div class="mb-6" colspan="3">
           <label for="feed-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Feed name</label>

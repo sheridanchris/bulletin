@@ -1,6 +1,7 @@
 module LoginPage
 
 open System
+open Alerts
 open Elmish
 open Fable.Core
 open Lit
@@ -14,7 +15,7 @@ open ValidatedInput
 type State = {
   Username: ValidationState<string>
   Password: ValidationState<string>
-  Alert: string
+  Alert: Alert
 }
 
 type Msg =
@@ -27,7 +28,7 @@ let init () =
   {
     Username = ValidationState.createInvalidWithNoErrors "Username" String.Empty
     Password = ValidationState.createInvalidWithNoErrors "Password" String.Empty
-    Alert = ""
+    Alert = NothingToWorryAbout
   },
   Cmd.none
 
@@ -62,7 +63,9 @@ let update (msg: Msg) (state: State) =
     ]
   | GotLoginResponse(Error loginError) ->
     match loginError with
-    | InvalidUsernameAndOrPassword -> { state with Alert = "Invalid username and/or password." }, Cmd.none
+    | InvalidUsernameAndOrPassword ->
+      let alert = Danger { Reason = "Invalid username and/or password." }
+      { state with Alert = alert }, Cmd.none
 
 [<HookComponent>]
 let Component () =
@@ -70,7 +73,8 @@ let Component () =
 
   html
     $"""
-    <div class="min-h-screen flex items-center justify-center">
+    <div class="min-h-screen flex flex-col items-center justify-center">
+      {AlertComponent state.Alert}
       <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow-md sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
         <div class="space-y-6" action="#">
           <h5 class="text-xl font-medium text-gray-900 dark:text-white">Sign in to your account</h5>
