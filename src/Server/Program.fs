@@ -67,15 +67,10 @@ let configureServices (serviceCollection: IServiceCollection) =
 
   serviceCollection
 
-type CustomError = { errorMsg: string }
-
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
+  // TODO: I need to do proper logging.
   printfn $"Error at %s{routeInfo.path} on method %s{routeInfo.methodName}"
-
-  match ex with
-  | ex ->
-    let customError = { errorMsg = ex.Message }
-    Propagate customError
+  Propagate {| msg = ex.Message |}
 
 let routeBuilder (typeName: string) (methodName: string) = $"/api/{typeName}/{methodName}"
 
