@@ -16,6 +16,7 @@ let createAccountService
   (signInUser: SignInUser)
   (saveUser: SaveUser)
   (userToSharedModel: UserToSharedModel)
+  (createGravatarUrl: CreateGravatarUrl)
   : CreateAccountService =
   fun createAccountRequest -> asyncResult {
     do!
@@ -28,12 +29,15 @@ let createAccountService
 
     let userId = % Guid.NewGuid()
     let passwordHash = createPasswordHash createAccountRequest.Password
+    let profilePictureUrl = createGravatarUrl createAccountRequest.EmailAddress
 
     let user = {
       Id = userId
       Username = createAccountRequest.Username
       EmailAddress = createAccountRequest.EmailAddress
+      GravatarEmailAddress = createAccountRequest.EmailAddress
       PasswordHash = passwordHash
+      ProfilePictureUrl = profilePictureUrl
     }
 
     do! saveUser user

@@ -11,6 +11,8 @@ open FSharp.UMX
 open Shared
 open DataAccess
 open DependencyTypes
+open System.Security.Cryptography
+open System.Text
 
 let private findUserById (querySession: IQuerySession) : FindUserById =
   fun userId -> querySession |> tryFindUserAsync (FindById userId)
@@ -64,7 +66,22 @@ let userToSharedModel: UserToSharedModel =
     Id = %user.Id
     Username = user.Username
     EmailAddress = user.EmailAddress
+    ProfilePictureUrl = user.ProfilePictureUrl
   }
+
+let createGravatarUrl: CreateGravatarUrl =
+  fun emailAddress ->
+    use md5 = MD5.Create()
+
+    let emailAddress = emailAddress.Trim().ToLowerInvariant()
+    let emailBytes = Encoding.Default.GetBytes(emailAddress)
+    let emailHash = md5.ComputeHash(emailBytes)
+
+    let sb = new StringBuilder()
+    emailHash |> Seq.iter (fun c -> sb.Append(c.ToString("x2")) |> ignore)
+
+    let profilePictureHash = sb.ToString()
+    $"https://www.gravatar.com/avatar/{profilePictureHash}"
 
 let deleteSubscription (documentSession: IDocumentSession) : DeleteFeedSubscription =
   fun subscriptionId -> deleteFeedSubscription subscriptionId documentSession
@@ -84,6 +101,7 @@ let unsecuredServerApi (httpContext: HttpContext) : UnsecuredServerApi =
         (signInUser httpContext)
         (saveUser documentSession)
         userToSharedModel
+        createGravatarUrl
     GetCurrentUser =
       GetCurrentUser.getCurrentUser (getCurrentUserId httpContext) (findUserById querySession) userToSharedModel
   }

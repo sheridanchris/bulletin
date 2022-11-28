@@ -24,7 +24,9 @@ type User = {
   Id: Guid<UserId>
   Username: string
   EmailAddress: string
+  GravatarEmailAddress: string
   PasswordHash: string
+  ProfilePictureUrl: string
 }
 
 type FeedSubscription = {
