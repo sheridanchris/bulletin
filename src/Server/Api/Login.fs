@@ -1,6 +1,7 @@
 module Login
 
 open System.Threading.Tasks
+open Data
 open FsToolkit.ErrorHandling
 open Shared
 open DependencyTypes
@@ -11,7 +12,6 @@ let loginService
   (findUserByName: FindUserByName)
   (verifyPasswordHash: VerifyPasswordHash)
   (signInUser: SignInUser)
-  (userToSharedModel: UserToSharedModel)
   : LoginService =
   fun loginRequest -> asyncResult {
     let! user =
@@ -23,5 +23,5 @@ let loginService
       |> Result.requireTrue InvalidUsernameAndOrPassword
 
     do! signInUser user
-    return userToSharedModel user
+    return User.toSharedModel user
   }

@@ -1,5 +1,6 @@
 module GetCurrentUser
 
+open Data
 open Shared
 open DependencyTypes
 
@@ -8,7 +9,6 @@ type CurrentUserService = unit -> Async<CurrentUser>
 let getCurrentUser
   (getCurrentUserId: GetCurrentUserId)
   (findUserById: FindUserById)
-  (userToSharedModel: UserToSharedModel)
   : CurrentUserService =
   fun () -> async {
     let currentUserId = getCurrentUserId ()
@@ -20,6 +20,6 @@ let getCurrentUser
 
       return
         currentUser
-        |> Option.map (fun user -> User(userToSharedModel user))
+        |> Option.map (fun user -> User(User.toSharedModel user))
         |> Option.defaultValue Anonymous
   }

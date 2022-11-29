@@ -61,14 +61,6 @@ let private getSubscribedFeeds (querySession: IQuerySession) : GetSubscribedFeed
 let private getUserFeed (querySession: IQuerySession) : GetUserFeed =
   fun request feedIds -> querySession |> getUserFeedAsync request feedIds
 
-let userToSharedModel: UserToSharedModel =
-  fun user -> {
-    Id = %user.Id
-    Username = user.Username
-    EmailAddress = user.EmailAddress
-    ProfilePictureUrl = user.ProfilePictureUrl
-  }
-
 let createGravatarUrl: CreateGravatarUrl =
   fun emailAddress ->
     use md5 = MD5.Create()
@@ -92,7 +84,7 @@ let unsecuredServerApi (httpContext: HttpContext) : UnsecuredServerApi =
 
   {
     Login =
-      Login.loginService (findUserByName querySession) verifyPasswordHash (signInUser httpContext) userToSharedModel
+      Login.loginService (findUserByName querySession) verifyPasswordHash (signInUser httpContext)
     CreateAccount =
       CreateAccount.createAccountService
         (findUserByName querySession)
@@ -100,10 +92,9 @@ let unsecuredServerApi (httpContext: HttpContext) : UnsecuredServerApi =
         createPasswordHash
         (signInUser httpContext)
         (saveUser documentSession)
-        userToSharedModel
         createGravatarUrl
     GetCurrentUser =
-      GetCurrentUser.getCurrentUser (getCurrentUserId httpContext) (findUserById querySession) userToSharedModel
+      GetCurrentUser.getCurrentUser (getCurrentUserId httpContext) (findUserById querySession)
   }
 
 let securedServerApi (httpContext: HttpContext) : SecuredServerApi =

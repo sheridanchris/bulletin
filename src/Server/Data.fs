@@ -2,6 +2,7 @@ module Data
 
 open System
 open FSharp.UMX
+open Shared
 
 [<Measure>]
 type FeedId
@@ -44,3 +45,20 @@ type Post = {
   Link: string
   Feed: Guid<FeedId>
 }
+
+module User =
+  let create username emailAddress passwordHash profilePictureUrl = {
+    Id = % Guid.NewGuid()
+    Username = username
+    EmailAddress = emailAddress
+    GravatarEmailAddress = emailAddress
+    PasswordHash = passwordHash
+    ProfilePictureUrl = profilePictureUrl
+  }
+
+  let toSharedModel (user: User) : UserModel = {
+    Id = %user.Id
+    Username = user.Username
+    EmailAddress = user.EmailAddress
+    ProfilePictureUrl = user.ProfilePictureUrl
+  }

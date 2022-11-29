@@ -20,5 +20,4 @@ type GetFeedSubscription = Guid<UserId> -> Guid<FeedId> -> Async<FeedSubscriptio
 type DeleteFeedSubscription = Guid<FeedSubscriptionId> -> Async<unit>
 type GetSubscribedFeeds = Guid<UserId> -> Async<(FeedSubscription * RssFeed) list>
 type GetUserFeed = GetFeedRequest -> Guid<FeedId> array -> Async<IPagedList<Post>>
-type UserToSharedModel = User -> UserModel
 type CreateGravatarUrl = string -> string
