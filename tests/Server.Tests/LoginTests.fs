@@ -22,7 +22,7 @@ let loginTests =
             Password = "password"
           }
 
-      return Expect.isOk result "Login result should be InvalidUsernameAndOrPassword"
+      return Expect.isOk result "Login result should be OK"
     }
 
     testCaseAsync "Invalid username test"
