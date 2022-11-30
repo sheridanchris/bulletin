@@ -40,29 +40,6 @@ let init () =
   },
   Cmd.none
 
-let usernameValidator =
-  Check.String.notEmpty
-  <+> Check.WithMessage.String.pattern "^[a-zA-Z][a-zA-Z0-9]*$" (sprintf "%s must be alphanumeric.")
-
-let emailAddressValidator =
-  Check.WithMessage.String.notEmpty (sprintf "%s must not be empty.")
-  <+> Check.WithMessage.String.pattern @"[^@]+@[^\.]+\..+" (sprintf "%s must be an email address.")
-
-let passwordValidator =
-  let stringExistsValidator (f: char -> bool) (message: ValidationMessage) =
-    let rule (value: string) = value |> Seq.exists f
-    Validator.create message rule
-
-  let stringHasSymbolValidator =
-    let symbols = "!@#$%^&*()_-+=\\|'\";:,<.>/?"
-    stringExistsValidator symbols.Contains
-
-  Check.String.notEmpty
-  <+> Check.WithMessage.String.greaterThanLen 6 (sprintf "%s length must be greater 6")
-  <+> stringExistsValidator Char.IsLower (sprintf "%s must contain a lowercase character.")
-  <+> stringExistsValidator Char.IsUpper (sprintf "%s must contain an uppercase character.")
-  <+> stringHasSymbolValidator (sprintf "%s must contain a symbol.")
-
 let confirmPasswordValidator (password: ValidationState<string>) (validationMessage: ValidationMessage) =
   let rule (confirmPassword: string) =
     let password = ValidationState.value password
@@ -73,15 +50,17 @@ let confirmPasswordValidator (password: ValidationState<string>) (validationMess
 let update (msg: Msg) (state: State) =
   match msg with
   | SetUsername username ->
-    { state with Username = ValidationState.create (usernameValidator "Username") username }, Cmd.none
+    { state with Username = ValidationState.create (Validators.usernameValidator "Username") username }, Cmd.none
   | SetEmailAddress emailAddress ->
-    { state with EmailAddress = ValidationState.create (emailAddressValidator "Email address") emailAddress }, Cmd.none
+    { state with EmailAddress = ValidationState.create (Validators.emailAddressValidator "Email address") emailAddress },
+    Cmd.none
   | SetPassword password ->
-    let passwordState = ValidationState.create (passwordValidator "Password") password
+    let passwordState =
+      ValidationState.create (Validators.passwordValidator "Password") password
 
     let confirmPasswordState =
       ValidationState.create
-        (confirmPasswordValidator passwordState (sprintf "%s must match your password") "Confirm password")
+        (confirmPasswordValidator passwordState (sprintf "%s must match") "Passwords")
         (ValidationState.value state.ConfirmPassword)
 
     { state with

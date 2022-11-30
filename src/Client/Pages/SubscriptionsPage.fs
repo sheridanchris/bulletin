@@ -36,12 +36,15 @@ let init () =
 let update (msg: Msg) (state: State) =
   match msg with
   | SetFeedName feedName ->
-    let feedNameValidator = Check.String.notEmpty
-    let feedNameState = ValidationState.create (feedNameValidator "Feed name") feedName
+    let feedNameState =
+      ValidationState.create (Validators.stringNotEmptyValidator "Feed name") feedName
+
     { state with FeedName = feedNameState }, Elmish.Cmd.none
   | SetFeedUrl feedUrl ->
-    let feedUrlValidator = Check.String.notEmpty // TODO: Check for valid url???????
-    let feedUrlState = ValidationState.create (feedUrlValidator "Feed url") feedUrl
+    // TODO: Check for valid url?
+    let feedUrlState =
+      ValidationState.create (Validators.stringNotEmptyValidator "Feed url") feedUrl
+
     { state with FeedUrl = feedUrlState }, Elmish.Cmd.none
   | SetSubscribedFeeds subscribedFeeds -> { state with SubscribedFeeds = subscribedFeeds }, Elmish.Cmd.none
   | Subscribe ->

@@ -16,6 +16,8 @@ type Page =
   | Register
   | Feed
   | Subscriptions
+  | Profile
+  | EditProfile
   | NotFound
 
 let parseUrl =
@@ -25,6 +27,8 @@ let parseUrl =
   | [ "login" ] -> Login
   | [ "register" ] -> Register
   | [ "subscriptions" ] -> Subscriptions
+  | [ "profile" ] -> Profile
+  | [ "profile"; "edit" ] -> EditProfile
   | _ -> NotFound
 
 [<LitElement("my-app")>]
@@ -93,5 +97,7 @@ let MyApp () =
      | Register -> RegisterPage.Component()
      | Feed -> FeedPage.Component()
      | Subscriptions -> SubscriptionsPage.Component()
+     | Profile -> ProfilePage.Component()
+     | EditProfile -> EditProfilePage.Component()
      | NotFound -> NotFoundPage.Component()}
     """

@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="Remoting.fs" />
     <Compile Include="ValidatedInput.fs" />
+    <Compile Include="Validators.fs" />
     <Compile Include="Alerts.fs" />
     <Compile Include="ApplicationContext.fs" />
     <Compile Include="Pages\HomePage.fs" />
@@ -14,6 +15,8 @@
     <Compile Include="Pages\FeedPage.fs" />
     <Compile Include="Pages\SubscriptionsPage.fs" />
     <Compile Include="Pages\NotFoundPage.fs" />
+    <Compile Include="Pages\ProfilePage.fs" />
+    <Compile Include="Pages\EditProfilePage.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>
