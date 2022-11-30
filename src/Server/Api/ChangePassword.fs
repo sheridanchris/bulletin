@@ -21,7 +21,7 @@ let changePasswordService
       |> AsyncResult.requireSome ChangePasswordError.UserNotFound
 
     do!
-      verifyPasswordHash request.OldPassword user
+      verifyPasswordHash request.CurrentPassword user
       |> Result.requireTrue PasswordsDontMatch
 
     let newPasswordHash = createPasswordHash request.NewPassword

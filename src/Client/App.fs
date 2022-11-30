@@ -18,6 +18,7 @@ type Page =
   | Subscriptions
   | Profile
   | EditProfile
+  | ChangePassword
   | NotFound
 
 let parseUrl =
@@ -29,6 +30,7 @@ let parseUrl =
   | [ "subscriptions" ] -> Subscriptions
   | [ "profile" ] -> Profile
   | [ "profile"; "edit" ] -> EditProfile
+  | [ "profile"; "edit"; "password" ] -> ChangePassword
   | _ -> NotFound
 
 [<LitElement("my-app")>]
@@ -99,5 +101,6 @@ let MyApp () =
      | Subscriptions -> SubscriptionsPage.Component()
      | Profile -> ProfilePage.Component()
      | EditProfile -> EditProfilePage.Component()
+     | ChangePassword -> ChangePasswordPage.Component()
      | NotFound -> NotFoundPage.Component()}
     """

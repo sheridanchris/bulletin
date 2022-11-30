@@ -17,6 +17,7 @@
     <Compile Include="Pages\NotFoundPage.fs" />
     <Compile Include="Pages\ProfilePage.fs" />
     <Compile Include="Pages\EditProfilePage.fs" />
+    <Compile Include="Pages\ChangePasswordPage.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>

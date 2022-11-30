@@ -54,7 +54,7 @@ type EditUserProfileRequest = {
 }
 
 type ChangePasswordRequest = {
-  OldPassword: string
+  CurrentPassword: string
   NewPassword: string
 }
 
