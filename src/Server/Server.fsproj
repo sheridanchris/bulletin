@@ -19,6 +19,7 @@
     <Compile Include="Api\DeleteFeed.fs" />
     <Compile Include="Api\EditUserProfile.fs" />
     <Compile Include="Api\CompositionRoot.fs" />
+    <Compile Include="Api\ChangePassword.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

@@ -53,6 +53,11 @@ type EditUserProfileRequest = {
   GravatarEmailAddress: string option
 }
 
+type ChangePasswordRequest = {
+  OldPassword: string
+  NewPassword: string
+}
+
 type PostModel = {
   Id: Guid
   Title: string
@@ -92,6 +97,10 @@ type DeleteFeedResponse = Deleted of Guid
 
 type EditUserProfileError = | UserNotFound
 
+type ChangePasswordError =
+  | PasswordsDontMatch
+  | UserNotFound
+
 type UnsecuredServerApi = {
   Login: LoginRequest -> Async<Result<UserModel, LoginError>>
   CreateAccount: CreateAccountRequest -> Async<Result<UserModel, CreateAccountError>>
@@ -104,6 +113,7 @@ type SecuredServerApi = {
   SubscribeToFeed: SubscribeToFeedRequest -> Async<Result<SubscribedFeed, SubscribeToFeedError>>
   DeleteFeed: DeleteFeedRequest -> Async<Result<DeleteFeedResponse, DeleteFeedError>>
   EditUserProfile: EditUserProfileRequest -> Async<Result<UserModel, EditUserProfileError>>
+  ChangePassword: ChangePasswordRequest -> Async<Result<unit, ChangePasswordError>>
 }
 
 module Paginated =

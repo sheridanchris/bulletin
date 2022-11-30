@@ -15,7 +15,10 @@ let editUserProfileService
   : EditUserProfileService =
   fun request -> asyncResult {
     let currentUserId = getCurrentUserId () |> Option.get
-    let! user = findUserById currentUserId |> AsyncResult.requireSome UserNotFound
+
+    let! user =
+      findUserById currentUserId
+      |> AsyncResult.requireSome EditUserProfileError.UserNotFound
 
     // Since the request contains optional values, only update each property if the optional value is present
     // if not, use the existing value (don't update).
