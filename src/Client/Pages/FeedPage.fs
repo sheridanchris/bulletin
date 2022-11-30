@@ -192,6 +192,23 @@ let FeedSelector (selectedFeed: Guid option) (feeds: SubscribedFeed list) (dispa
 let Component () =
   let state, dispatch = Hook.useElmish (init, update)
 
+  let displayPosts posts =
+    html
+      $"""
+      <div class="p-4 w-full sm:w-3/4 bg-white border rounded-lg shadow-md sm:p-8 dark:bg-gray-800 dark:border-gray-700">
+      <div class="flow-root">
+        <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+          {posts |> Seq.map Post}
+        </ul>
+      </div>
+      """
+
+  let displayEmptyFeed () =
+    html
+      $"""
+      <h1>Sorry, there's nothing in your feed :(</h1>
+      """
+
   html
     $"""
     <div class="w-full flex flex-col gap-y-3 justify-center items-center pt-20">
@@ -213,13 +230,10 @@ let Component () =
         </select>
         {FeedSelector state.Model.Feed state.SubscribedFeeds dispatch}
       </div>
-      <div class="p-4 w-full sm:w-3/4 bg-white border rounded-lg shadow-md sm:p-8 dark:bg-gray-800 dark:border-gray-700">
-        <div class="flow-root">
-          <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
-            {state.Posts.Items |> Seq.map Post}
-          </ul>
-        </div>
-      </div>
+      {if List.length state.Posts.Items > 0 then
+         displayPosts state.Posts.Items
+       else
+         displayEmptyFeed ()}
       {Pagination
          state.Posts.CurrentPage
          state.Posts.PageCount
