@@ -83,8 +83,7 @@ let unsecuredServerApi (httpContext: HttpContext) : UnsecuredServerApi =
   let documentSession = httpContext.GetService<IDocumentSession>()
 
   {
-    Login =
-      Login.loginService (findUserByName querySession) verifyPasswordHash (signInUser httpContext)
+    Login = Login.loginService (findUserByName querySession) verifyPasswordHash (signInUser httpContext)
     CreateAccount =
       CreateAccount.createAccountService
         (findUserByName querySession)
@@ -93,8 +92,7 @@ let unsecuredServerApi (httpContext: HttpContext) : UnsecuredServerApi =
         (signInUser httpContext)
         (saveUser documentSession)
         createGravatarUrl
-    GetCurrentUser =
-      GetCurrentUser.getCurrentUser (getCurrentUserId httpContext) (findUserById querySession)
+    GetCurrentUser = GetCurrentUser.getCurrentUser (getCurrentUserId httpContext) (findUserById querySession)
   }
 
 let securedServerApi (httpContext: HttpContext) : SecuredServerApi =
@@ -121,4 +119,10 @@ let securedServerApi (httpContext: HttpContext) : SecuredServerApi =
         (getCurrentUserId httpContext)
         (getFeedSubscription querySession)
         (deleteSubscription documentSession)
+    EditUserProfile =
+      EditUserProfile.editUserProfileService
+        (getCurrentUserId httpContext)
+        (findUserById querySession)
+        (saveUser documentSession)
+        createGravatarUrl
   }

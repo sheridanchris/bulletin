@@ -47,6 +47,12 @@ type SubscribeToFeedRequest = {
 
 type DeleteFeedRequest = { FeedId: Guid }
 
+type EditUserProfileRequest = {
+  Username: string option
+  EmailAddress: string option
+  GravatarEmailAddress: string option
+}
+
 type PostModel = {
   Id: Guid
   Title: string
@@ -84,6 +90,8 @@ type DeleteFeedError = | NotFound
 
 type DeleteFeedResponse = Deleted of Guid
 
+type EditUserProfileError = | UserNotFound
+
 type UnsecuredServerApi = {
   Login: LoginRequest -> Async<Result<UserModel, LoginError>>
   CreateAccount: CreateAccountRequest -> Async<Result<UserModel, CreateAccountError>>
@@ -95,6 +103,7 @@ type SecuredServerApi = {
   GetUserFeed: GetFeedRequest -> Async<Paginated<PostModel>>
   SubscribeToFeed: SubscribeToFeedRequest -> Async<Result<SubscribedFeed, SubscribeToFeedError>>
   DeleteFeed: DeleteFeedRequest -> Async<Result<DeleteFeedResponse, DeleteFeedError>>
+  EditUserProfile: EditUserProfileRequest -> Async<Result<UserModel, EditUserProfileError>>
 }
 
 module Paginated =

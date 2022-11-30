@@ -17,6 +17,7 @@
     <Compile Include="Api\GetUserFeed.fs" />
     <Compile Include="Api\SubscribeToFeed.fs" />
     <Compile Include="Api\DeleteFeed.fs" />
+    <Compile Include="Api\EditUserProfile.fs" />
     <Compile Include="Api\CompositionRoot.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
