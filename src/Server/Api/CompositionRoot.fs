@@ -125,4 +125,11 @@ let securedServerApi (httpContext: HttpContext) : SecuredServerApi =
         (findUserById querySession)
         (saveUser documentSession)
         createGravatarUrl
+    ChangePassword =
+      ChangePassword.changePasswordService
+        (getCurrentUserId httpContext)
+        (findUserById querySession)
+        verifyPasswordHash
+        createPasswordHash
+        (saveUser documentSession)
   }
