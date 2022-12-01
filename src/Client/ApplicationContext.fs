@@ -6,8 +6,8 @@ open ElmishStore
 type Model = { User: CurrentUser }
 
 type Msg =
-  | LoggedIn of UserModel
-  | LoggedOut
+  | SetLoggedIn of UserModel
+  | SetLoggedOut
   | SetCurrentUser of CurrentUser
 
 let init () =
@@ -15,8 +15,8 @@ let init () =
 
 let update (msg: Msg) (model: Model) =
   match msg with
-  | LoggedIn user -> { model with User = User user }, Cmd.none
-  | LoggedOut -> { model with User = Anonymous }, Cmd.none
+  | SetLoggedIn user -> { model with User = User user }, Cmd.none
+  | SetLoggedOut -> { model with User = Anonymous }, Cmd.none
   | SetCurrentUser user -> { model with User = user }, Cmd.none
 
 let dispose _ = ()

@@ -93,7 +93,7 @@ let update (msg: Msg) (state: State) =
   | GotResponse(Ok userModel) ->
     state,
     Cmd.batch [
-      Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.LoggedIn userModel))
+      Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.SetLoggedIn userModel))
       Cmd.navigate "/"
     ]
   | GotResponse(Error creationError) ->
