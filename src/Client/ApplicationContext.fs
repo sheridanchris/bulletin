@@ -118,7 +118,7 @@ let update (msg: Msg) (model: Model) =
           Page = 1
       }
 
-    { model with GetFeedRequest = getFeedRequest }, getUserFeedFromServerCmd model.GetFeedRequest
+    { model with GetFeedRequest = getFeedRequest }, getUserFeedFromServerCmd getFeedRequest
   | SetPosts posts -> { model with Posts = posts }, Cmd.none
 
 let dispose _ = ()
