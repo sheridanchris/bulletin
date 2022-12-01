@@ -80,13 +80,13 @@ let update (msg: Msg) (model: Model) =
     | None -> model, Cmd.none
   | Search ->
     let getFeedRequest = { model.GetFeedRequest with Page = 1 }
-    { model with GetFeedRequest = getFeedRequest }, getUserFeedFromServerCmd model.GetFeedRequest
+    { model with GetFeedRequest = getFeedRequest }, getUserFeedFromServerCmd getFeedRequest
   | SetPage page ->
     if page < 0 || page > model.Posts.PageCount then
       model, Cmd.none
     else
       let getFeedRequest = { model.GetFeedRequest with Page = page }
-      { model with GetFeedRequest = getFeedRequest }, getUserFeedFromServerCmd model.GetFeedRequest
+      { model with GetFeedRequest = getFeedRequest }, getUserFeedFromServerCmd getFeedRequest
   | SetSearchQuery query ->
     let query = if String.IsNullOrWhiteSpace query then None else Some query
     let getFeedRequest = { model.GetFeedRequest with SearchQuery = query }
@@ -105,7 +105,7 @@ let update (msg: Msg) (model: Model) =
           Page = 1
       }
 
-    { model with GetFeedRequest = getFeedRequest }, getUserFeedFromServerCmd model.GetFeedRequest
+    { model with GetFeedRequest = getFeedRequest }, getUserFeedFromServerCmd getFeedRequest
   | SetSelectedFeed feedValue ->
     let feedId =
       match Guid.TryParse(feedValue) with
