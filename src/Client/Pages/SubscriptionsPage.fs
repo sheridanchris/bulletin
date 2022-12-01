@@ -4,6 +4,7 @@ open System
 open Alerts
 open Lit
 open Lit.Elmish
+open LitStore
 open Shared
 open ValidatedInput
 open Validus
@@ -11,14 +12,12 @@ open Validus
 type State = {
   FeedName: ValidationState<string>
   FeedUrl: ValidationState<string>
-  SubscribedFeeds: SubscribedFeed list
   Alert: Alert
 }
 
 type Msg =
   | SetFeedName of string
   | SetFeedUrl of string
-  | SetSubscribedFeeds of SubscribedFeed list
   | Subscribe
   | DeleteFeed of Guid
   | SubscriptionResult of Result<SubscribedFeed, SubscribeToFeedError>
@@ -28,10 +27,9 @@ let init () =
   {
     FeedName = ValidationState.createInvalidWithNoErrors "Feed name" String.Empty
     FeedUrl = ValidationState.createInvalidWithNoErrors "Feed url" String.Empty
-    SubscribedFeeds = []
     Alert = NothingToWorryAbout
   },
-  Elmish.Cmd.OfAsync.perform Remoting.securedServerApi.GetSubscribedFeeds () SetSubscribedFeeds
+  Elmish.Cmd.none
 
 let update (msg: Msg) (state: State) =
   match msg with
@@ -46,7 +44,6 @@ let update (msg: Msg) (state: State) =
       ValidationState.create (Validators.stringNotEmptyValidator "Feed url") feedUrl
 
     { state with FeedUrl = feedUrlState }, Elmish.Cmd.none
-  | SetSubscribedFeeds subscribedFeeds -> { state with SubscribedFeeds = subscribedFeeds }, Elmish.Cmd.none
   | Subscribe ->
     let cmd =
       match state.FeedName, state.FeedUrl with
@@ -63,7 +60,9 @@ let update (msg: Msg) (state: State) =
     state, cmd
   | SubscriptionResult result ->
     match result with
-    | Ok subscribedFeed -> { state with SubscribedFeeds = subscribedFeed :: state.SubscribedFeeds }, Elmish.Cmd.none
+    | Ok subscribedFeed ->
+      state,
+      Elmish.Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.AddFeedToContext subscribedFeed))
     | Error error ->
       match error with
       | AlreadySubscribed ->
@@ -72,14 +71,7 @@ let update (msg: Msg) (state: State) =
   | DeleteFeed feedId ->
     state, Elmish.Cmd.OfAsync.perform Remoting.securedServerApi.DeleteFeed { FeedId = feedId } DeleteFeedResult
   | DeleteFeedResult(Ok(Deleted id)) ->
-    let subscribedFeed =
-      state.SubscribedFeeds
-      |> List.indexed
-      |> List.tryFind (fun (_, subscription) -> subscription.Id = id)
-
-    match subscribedFeed with
-    | Some(index, _) -> { state with SubscribedFeeds = List.removeAt index state.SubscribedFeeds }, Elmish.Cmd.none
-    | None -> state, Elmish.Cmd.none
+    state, Elmish.Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.DeleteFeedFromContext id))
   | DeleteFeedResult(Error _) -> state, Elmish.Cmd.none
 
 let tableRow (deleteFeed: Guid -> unit) (subscribedFeed: SubscribedFeed) =
@@ -101,6 +93,7 @@ let tableRow (deleteFeed: Guid -> unit) (subscribedFeed: SubscribedFeed) =
 [<HookComponent>]
 let Component () =
   let state, dispatch = Hook.useElmish (init, update)
+  let store = Hook.useStore ApplicationContext.store
 
   html
     $"""
@@ -133,7 +126,7 @@ let Component () =
             </tr>
           </thead>
           <tbody>
-            {state.SubscribedFeeds |> List.map (tableRow (DeleteFeed >> dispatch))}
+            {store.SubscribedFeeds |> List.map (tableRow (DeleteFeed >> dispatch))}
           </tbody>
         </table>
       </div>

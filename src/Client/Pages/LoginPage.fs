@@ -53,7 +53,7 @@ let update (msg: Msg) (state: State) =
   | GotLoginResponse(Ok user) ->
     state,
     Cmd.batch [
-      Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.SetLoggedIn user))
+      Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.SetCurrentUser(User user)))
       Cmd.navigate "/"
     ]
   | GotLoginResponse(Error loginError) ->
