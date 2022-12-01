@@ -48,7 +48,9 @@ let MyApp () =
   let renderUser (user: UserModel) =
     html
       $"""
-        <img class="w-10 h-10 rounded-full" src={user.ProfilePictureUrl} alt="Rounded avatar">
+      <a href="/#/profile">
+        <img class="w-10 h-10 rounded-full" src={user.ProfilePictureUrl} alt="Rounded avatar" />
+      </a>
       """
 
   let navLink (isSelected: bool) (href: string) (text: string) =
