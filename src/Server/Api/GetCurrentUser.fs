@@ -4,12 +4,10 @@ open Data
 open Shared
 open DependencyTypes
 
-type CurrentUserService = unit -> Async<CurrentUser>
-
 let getCurrentUser
   (getCurrentUserId: GetCurrentUserId)
   (findUserById: FindUserById)
-  : CurrentUserService =
+  : GetCurrentUserService =
   fun () -> async {
     let currentUserId = getCurrentUserId ()
 

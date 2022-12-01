@@ -6,8 +6,6 @@ open Shared
 open DependencyTypes
 open FSharp.UMX
 
-type SubscribedFeedsService = unit -> Async<SubscribedFeed list>
-
 let private getSubscribedFeed (subscription: FeedSubscription, rssFeed: RssFeed) = {
   Id = %subscription.Id
   Name = subscription.FeedName
@@ -18,7 +16,7 @@ let private getSubscribedFeed (subscription: FeedSubscription, rssFeed: RssFeed)
 let getSubscribedFeedsService
   (getCurrentUserById: GetCurrentUserId)
   (getSubscribedFeeds: GetSubscribedFeeds)
-  : SubscribedFeedsService =
+  : GetSubscribedFeedsService =
   fun () -> async {
     let currentUserId = getCurrentUserById () |> Option.get
     return! getSubscribedFeeds currentUserId |> Async.map (List.map getSubscribedFeed)

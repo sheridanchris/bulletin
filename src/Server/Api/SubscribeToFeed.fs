@@ -7,8 +7,6 @@ open Data
 open Shared
 open DependencyTypes
 
-type SubscribeToFeedService = SubscribeToFeedRequest -> Async<Result<SubscribedFeed, SubscribeToFeedError>>
-
 let private createSubscription (currentUserId: Guid<UserId>) (rssFeed: RssFeed) (feedName: string) = {
   Id = % Guid.NewGuid()
   UserId = currentUserId

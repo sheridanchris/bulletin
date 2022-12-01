@@ -8,8 +8,6 @@ open DependencyTypes
 open Marten.Pagination
 open Shared
 
-type GetUserFeedService = GetFeedRequest -> Async<Paginated<PostModel>>
-
 let private toPaginated (mapping: 'a -> 'b) (pagedList: IPagedList<'a>) : Paginated<'b> = {
   Items = pagedList |> Seq.map mapping |> Seq.toList
   CurrentPage = int pagedList.PageNumber

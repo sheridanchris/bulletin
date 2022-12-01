@@ -7,8 +7,6 @@ open FsToolkit.ErrorHandling
 open FSharp.UMX
 open DependencyTypes
 
-type CreateAccountService = CreateAccountRequest -> Async<Result<UserModel, CreateAccountError>>
-
 let createAccountService
   (findUserByName: FindUserByName)
   (findUserByEmailAddress: FindUserByEmailAddress)

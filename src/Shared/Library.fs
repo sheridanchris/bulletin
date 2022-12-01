@@ -101,19 +101,30 @@ type ChangePasswordError =
   | PasswordsDontMatch
   | UserNotFound
 
+type LoginService = LoginRequest -> Async<Result<UserModel, LoginError>>
+type CreateAccountService = CreateAccountRequest -> Async<Result<UserModel, CreateAccountError>>
+type GetCurrentUserService = unit -> Async<CurrentUser>
+
 type UnsecuredServerApi = {
-  Login: LoginRequest -> Async<Result<UserModel, LoginError>>
-  CreateAccount: CreateAccountRequest -> Async<Result<UserModel, CreateAccountError>>
-  GetCurrentUser: unit -> Async<CurrentUser>
+  Login: LoginService
+  CreateAccount: CreateAccountService
+  GetCurrentUser: GetCurrentUserService
 }
 
+type GetSubscribedFeedsService = unit -> Async<SubscribedFeed list>
+type GetUserFeedService = GetFeedRequest -> Async<Paginated<PostModel>>
+type SubscribeToFeedService = SubscribeToFeedRequest -> Async<Result<SubscribedFeed, SubscribeToFeedError>>
+type DeleteFeedService = DeleteFeedRequest -> Async<Result<DeleteFeedResponse, DeleteFeedError>>
+type EditUserProfileService = EditUserProfileRequest -> Async<Result<UserModel, EditUserProfileError>>
+type ChangePasswordService = ChangePasswordRequest -> Async<Result<unit, ChangePasswordError>>
+
 type SecuredServerApi = {
-  GetSubscribedFeeds: unit -> Async<SubscribedFeed list>
-  GetUserFeed: GetFeedRequest -> Async<Paginated<PostModel>>
-  SubscribeToFeed: SubscribeToFeedRequest -> Async<Result<SubscribedFeed, SubscribeToFeedError>>
-  DeleteFeed: DeleteFeedRequest -> Async<Result<DeleteFeedResponse, DeleteFeedError>>
-  EditUserProfile: EditUserProfileRequest -> Async<Result<UserModel, EditUserProfileError>>
-  ChangePassword: ChangePasswordRequest -> Async<Result<unit, ChangePasswordError>>
+  GetSubscribedFeeds: GetSubscribedFeedsService
+  GetUserFeed: GetUserFeedService
+  SubscribeToFeed: SubscribeToFeedService
+  DeleteFeed: DeleteFeedService
+  EditUserProfile: EditUserProfileService
+  ChangePassword: ChangePasswordService
 }
 
 module Paginated =

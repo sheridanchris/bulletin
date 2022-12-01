@@ -4,8 +4,6 @@ open FsToolkit.ErrorHandling
 open Shared
 open DependencyTypes
 
-type ChangePasswordService = ChangePasswordRequest -> Async<Result<unit, ChangePasswordError>>
-
 let changePasswordService
   (getCurrentUserId: GetCurrentUserId)
   (findUserById: FindUserById)

@@ -6,8 +6,6 @@ open FsToolkit.ErrorHandling
 open Shared
 open DependencyTypes
 
-type LoginService = LoginRequest -> Async<Result<UserModel, LoginError>>
-
 let loginService
   (findUserByName: FindUserByName)
   (verifyPasswordHash: VerifyPasswordHash)

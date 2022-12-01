@@ -5,8 +5,6 @@ open FSharp.UMX
 open Shared
 open DependencyTypes
 
-type DeleteFeedService = DeleteFeedRequest -> Async<Result<DeleteFeedResponse, DeleteFeedError>>
-
 let deleteFeedService
   (getCurrentUserId: GetCurrentUserId)
   (getFeedSubscription: GetFeedSubscription)

@@ -5,8 +5,6 @@ open Data
 open Shared
 open DependencyTypes
 
-type EditUserProfileService = EditUserProfileRequest -> Async<Result<UserModel, EditUserProfileError>>
-
 let editUserProfileService
   (getCurrentUserId: GetCurrentUserId)
   (findUserById: FindUserById)
