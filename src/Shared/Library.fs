@@ -9,6 +9,7 @@ type UserModel = {
   Id: Guid
   Username: string
   EmailAddress: string
+  GravatarEmailAddress: string
   ProfilePictureUrl: string
 }
 

@@ -60,5 +60,6 @@ module User =
     Id = %user.Id
     Username = user.Username
     EmailAddress = user.EmailAddress
+    GravatarEmailAddress = user.GravatarEmailAddress
     ProfilePictureUrl = user.ProfilePictureUrl
   }
