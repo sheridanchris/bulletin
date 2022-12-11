@@ -12,24 +12,52 @@ open DataAccess
 open Microsoft.Extensions.DependencyInjection
 open FSharp.UMX
 
-type RSS = XmlProvider<"http://rss.cnn.com/rss/cnn_topstories.rss">
+[<Literal>]
+let rssFeedSample =
+  """
+  <rss>
+    <channel>
+      <item>
+        <title>Title</title>
+        <link>Link</link>
+        <guid>Guid</guid>
+        <pubDate>Sun, 11 Dec 2022 19:10:01 GMT</pubDate>
+      </item>
+      <item>
+        <title>Title</title>
+        <link>Link</link>
+        <guid>Guid</guid>
+      </item>
+    </channel>
+  </rss>
+  """
+
+type RSS = XmlProvider<rssFeedSample>
 
 let pollingTimespan = TimeSpan.FromMinutes(30)
 
 let toDateTime (offset: DateTimeOffset) = offset.UtcDateTime
 
+// Sometimes the RSS feed doesn't match the schema defined by the type provider.
+// This will cause an exception, so this function returns an Optional value if that's the case.
 let toPost (feed: RssFeed) (item: RSS.Item) =
-  let published =
-    item.PubDate |> Option.map toDateTime |> Option.defaultValue DateTime.UtcNow
+  try
+    let published =
+      item.PubDate |> Option.map toDateTime |> Option.defaultValue DateTime.UtcNow
 
-  {
-    Id = % Guid.NewGuid()
-    Headline = item.Title
-    PublishedAt = published
-    LastUpdatedAt = published
-    Link = item.Link
-    Feed = feed.Id
-  }
+    Some
+      {
+        Id = % Guid.NewGuid()
+        Headline = item.Title
+        PublishedAt = published
+        LastUpdatedAt = published
+        Link = item.Link
+        Feed = feed.Id
+      }
+  with ex ->
+    // TODO: I need to do proper logging.
+    printfn "An exception has occured: %s" ex.Message
+    None
 
 let filterSource (lastUpdatedAt: DateTime option) (post: Post) =
   match lastUpdatedAt with
@@ -44,6 +72,7 @@ let readSourceAsync (latest: DateTime option) (feed: RssFeed) = task {
     | Choice1Of2 rss ->
       rss.Channel.Items
       |> Array.map (toPost feed)
+      |> Array.choose id
       |> Array.filter (filterSource latest)
       |> Array.toList
     | Choice2Of2 ex ->
