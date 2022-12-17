@@ -31,7 +31,20 @@ let configureStore: StoreOptions -> unit =
     let serializer =
       SystemTextJsonSerializer(EnumStorage = EnumStorage.AsString, Casing = Casing.CamelCase)
 
-    serializer.Customize(fun options -> options.Converters.Add(JsonFSharpConverter()))
+    // https://www.jannikbuschke.de/blog/fsharp-marten/
+    serializer.Customize(fun options ->
+      options.Converters.Add(
+        JsonFSharpConverter(
+          JsonUnionEncoding.AdjacentTag
+          ||| JsonUnionEncoding.NamedFields
+          ||| JsonUnionEncoding.UnwrapRecordCases
+          ||| JsonUnionEncoding.UnwrapOption
+          ||| JsonUnionEncoding.UnwrapSingleCaseUnions
+          ||| JsonUnionEncoding.AllowUnorderedTag,
+          allowNullFields = false
+        )
+      ))
+
     options.Serializer(serializer)
 
     options
