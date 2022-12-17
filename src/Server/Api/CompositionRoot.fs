@@ -69,10 +69,11 @@ let createGravatarUrl: CreateGravatarUrl =
     let emailBytes = Encoding.Default.GetBytes(emailAddress)
     let emailHash = md5.ComputeHash(emailBytes)
 
-    let sb = new StringBuilder()
-    emailHash |> Seq.iter (fun c -> sb.Append(c.ToString("x2")) |> ignore)
+    let profilePictureHash =
+      emailHash
+      |> Seq.map (fun byte -> byte.ToString("x2"))
+      |> String.concat ""
 
-    let profilePictureHash = sb.ToString()
     $"https://www.gravatar.com/avatar/{profilePictureHash}"
 
 let deleteSubscription (documentSession: IDocumentSession) : DeleteFeedSubscription =
