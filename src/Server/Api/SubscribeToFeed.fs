@@ -4,6 +4,7 @@ open System
 open FsToolkit.ErrorHandling
 open FSharp.UMX
 open Data
+open DataAccess
 open Shared
 open DependencyTypes
 
@@ -15,8 +16,8 @@ let private createSubscription (currentUserId: Guid<UserId>) (rssFeed: RssFeed) 
 }
 
 let private createNewFeedAndSubscription
-  (saveRssFeed: SaveRssFeed)
-  (saveFeedSubscription: SaveFeedSubscription)
+  (saveRssFeedAsync: SaveAsync<RssFeed>)
+  (saveFeedSubscriptionAsync: SaveAsync<FeedSubscription>)
   (currentUserId: Guid<UserId>)
   (feedUrl: string)
   (feedName: string)
@@ -29,8 +30,8 @@ let private createNewFeedAndSubscription
 
     let rssFeedSubscription = createSubscription currentUserId rssFeed feedName
 
-    do! saveRssFeed rssFeed
-    do! saveFeedSubscription rssFeedSubscription
+    do! saveRssFeedAsync rssFeed
+    do! saveFeedSubscriptionAsync rssFeedSubscription
 
     return
       Ok
@@ -43,19 +44,19 @@ let private createNewFeedAndSubscription
   }
 
 let private createNewSubscriptionForFeed
-  (getFeedSubscription: GetFeedSubscription)
-  (saveFeedSubscription: SaveFeedSubscription)
+  (getFeedSubscriptionAsync: GetUserFeedSubscriptionAsync)
+  (saveFeedSubscriptionAsync: SaveAsync<FeedSubscription>)
   (currentUserId: Guid<UserId>)
   (feed: RssFeed)
   (feedName: string)
   =
   asyncResult {
     do!
-      getFeedSubscription currentUserId feed.Id
+      getFeedSubscriptionAsync currentUserId feed.Id
       |> AsyncResult.requireNone AlreadySubscribed
 
     let subscription = createSubscription currentUserId feed feedName
-    do! saveFeedSubscription subscription
+    do! saveFeedSubscriptionAsync subscription
 
     return {
       Id = %subscription.Id
@@ -68,9 +69,9 @@ let private createNewSubscriptionForFeed
 let subscribeToFeedService
   (getCurrentUserId: GetCurrentUserId)
   (getFeedByUrl: GetRssFeedByUrl)
-  (getFeedSubscription: GetFeedSubscription)
-  (saveRssFeed: SaveRssFeed)
-  (saveFeedSubscription: SaveFeedSubscription)
+  (getFeedSubscriptionAsync: GetUserFeedSubscriptionAsync)
+  (saveRssFeed: SaveAsync<RssFeed>)
+  (saveFeedSubscription: SaveAsync<FeedSubscription>)
   : SubscribeToFeedService =
   fun request -> async {
     let currentUserId = getCurrentUserId () |> Option.get
@@ -79,7 +80,7 @@ let subscribeToFeedService
     match rssFeed with
     | Some rssFeed ->
       return!
-        createNewSubscriptionForFeed getFeedSubscription saveFeedSubscription currentUserId rssFeed request.FeedName
+        createNewSubscriptionForFeed getFeedSubscriptionAsync saveFeedSubscription currentUserId rssFeed request.FeedName
     | None ->
       return!
         createNewFeedAndSubscription saveRssFeed saveFeedSubscription currentUserId request.FeedUrl request.FeedName

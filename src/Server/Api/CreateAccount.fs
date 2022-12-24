@@ -5,33 +5,36 @@ open Shared
 open Data
 open FsToolkit.ErrorHandling
 open FSharp.UMX
+open DataAccess
+open BCrypt.Net
 open DependencyTypes
 
 let createAccountService
-  (findUserByName: FindUserByName)
-  (findUserByEmailAddress: FindUserByEmailAddress)
-  (createPasswordHash: CreatePasswordHash)
+  (findUserAsync: FindUserAsync)
   (signInUser: SignInUser)
-  (saveUser: SaveUser)
+  (saveUserAsync: SaveAsync<User>)
   (createGravatarUrl: CreateGravatarUrl)
   : CreateAccountService =
   fun createAccountRequest -> asyncResult {
     do!
-      findUserByName createAccountRequest.Username
+      FindByUsername createAccountRequest.Username
+      |> findUserAsync
       |> AsyncResult.requireNone UsernameTaken
 
     do!
-      findUserByEmailAddress createAccountRequest.EmailAddress
+      FindByEmailAddress createAccountRequest.EmailAddress
+      |> findUserAsync
       |> AsyncResult.requireNone EmailAddressTaken
 
     let user =
       User.create
         createAccountRequest.Username
         createAccountRequest.EmailAddress
-        (createPasswordHash createAccountRequest.Password)
+        (BCrypt.HashPassword createAccountRequest.Password)
         (createGravatarUrl createAccountRequest.EmailAddress)
 
-    do! saveUser user
+    do! saveUserAsync user
     do! signInUser user
+
     return User.toSharedModel user
   }

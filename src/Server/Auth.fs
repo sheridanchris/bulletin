@@ -11,9 +11,9 @@ let private scheme = CookieAuthenticationDefaults.AuthenticationScheme
 let private claims (user: User) = [| Claim(ClaimTypes.NameIdentifier, string user.Id) |]
 let private claimsIdentity claims = ClaimsIdentity(claims, scheme)
 
-let defaultProperties =
+let authenticationProperties expiryTimeSpan =
   let issued = DateTimeOffset.UtcNow
-  let expires = issued.AddDays(6)
+  let expires = issued.Add(expiryTimeSpan)
   AuthenticationProperties(IsPersistent = true, IssuedUtc = issued, ExpiresUtc = expires, AllowRefresh = true)
 
 let signInWithProperties (properties: AuthenticationProperties) (context: HttpContext) (user: User) =

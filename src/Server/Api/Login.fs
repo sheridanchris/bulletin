@@ -4,20 +4,22 @@ open System.Threading.Tasks
 open Data
 open FsToolkit.ErrorHandling
 open Shared
+open DataAccess
 open DependencyTypes
+open BCrypt.Net
 
 let loginService
-  (findUserByName: FindUserByName)
-  (verifyPasswordHash: VerifyPasswordHash)
+  (findUserAsync: FindUserAsync)
   (signInUser: SignInUser)
   : LoginService =
   fun loginRequest -> asyncResult {
     let! user =
-      findUserByName loginRequest.Username
+      FindByUsername loginRequest.Username
+      |> findUserAsync
       |> AsyncResult.requireSome InvalidUsernameAndOrPassword
 
     do!
-      verifyPasswordHash loginRequest.Password user
+      BCrypt.Verify(loginRequest.Password, user.PasswordHash)
       |> Result.requireTrue InvalidUsernameAndOrPassword
 
     do! signInUser user

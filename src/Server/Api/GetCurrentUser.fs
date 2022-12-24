@@ -1,12 +1,13 @@
 module GetCurrentUser
 
 open Data
+open DataAccess
 open Shared
 open DependencyTypes
 
 let getCurrentUser
   (getCurrentUserId: GetCurrentUserId)
-  (findUserById: FindUserById)
+  (findUserAsync: FindUserAsync)
   : GetCurrentUserService =
   fun () -> async {
     let currentUserId = getCurrentUserId ()
@@ -14,7 +15,7 @@ let getCurrentUser
     match currentUserId with
     | None -> return Anonymous
     | Some id ->
-      let! currentUser = findUserById id
+      let! currentUser = FindById id |> findUserAsync
 
       return
         currentUser

@@ -3,27 +3,26 @@ module ChangePassword
 open FsToolkit.ErrorHandling
 open Shared
 open DependencyTypes
+open DataAccess
+open Data
+open BCrypt.Net
 
 let changePasswordService
   (getCurrentUserId: GetCurrentUserId)
-  (findUserById: FindUserById)
-  (verifyPasswordHash: VerifyPasswordHash)
-  (createPasswordHash: CreatePasswordHash)
-  (saveUser: SaveUser)
+  (findUserAsync: FindUserAsync)
+  (saveUserAsync: SaveAsync<User>)
   : ChangePasswordService =
   fun request -> asyncResult {
     let currentUserId = getCurrentUserId () |> Option.get
 
     let! user =
-      findUserById currentUserId
+      FindById currentUserId
+      |> findUserAsync
       |> AsyncResult.requireSome ChangePasswordError.UserNotFound
 
     do!
-      verifyPasswordHash request.CurrentPassword user
+      BCrypt.Verify(request.CurrentPassword, user.PasswordHash)
       |> Result.requireTrue PasswordsDontMatch
 
-    let newPasswordHash = createPasswordHash request.NewPassword
-    let newUser = { user with PasswordHash = newPasswordHash }
-
-    do! saveUser newUser
+    do! saveUserAsync { user with PasswordHash = BCrypt.HashPassword request.NewPassword }
   }

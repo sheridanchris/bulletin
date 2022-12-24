@@ -74,7 +74,6 @@ let configureServices (serviceCollection: IServiceCollection) =
   serviceCollection.AddMarten(configureStore) |> ignore
 
   serviceCollection
-    .AddScoped<IScopedBackgroundService, RssWorker>()
     .AddHostedService<RssWorkerBackgroundService>()
   |> ignore
 

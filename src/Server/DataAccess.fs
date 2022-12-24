@@ -2,115 +2,129 @@ module DataAccess
 
 open System
 open System.Collections.Generic
-open System.Threading
 open Marten
+open Marten.Pagination
 open FsToolkit.ErrorHandling
 open Data
 open System.Linq
 open Shared
 open FSharp.UMX
 
-let getRssFeeds (querySession: IQuerySession) =
-  querySession |> Session.query<RssFeed> |> Queryable.toListAsync
+type GetRssFeeds = unit -> Async<IReadOnlyList<RssFeed>>
+let getRssFeeds (querySession: IQuerySession) : GetRssFeeds =
+  fun () -> querySession |> Session.query<RssFeed> |> Queryable.toListAsync
 
-let getRssFeedByUrlAsync (feedUrl: string) (querySession: IQuerySession) =
-  querySession
-  |> Session.query<RssFeed>
-  |> Queryable.filter <@ fun feed -> feed.RssFeedUrl = feedUrl @>
-  |> Queryable.tryHeadAsync
+type GetRssFeedByUrl = string -> Async<RssFeed option>
+let getRssFeedByUrlAsync (querySession: IQuerySession) : GetRssFeedByUrl =
+  fun feedUrl ->
+    querySession
+    |> Session.query<RssFeed>
+    |> Queryable.filter <@ fun feed -> feed.RssFeedUrl = feedUrl @>
+    |> Queryable.tryHeadAsync
 
-let latestPostAsync (querySession: IQuerySession) =
-  querySession
-  |> Session.query<Post>
-  |> Queryable.orderByDescending <@ fun post -> post.LastUpdatedAt @>
-  |> Queryable.tryHeadAsync
-  |> AsyncOption.map (fun post -> post.LastUpdatedAt)
+type GetLatestPostAsync = unit -> Async<DateTime option>
+let latestPostAsync (querySession: IQuerySession) : GetLatestPostAsync =
+  fun () ->
+    querySession
+    |> Session.query<Post>
+    |> Queryable.orderByDescending <@ fun post -> post.LastUpdatedAt @>
+    |> Queryable.tryHeadAsync
+    |> AsyncOption.map (fun post -> post.LastUpdatedAt)
 
-let findPostsByUrls (links: string[]) (querySession: IQuerySession) =
-  querySession
-  |> Session.query<Post>
-  |> Queryable.filter <@ fun post -> post.Link.IsOneOf(links) @>
-  |> Queryable.toListAsync
+type FindPostsByUrls = string[] -> Async<IReadOnlyList<Post>>
+let findPostsByUrls (querySession: IQuerySession) : FindPostsByUrls =
+  fun urls ->
+    querySession
+    |> Session.query<Post>
+    |> Queryable.filter <@ fun post -> post.Link.IsOneOf(urls) @>
+    |> Queryable.toListAsync
 
-let getUserFeedSubscriptionAsync (userId: Guid<UserId>) (feedId: Guid<FeedId>) (querySession: IQuerySession) =
-  querySession
-  |> Session.query<FeedSubscription>
-  |> Queryable.filter <@ fun subscription -> subscription.UserId = userId && subscription.FeedId = feedId @>
-  |> Queryable.tryHeadAsync
+type GetUserFeedSubscriptionAsync = Guid<UserId> -> Guid<FeedId> -> Async<FeedSubscription option>
+let getUserFeedSubscriptionAsync (querySession: IQuerySession) : GetUserFeedSubscriptionAsync =
+  fun userId feedId ->
+    querySession
+    |> Session.query<FeedSubscription>
+    |> Queryable.filter <@ fun subscription -> subscription.UserId = userId && subscription.FeedId = feedId @>
+    |> Queryable.tryHeadAsync
 
-let getAllUserSubscriptionsWithFeeds (userId: Guid<UserId>) (querySession: IQuerySession) =
-  let join (dict: Dictionary<Guid<FeedId>, RssFeed>) (feedSubscription: FeedSubscription) =
-    let correspondingRssFeed = dict[feedSubscription.FeedId]
-    feedSubscription, correspondingRssFeed
+type GetUserSubscriptionsWithFeedsAsync = Guid<UserId> -> Async<(FeedSubscription * RssFeed) list>
+let getAllUserSubscriptionsWithFeeds (querySession: IQuerySession) : GetUserSubscriptionsWithFeedsAsync =
+  fun userId ->
+    let join (dict: Dictionary<Guid<FeedId>, RssFeed>) (feedSubscription: FeedSubscription) =
+      let correspondingRssFeed = dict[feedSubscription.FeedId]
+      feedSubscription, correspondingRssFeed
 
-  let dict: Dictionary<Guid<FeedId>, RssFeed> = Dictionary()
+    let dict: Dictionary<Guid<FeedId>, RssFeed> = Dictionary()
 
-  querySession
-  |> Session.query<FeedSubscription>
-  |> Queryable.filter <@ fun subscription -> subscription.UserId = userId @>
-  |> Queryable.includeDict <@ fun subscription -> subscription.FeedId @> dict
-  |> Queryable.toListAsync
-  |> Async.map (Seq.map (join dict) >> Seq.toList)
+    querySession
+    |> Session.query<FeedSubscription>
+    |> Queryable.filter <@ fun subscription -> subscription.UserId = userId @>
+    |> Queryable.includeDict <@ fun subscription -> subscription.FeedId @> dict
+    |> Queryable.toListAsync
+    |> Async.map (Seq.map (join dict) >> Seq.toList)
 
-let getUserFeedAsync (criteria: GetFeedRequest) (subscribedFeeds: Guid<FeedId> array) (querySession: IQuerySession) =
-  let orderPosts (queryable: IQueryable<Post>) =
-    match criteria.Ordering with
-    | Updated -> queryable |> Queryable.orderByDescending <@ fun post -> post.LastUpdatedAt @>
-    | Newest -> queryable |> Queryable.orderByDescending <@ fun post -> post.PublishedAt @>
-    | Oldest -> queryable |> Queryable.orderBy <@ fun post -> post.PublishedAt @>
+type GetUserFeedAsync = GetFeedRequest -> Guid<FeedId> array -> Async<IPagedList<Post>>
+let getUserFeedAsync (querySession: IQuerySession) : GetUserFeedAsync =
+  fun request feedIds ->
+    let orderPosts (queryable: IQueryable<Post>) =
+      match request.Ordering with
+      | Updated -> queryable |> Queryable.orderByDescending <@ fun post -> post.LastUpdatedAt @>
+      | Newest -> queryable |> Queryable.orderByDescending <@ fun post -> post.PublishedAt @>
+      | Oldest -> queryable |> Queryable.orderBy <@ fun post -> post.PublishedAt @>
 
-  let filterPostsByFeed (queryable: IQueryable<Post>) =
-    match criteria.Feed with
-    | None -> queryable
-    | Some feedId ->
-      let feedId = %feedId
-      queryable |> Queryable.filter <@ fun post -> post.Feed = feedId @>
+    let filterPostsByFeed (queryable: IQueryable<Post>) =
+      match request.Feed with
+      | None -> queryable
+      | Some feedId ->
+        let feedId = %feedId
+        queryable |> Queryable.filter <@ fun post -> post.Feed = feedId @>
 
-  let filterPostsByHeadline (queryable: IQueryable<Post>) =
-    match criteria.SearchQuery with
-    | None -> queryable
-    | Some query ->
-      queryable
-      |> Queryable.filter <@ fun post -> post.Headline.PhraseSearch(query) @>
+    let filterPostsByHeadline (queryable: IQueryable<Post>) =
+      match request.SearchQuery with
+      | None -> queryable
+      | Some query ->
+        queryable
+        |> Queryable.filter <@ fun post -> post.Headline.PhraseSearch(query) @>
 
-  querySession
-  |> Session.query<Post>
-  |> Queryable.filter <@ fun post -> post.Feed.IsOneOf(subscribedFeeds) @>
-  |> filterPostsByFeed
-  |> filterPostsByHeadline
-  |> orderPosts
-  |> Queryable.pagedListAsync criteria.Page criteria.PageSize
+    querySession
+    |> Session.query<Post>
+    |> Queryable.filter <@ fun post -> post.Feed.IsOneOf(feedIds) @>
+    |> filterPostsByFeed
+    |> filterPostsByHeadline
+    |> orderPosts
+    |> Queryable.pagedListAsync request.Page request.PageSize
 
 type GetUserFilter =
   | FindById of Guid<UserId>
   | FindByUsername of string
   | FindByEmailAddress of string
 
-let tryFindUserAsync (filter: GetUserFilter) (querySession: IQuerySession) =
-  let filter (queryable: IQueryable<User>) : IQueryable<User> =
-    match filter with
-    | FindById id -> queryable |> Queryable.filter <@ fun user -> user.Id = id @>
-    | FindByUsername username -> queryable |> Queryable.filter <@ fun user -> user.Username = username @>
-    | FindByEmailAddress email -> queryable |> Queryable.filter <@ fun user -> user.EmailAddress = email @>
+type FindUserAsync = GetUserFilter -> Async<User option>
+let tryFindUserAsync (querySession: IQuerySession) : FindUserAsync =
+  fun filter ->
+    let filter (queryable: IQueryable<User>) : IQueryable<User> =
+      match filter with
+      | FindById id -> queryable |> Queryable.filter <@ fun user -> user.Id = id @>
+      | FindByUsername username -> queryable |> Queryable.filter <@ fun user -> user.Username = username @>
+      | FindByEmailAddress email -> queryable |> Queryable.filter <@ fun user -> user.EmailAddress = email @>
 
-  querySession |> Session.query<User> |> filter |> Queryable.tryHeadAsync
+    querySession |> Session.query<User> |> filter |> Queryable.tryHeadAsync
 
-let saveUserAsync (user: User) (documentSession: IDocumentSession) =
-  documentSession |> Session.storeSingle user
-  documentSession |> Session.saveChangesAsync
 
-let saveRssFeedAsync (rssFeed: RssFeed) (documentSession: IDocumentSession) =
-  documentSession |> Session.storeSingle rssFeed
-  documentSession |> Session.saveChangesAsync
+type SaveAsync<'T> = 'T -> Async<unit>
+let saveAsync (documentSession: IDocumentSession) : SaveAsync<'T> =
+  fun elem ->
+    documentSession |> Session.storeSingle elem
+    documentSession |> Session.saveChangesAsync
 
-let saveFeedSubscriptionAsync (feedSubscription: FeedSubscription) (documentSession: IDocumentSession) =
-  documentSession |> Session.storeSingle feedSubscription
-  documentSession |> Session.saveChangesAsync
+type SaveManyAsync<'T> = 'T list -> Async<unit>
+let saveManyAsync (documentSession: IDocumentSession) : SaveManyAsync<'T> =
+  fun elems ->
+    documentSession |> Session.storeMany elems
+    documentSession |> Session.saveChangesAsync
 
-let savePostAsync (post: Post) (documentSession: IDocumentSession) =
-  documentSession |> Session.storeSingle post
-  documentSession |> Session.saveChangesAsync
-
-let deleteFeedSubscription (subscriptionId: Guid<FeedSubscriptionId>) (documentSession: IDocumentSession) =
-  documentSession |> Session.deleteByGuid<FeedSubscription> (%subscriptionId)
-  documentSession |> Session.saveChangesAsync
+type DeleteAsync<'T> = 'T -> Async<unit>
+let deleteAsync (documentSession: IDocumentSession) : DeleteAsync<'T> =
+  fun entity ->
+    documentSession |> Session.deleteEntity entity
+    documentSession |> Session.saveChangesAsync

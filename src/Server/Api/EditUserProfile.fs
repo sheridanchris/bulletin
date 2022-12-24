@@ -2,20 +2,22 @@ module EditUserProfile
 
 open FsToolkit.ErrorHandling
 open Data
+open DataAccess
 open Shared
 open DependencyTypes
 
 let editUserProfileService
   (getCurrentUserId: GetCurrentUserId)
-  (findUserById: FindUserById)
-  (saveUser: SaveUser)
+  (findUserAsync: FindUserAsync)
+  (saveUserAsync: SaveAsync<User>)
   (createGravatarUrl: CreateGravatarUrl)
   : EditUserProfileService =
   fun request -> asyncResult {
     let currentUserId = getCurrentUserId () |> Option.get
 
     let! user =
-      findUserById currentUserId
+      FindById currentUserId
+      |> findUserAsync
       |> AsyncResult.requireSome EditUserProfileError.UserNotFound
 
     // Since the request contains optional values, only update each property if the optional value is present
@@ -31,6 +33,6 @@ let editUserProfileService
             |> createGravatarUrl
       }
 
-    do! saveUser updatedUser
+    do! saveUserAsync updatedUser
     return User.toSharedModel updatedUser
   }

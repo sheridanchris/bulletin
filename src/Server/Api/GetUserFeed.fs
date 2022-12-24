@@ -7,6 +7,7 @@ open FsToolkit.ErrorHandling
 open DependencyTypes
 open Marten.Pagination
 open Shared
+open DataAccess
 
 let private toPaginated (mapping: 'a -> 'b) (pagedList: IPagedList<'a>) : Paginated<'b> = {
   Items = pagedList |> Seq.map mapping |> Seq.toList
@@ -39,8 +40,8 @@ let private getPostModel (subscribedFeeds: FeedSubscription list) (post: Post) :
 
 let getUserFeedService
   (getCurrentUserId: GetCurrentUserId)
-  (getSubscribedFeeds: GetSubscribedFeeds)
-  (getFeed: GetUserFeed)
+  (getSubscribedFeeds: GetUserSubscriptionsWithFeedsAsync)
+  (getFeed: GetUserFeedAsync)
   : GetUserFeedService =
   fun request -> async {
     let currentUserId = getCurrentUserId () |> Option.get

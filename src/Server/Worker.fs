@@ -81,46 +81,58 @@ let readSourceAsync (latest: DateTime option) (feed: RssFeed) = task {
       []
 }
 
-type IScopedBackgroundService =
-  abstract member DoWorkAsync: CancellationToken -> Task
+type Work = CancellationToken -> Task
 
-type RssWorker(querySession: IQuerySession, documentSession: IDocumentSession) =
-  interface IScopedBackgroundService with
-    member _.DoWorkAsync(stoppingToken: CancellationToken) = task {
-      while not stoppingToken.IsCancellationRequested do
-        let! sources = querySession |> getRssFeeds
+let asyncWork
+  (getRssFeeds: GetRssFeeds)
+  (getLatestPostAsync: GetLatestPostAsync)
+  (findPostsByUrlsAsync: FindPostsByUrls)
+  (savePostsAsync: SaveManyAsync<Post>)
+  : Work =
+  fun stoppingToken -> task {
+    while not stoppingToken.IsCancellationRequested do
+      let! sources = getRssFeeds ()
 
-        let! latestPost = querySession |> latestPostAsync
-        let! results = sources |> Seq.map (readSourceAsync latestPost) |> Task.WhenAll
+      let! latestPost = getLatestPostAsync ()
+      let! results = sources |> Seq.map (readSourceAsync latestPost) |> Task.WhenAll
 
-        let posts =
-          results
-          |> Array.toList
-          |> List.concat
-          |> List.distinctBy (fun post -> post.Link)
+      let posts =
+        results
+        |> Array.toList
+        |> List.concat
+        |> List.distinctBy (fun post -> post.Link)
 
-        let! postsInDb = querySession |> findPostsByUrls [| for post in posts -> post.Link |]
+      let! postsInDb = findPostsByUrlsAsync [| for post in posts -> post.Link |]
 
-        let updatedPosts =
-          posts
-          |> List.map (fun post ->
-            // This **should** be the 'UpdatedAt' DateTime for already published posts
-            let published = post.PublishedAt
+      let updatedPosts =
+        posts
+        |> List.map (fun post ->
+          // This **should** be the 'UpdatedAt' DateTime for already published posts
+          let published = post.PublishedAt
 
-            match postsInDb |> Seq.tryFind (fun p -> p.Link = post.Link) with
-            | Some post -> { post with LastUpdatedAt = published }
-            | None -> post)
+          match postsInDb |> Seq.tryFind (fun p -> p.Link = post.Link) with
+          | Some post -> { post with LastUpdatedAt = published }
+          | None -> post)
 
-        documentSession |> Session.storeMany updatedPosts
-        do! documentSession |> Session.saveChangesTask stoppingToken
-        do! Task.Delay(pollingTimespan)
-    }
+      do! savePostsAsync updatedPosts
+      do! Task.Delay(pollingTimespan, stoppingToken)
+  }
 
 type RssWorkerBackgroundService(serviceProvider: IServiceProvider) =
   inherit BackgroundService()
 
   override _.ExecuteAsync(stoppingToken: CancellationToken) : Task = task {
     use scope = serviceProvider.CreateScope()
-    let worker = scope.ServiceProvider.GetService<IScopedBackgroundService>()
-    do! worker.DoWorkAsync(stoppingToken)
+
+    let querySession = scope.ServiceProvider.GetRequiredService<IQuerySession>()
+    let documentSession = scope.ServiceProvider.GetRequiredService<IDocumentSession>()
+
+    let asyncWork =
+      asyncWork
+        (getRssFeeds querySession)
+        (latestPostAsync querySession)
+        (findPostsByUrls querySession)
+        (saveManyAsync documentSession)
+
+    do! asyncWork stoppingToken
   }

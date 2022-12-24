@@ -4,6 +4,7 @@ open Data
 open FsToolkit.ErrorHandling
 open Shared
 open DependencyTypes
+open DataAccess
 open FSharp.UMX
 
 let private getSubscribedFeed (subscription: FeedSubscription, rssFeed: RssFeed) = {
@@ -15,7 +16,7 @@ let private getSubscribedFeed (subscription: FeedSubscription, rssFeed: RssFeed)
 
 let getSubscribedFeedsService
   (getCurrentUserById: GetCurrentUserId)
-  (getSubscribedFeeds: GetSubscribedFeeds)
+  (getSubscribedFeeds: GetUserSubscriptionsWithFeedsAsync)
   : GetSubscribedFeedsService =
   fun () -> async {
     let currentUserId = getCurrentUserById () |> Option.get

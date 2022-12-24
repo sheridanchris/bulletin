@@ -4,19 +4,21 @@ open FsToolkit.ErrorHandling
 open FSharp.UMX
 open Shared
 open DependencyTypes
+open DataAccess
+open Data
 
 let deleteFeedService
   (getCurrentUserId: GetCurrentUserId)
-  (getFeedSubscription: GetFeedSubscription)
-  (deleteFeedSubscription: DeleteFeedSubscription)
+  (getFeedSubscriptionAsync: GetUserFeedSubscriptionAsync)
+  (deleteAsync: DeleteAsync<FeedSubscription>)
   : DeleteFeedService =
   fun deleteFeedRequest -> asyncResult {
     let currentUserId = getCurrentUserId () |> Option.get
 
     let! feedSubscription =
-      getFeedSubscription currentUserId (%deleteFeedRequest.FeedId)
+      getFeedSubscriptionAsync currentUserId (%deleteFeedRequest.FeedId)
       |> AsyncResult.requireSome NotFound
 
-    do! deleteFeedSubscription feedSubscription.Id
+    do! deleteAsync feedSubscription
     return Deleted(%feedSubscription.Id)
   }
