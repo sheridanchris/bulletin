@@ -54,7 +54,7 @@ let update (msg: Msg) (state: State) =
     state,
     Cmd.batch [
       Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.SetCurrentUser(User user)))
-      Cmd.navigate "/"
+      Cmd.navigate "feed"
     ]
   | GotLoginResponse(Error loginError) ->
     match loginError with
