@@ -23,10 +23,10 @@
   <ItemGroup>
     <PackageReference Include="Fable.Lit" Version="1.4.2" />
     <PackageReference Include="Fable.Lit.Elmish" Version="1.4.0" />
-    <PackageReference Include="Fable.LitRouter" Version="1.0.0-beta-005" />
+    <PackageReference Include="Fable.LitRouter" Version="1.0.0" />
     <PackageReference Include="Fable.LitStore" Version="1.0.0-beta-001" />
-    <PackageReference Include="Fable.Remoting.Client" Version="7.24.0" />
-    <PackageReference Include="Validus" Version="4.0.2" />
+    <PackageReference Include="Fable.Remoting.Client" Version="7.25.0" />
+    <PackageReference Include="Validus" Version="4.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.fsproj" />
