@@ -3,10 +3,7 @@ module ValidatedInput
 open Lit
 open Validus
 
-type InvalidState<'a> = {
-  Value: 'a
-  Errors: ValidationErrors
-}
+type InvalidState<'a> = { Value: 'a; Errors: ValidationErrors }
 
 type ValidationState<'a> =
   | Valid of 'a

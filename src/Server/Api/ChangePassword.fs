@@ -24,5 +24,9 @@ let changePasswordService
       BCrypt.Verify(request.CurrentPassword, user.PasswordHash)
       |> Result.requireTrue PasswordsDontMatch
 
-    do! saveUserAsync { user with PasswordHash = BCrypt.HashPassword request.NewPassword }
+    do!
+      saveUserAsync
+        { user with
+            PasswordHash = BCrypt.HashPassword request.NewPassword
+        }
   }

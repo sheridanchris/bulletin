@@ -10,13 +10,9 @@ pipeline "Build Bulletin" {
     run "npm install"
   }
 
-  stage "publish backend" {
-    run "dotnet build src/Server/Server.fsproj -c Release -o ./deploy"
-  }
+  stage "publish backend" { run "dotnet build src/Server/Server.fsproj -c Release -o ./deploy" }
 
-  stage "publish frontend" {
-    run "npm run build"
-  }
+  stage "publish frontend" { run "npm run build" }
 
   runIfOnlySpecified false
 }

@@ -227,7 +227,9 @@ module Types =
     /// <param name="log">The log to amend.</param>
     /// <returns>The amended log.</returns>
     let setMessage (message: string) (log: Log) =
-      { log with Message = Some(fun () -> message) }
+      { log with
+          Message = Some(fun () -> message)
+      }
 
     /// <summary>
     /// Amends a <see cref="T:FsLibLog.Types.Log">Log</see> with a message thunk.  Useful for "expensive" string construction scenarios.
@@ -245,7 +247,9 @@ module Types =
     /// <param name="log">The log to amend.</param>
     /// <returns>The amended log.</returns>
     let addParameter (param: 'a) (log: Log) =
-      { log with Parameters = List.append log.Parameters [ (box param) ] }
+      { log with
+          Parameters = List.append log.Parameters [ (box param) ]
+      }
 
     /// <summary>
     /// Amends a <see cref="T:FsLibLog.Types.Log">Log</see> with a list of parameters.
@@ -256,7 +260,9 @@ module Types =
     let addParameters (``params``: obj list) (log: Log) =
       let ``params`` = ``params`` |> List.map box
 
-      { log with Parameters = log.Parameters @ ``params`` }
+      { log with
+          Parameters = log.Parameters @ ``params``
+      }
 
     /// <summary>
     /// Amends a <see cref="T:FsLibLog.Types.Log">Log</see> with additional named parameters for context. This helper adds more context to a log.
@@ -268,7 +274,9 @@ module Types =
     /// <param name="log">The log to amend.</param>
     /// <returns>The amended log.</returns>
     let addContext (key: string) (value: obj) (log: Log) =
-      { log with AdditionalNamedParameters = List.append log.AdditionalNamedParameters [ key, (box value), false ] }
+      { log with
+          AdditionalNamedParameters = List.append log.AdditionalNamedParameters [ key, (box value), false ]
+      }
 
     /// <summary>
     /// Amends a <see cref="T:FsLibLog.Types.Log">Log</see> with additional named parameters for context. This helper adds more context to a log.
@@ -282,7 +290,9 @@ module Types =
     /// <param name="log">The log to amend.</param>
     /// <returns>The amended log.</returns>
     let addContextDestructured (key: string) (value: obj) (log: Log) =
-      { log with AdditionalNamedParameters = List.append log.AdditionalNamedParameters [ key, (box value), true ] }
+      { log with
+          AdditionalNamedParameters = List.append log.AdditionalNamedParameters [ key, (box value), true ]
+      }
 
     /// <summary>
     /// Amends a <see cref="T:FsLibLog.Types.Log">Log</see> with an <see cref="T:System.Exception">exn</see>. Handles nulls.
@@ -291,7 +301,9 @@ module Types =
     /// <param name="log">The log to amend.</param>
     /// <returns>The amended log.</returns>
     let addException (``exception``: exn) (log: Log) =
-      { log with Exception = Option.ofObj ``exception`` }
+      { log with
+          Exception = Option.ofObj ``exception``
+      }
 
     /// <summary>
     /// Amends a <see cref="T:FsLibLog.Types.Log">Log</see> with an <see cref="T:System.Exception">exn</see>. Handles nulls.
@@ -452,14 +464,7 @@ module Providers =
       ()
 
       let pushPropertyMethod =
-        ndcContextType.GetMethod(
-          "PushProperty",
-          [|
-            typedefof<string>
-            typedefof<obj>
-            typedefof<bool>
-          |]
-        )
+        ndcContextType.GetMethod("PushProperty", [| typedefof<string>; typedefof<obj>; typedefof<bool> |])
 
       let nameParam = Expression.Parameter(typedefof<string>, "name")
 
@@ -487,14 +492,7 @@ module Providers =
       let logManagerType = getLogManagerType ()
 
       let method =
-        logManagerType.GetMethod(
-          "ForContext",
-          [|
-            typedefof<string>
-            typedefof<obj>
-            typedefof<bool>
-          |]
-        )
+        logManagerType.GetMethod("ForContext", [| typedefof<string>; typedefof<obj>; typedefof<bool> |])
 
       let propertyNameParam = Expression.Parameter(typedefof<string>, "propertyName")
 
@@ -503,11 +501,7 @@ module Providers =
       let destructureObjectsParam =
         Expression.Parameter(typedefof<bool>, "destructureObjects")
 
-      let exrs: Expression[] = [|
-        propertyNameParam
-        valueParam
-        destructureObjectsParam
-      |]
+      let exrs: Expression[] = [| propertyNameParam; valueParam; destructureObjectsParam |]
 
       let methodCall = Expression.Call(null, method, exrs)
 
@@ -579,14 +573,7 @@ module Providers =
             .Compile()
 
         let writeMethodInfo =
-          loggerType.GetMethod(
-            "Write",
-            [|
-              logEventLevelType
-              typedefof<string>
-              typedefof<obj[]>
-            |]
-          )
+          loggerType.GetMethod("Write", [| logEventLevelType; typedefof<string>; typedefof<obj[]> |])
 
         let messageParam = Expression.Parameter(typedefof<string>)
         let propertyValuesParam = Expression.Parameter(typedefof<obj[]>)
@@ -606,15 +593,7 @@ module Providers =
         let write = expression.Compile()
 
         let writeExceptionMethodInfo =
-          loggerType.GetMethod(
-            "Write",
-            [|
-              logEventLevelType
-              typedefof<exn>
-              typedefof<string>
-              typedefof<obj[]>
-            |]
-          )
+          loggerType.GetMethod("Write", [| logEventLevelType; typedefof<exn>; typedefof<string>; typedefof<obj[]> |])
 
         let exceptionParam = Expression.Parameter(typedefof<exn>)
 

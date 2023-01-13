@@ -35,9 +35,15 @@ let init () =
 let update (msg: Msg) (state: State) =
   match msg with
   | SetUsername username ->
-    { state with Username = ValidationState.create (Validators.stringNotEmptyValidator "Username") username }, Cmd.none
+    { state with
+        Username = ValidationState.create (Validators.stringNotEmptyValidator "Username") username
+    },
+    Cmd.none
   | SetPassword password ->
-    { state with Password = ValidationState.create (Validators.stringNotEmptyValidator "Password") password }, Cmd.none
+    { state with
+        Password = ValidationState.create (Validators.stringNotEmptyValidator "Password") password
+    },
+    Cmd.none
   | Submit ->
     match state.Username, state.Password with
     | Valid username, Valid password ->
@@ -59,7 +65,12 @@ let update (msg: Msg) (state: State) =
   | GotLoginResponse(Error loginError) ->
     match loginError with
     | InvalidUsernameAndOrPassword ->
-      let alert = Danger { Reason = "Invalid username and/or password." }
+      let alert =
+        Danger
+          {
+            Reason = "Invalid username and/or password."
+          }
+
       { state with Alert = alert }, Cmd.none
 
 [<HookComponent>]

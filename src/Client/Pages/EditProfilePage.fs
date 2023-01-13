@@ -42,7 +42,9 @@ let private validationStateIfNotEmpty (validator: string -> ValidationResult<str
 let update (msg: Msg) (state: State) =
   match msg with
   | SetUsername username ->
-    { state with Username = validationStateIfNotEmpty (Validators.usernameValidator "Username") username },
+    { state with
+        Username = validationStateIfNotEmpty (Validators.usernameValidator "Username") username
+    },
     Elmish.Cmd.none
   | SetEmailAddress emailAddress ->
     { state with
@@ -83,7 +85,12 @@ let update (msg: Msg) (state: State) =
       Cmd.navigate "profile"
     ]
   | GotResult(Error _) ->
-    let alert = Danger { Reason = "Failed to edit your profile." }
+    let alert =
+      Danger
+        {
+          Reason = "Failed to edit your profile."
+        }
+
     { state with Alert = alert }, Elmish.Cmd.none
 
 let renderUser (state: State) (dispatch: Msg -> unit) (user: UserModel) =

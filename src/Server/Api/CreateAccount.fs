@@ -31,11 +31,7 @@ let createAccountService
     let profilePictureUrl = Gravatar.createUrl createAccountRequest.EmailAddress
 
     let user =
-      User.create
-        createAccountRequest.Username
-        createAccountRequest.EmailAddress
-        passwordHash
-        profilePictureUrl
+      User.create createAccountRequest.Username createAccountRequest.EmailAddress passwordHash profilePictureUrl
 
     do! saveUserAsync user
     do! signInUser user

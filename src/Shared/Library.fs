@@ -30,10 +30,7 @@ type GetFeedRequest = {
   PageSize: int
 }
 
-type LoginRequest = {
-  Username: string
-  Password: string
-}
+type LoginRequest = { Username: string; Password: string }
 
 type CreateAccountRequest = {
   Username: string
@@ -41,10 +38,7 @@ type CreateAccountRequest = {
   Password: string
 }
 
-type SubscribeToFeedRequest = {
-  FeedName: string
-  FeedUrl: string
-}
+type SubscribeToFeedRequest = { FeedName: string; FeedUrl: string }
 
 type DeleteFeedRequest = { FeedId: Guid }
 

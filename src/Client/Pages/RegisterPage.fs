@@ -50,9 +50,14 @@ let confirmPasswordValidator (password: ValidationState<string>) (validationMess
 let update (msg: Msg) (state: State) =
   match msg with
   | SetUsername username ->
-    { state with Username = ValidationState.create (Validators.usernameValidator "Username") username }, Cmd.none
+    { state with
+        Username = ValidationState.create (Validators.usernameValidator "Username") username
+    },
+    Cmd.none
   | SetEmailAddress emailAddress ->
-    { state with EmailAddress = ValidationState.create (Validators.emailAddressValidator "Email address") emailAddress },
+    { state with
+        EmailAddress = ValidationState.create (Validators.emailAddressValidator "Email address") emailAddress
+    },
     Cmd.none
   | SetPassword password ->
     let passwordState =
@@ -74,7 +79,10 @@ let update (msg: Msg) (state: State) =
         (confirmPasswordValidator state.Password (sprintf "%s must match") "Passwords")
         confirmPassword
 
-    { state with ConfirmPassword = confirmPasswordState }, Cmd.none
+    { state with
+        ConfirmPassword = confirmPasswordState
+    },
+    Cmd.none
   | Submit ->
     let cmd =
       match state.Username, state.EmailAddress, state.Password, state.ConfirmPassword with

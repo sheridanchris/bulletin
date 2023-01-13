@@ -89,10 +89,7 @@ let configureServices (serviceCollection: IServiceCollection) =
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
   logger.error (
     Log.setMessage "Error at {path} on method {method}"
-    >> Log.addParameters [
-      routeInfo.path
-      routeInfo.methodName
-    ]
+    >> Log.addParameters [ routeInfo.path; routeInfo.methodName ]
     >> Log.addExn ex
   )
 

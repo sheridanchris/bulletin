@@ -16,10 +16,7 @@ type PostId
 [<Measure>]
 type FeedSubscriptionId
 
-type RssFeed = {
-  Id: Guid<FeedId>
-  RssFeedUrl: string
-}
+type RssFeed = { Id: Guid<FeedId>; RssFeedUrl: string }
 
 type User = {
   Id: Guid<UserId>

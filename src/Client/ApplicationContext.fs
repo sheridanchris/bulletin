@@ -77,7 +77,11 @@ let private setOrdering ordering model =
         Page = 1
     }
 
-  let model = { model with GetFeedRequest = getFeedRequest }
+  let model =
+    { model with
+        GetFeedRequest = getFeedRequest
+    }
+
   model, getUserFeedCmd model
 
 let deleteFeed feedId model =
@@ -91,25 +95,51 @@ let deleteFeed feedId model =
   | Some(index, _) ->
     // TODO: not sure if I should update the feed here, or elsewhere.
     let subscribedFeeds = List.removeAt index model.SubscribedFeeds
-    let model = { model with SubscribedFeeds = subscribedFeeds }
+
+    let model =
+      { model with
+          SubscribedFeeds = subscribedFeeds
+      }
+
     model, getUserFeedCmd model
 
 let private search model =
   let getFeedRequest = { model.GetFeedRequest with Page = 1 }
-  let model = { model with GetFeedRequest = getFeedRequest }
+
+  let model =
+    { model with
+        GetFeedRequest = getFeedRequest
+    }
+
   model, getUserFeedCmd model
 
 let private setSearchQuery query model =
   let query = if String.IsNullOrWhiteSpace query then None else Some query
-  let getFeedRequest = { model.GetFeedRequest with SearchQuery = query }
-  { model with GetFeedRequest = getFeedRequest }, Cmd.none
+
+  let getFeedRequest =
+    { model.GetFeedRequest with
+        SearchQuery = query
+    }
+
+  { model with
+      GetFeedRequest = getFeedRequest
+  },
+  Cmd.none
 
 let private setPage page model =
   match page with
   | page when page < 0 || page > model.Posts.PageCount -> model, Cmd.none
   | page ->
-    let getFeedRequest = { model.GetFeedRequest with Page = page }
-    let model = { model with GetFeedRequest = getFeedRequest }
+    let getFeedRequest =
+      { model.GetFeedRequest with
+          Page = page
+      }
+
+    let model =
+      { model with
+          GetFeedRequest = getFeedRequest
+      }
+
     model, getUserFeedCmd model
 
 let private setSelectedFeed (feedValueString: string) model =
@@ -124,14 +154,22 @@ let private setSelectedFeed (feedValueString: string) model =
         Page = 1
     }
 
-  let model = { model with GetFeedRequest = getFeedRequest }
+  let model =
+    { model with
+        GetFeedRequest = getFeedRequest
+    }
+
   model, getUserFeedCmd model
 
 let update (msg: Msg) (model: Model) =
   match msg with
   | SetPosts posts -> { model with Posts = posts }, Cmd.none
   | SetSubscribedFeeds feeds -> { model with SubscribedFeeds = feeds }, Cmd.none
-  | AddFeedToContext feed -> { model with SubscribedFeeds = feed :: model.SubscribedFeeds }, getUserFeedCmd model
+  | AddFeedToContext feed ->
+    { model with
+        SubscribedFeeds = feed :: model.SubscribedFeeds
+    },
+    getUserFeedCmd model
   | SetCurrentUser user -> setUser user model
   | DeleteFeedFromContext feedId -> deleteFeed feedId model
   | Search -> search model

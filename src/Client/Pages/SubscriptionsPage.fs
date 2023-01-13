@@ -66,7 +66,12 @@ let update (msg: Msg) (state: State) =
     | Error error ->
       match error with
       | AlreadySubscribed ->
-        let alert = Danger { Reason = "You are already subscribed to that feed." }
+        let alert =
+          Danger
+            {
+              Reason = "You are already subscribed to that feed."
+            }
+
         { state with Alert = alert }, Elmish.Cmd.none
   | DeleteFeed feedId ->
     state, Elmish.Cmd.OfAsync.perform Remoting.securedServerApi.DeleteFeed { FeedId = feedId } DeleteFeedResult

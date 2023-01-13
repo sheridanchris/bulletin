@@ -29,12 +29,19 @@ let init () =
 
 let update (msg: Msg) (state: State) =
   match msg with
-  | SetCurrentPassword password -> { state with CurrentPassword = password }, Elmish.Cmd.none
+  | SetCurrentPassword password ->
+    { state with
+        CurrentPassword = password
+    },
+    Elmish.Cmd.none
   | SetNewPassword password ->
     let newPasswordState =
       ValidationState.create (Validators.passwordValidator "New password") password
 
-    { state with NewPassword = newPasswordState }, Elmish.Cmd.none
+    { state with
+        NewPassword = newPasswordState
+    },
+    Elmish.Cmd.none
   | Submit ->
     match state.NewPassword with
     | Invalid _ -> state, Elmish.Cmd.none
@@ -50,7 +57,11 @@ let update (msg: Msg) (state: State) =
   | GotResult result ->
     let alert =
       match result with
-      | Ok() -> Success { Reason = "Your password has been changed" }
+      | Ok() ->
+        Success
+          {
+            Reason = "Your password has been changed"
+          }
       | Error error ->
         let reason =
           match error with
