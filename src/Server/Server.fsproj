@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="FsLibLog.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="Data.fs" />
     <Compile Include="Auth.fs" />
