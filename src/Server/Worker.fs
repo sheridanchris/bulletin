@@ -11,6 +11,8 @@ open Marten
 open DataAccess
 open Microsoft.Extensions.DependencyInjection
 open FSharp.UMX
+open FsLibLog
+open FsLibLog.Types
 
 [<Literal>]
 let rssFeedSample =
@@ -55,8 +57,12 @@ let toPost (feed: RssFeed) (item: RSS.Item) =
         Feed = feed.Id
       }
   with ex ->
-    // TODO: I need to do proper logging.
-    printfn "An exception has occured: %s" ex.Message
+    logger.error (
+      Log.setMessage "An exception has occured when converting an RSS item to a post for feed: {feedId}"
+      >> Log.addParameter feed.Id
+      >> Log.addExn ex
+    )
+
     None
 
 let filterSource (lastUpdatedAt: DateTime option) (post: Post) =
@@ -76,8 +82,12 @@ let readSourceAsync (latest: DateTime option) (feed: RssFeed) = task {
       |> Array.filter (filterSource latest)
       |> Array.toList
     | Choice2Of2 ex ->
-      // TODO: I need to do proper logging.
-      printfn "An exception has occured: %s" ex.StackTrace
+      logger.error (
+        Log.setMessage "An exception has occured when reading an rss feed. Id: {feedId}"
+        >> Log.addParameter feed.Id
+        >> Log.addExn ex
+      )
+
       []
 }
 

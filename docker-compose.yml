@@ -25,6 +25,15 @@ services:
       - ./dev_data/redis:/var/lib/redis/data
     ports:
       - "6379:6739"
+  seq:
+    image: datalust/seq:latest
+    ports:
+    - "8080:80"
+    - "5341:5341"
+    environment:
+      - ACCEPT_EULA=Y
+    volumes:
+      - /dev_data/seq:/data
   webapi:
     build: ./
     ports:
@@ -34,6 +43,7 @@ services:
       - ASPNETCORE_URLS=http://+:5000
       - ConnectionStrings__Postgresql=Host=postgresql;Database=postgres;Username=postgres;Password=${POSTGRES_PASSWORD};Include Error Detail=true
       - ConnectionStrings__Redis=redis,password=${REDIS_PASSWORD}
+      - ConnectionStrings__Seq=http://seq
     depends_on:
       postgresql:
         condition: service_healthy

@@ -5,6 +5,7 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Configuration
 open Giraffe
+open Serilog
 open Worker
 open Marten
 open Data
@@ -14,9 +15,19 @@ open Weasel.Core
 open System.Text.Json.Serialization
 open Fable.Remoting.Giraffe
 open Saturn
+open FsLibLog
+open FsLibLog.Types
+open FsLibLog.Operators
 
 let configuration: IConfiguration =
   ConfigurationBuilder().AddEnvironmentVariables().Build()
+
+let loggerConfiguration =
+  LoggerConfiguration()
+    .WriteTo.Seq(configuration.GetConnectionString("Seq"))
+    .CreateLogger()
+
+Log.Logger <- loggerConfiguration
 
 let cookieAuthenticationOptions: CookieAuthenticationOptions -> unit =
   fun options ->
@@ -72,14 +83,19 @@ let configureStore: StoreOptions -> unit =
 
 let configureServices (serviceCollection: IServiceCollection) =
   serviceCollection.AddMarten(configureStore) |> ignore
-
   serviceCollection.AddHostedService<RssWorkerBackgroundService>() |> ignore
-
   serviceCollection
 
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
-  // TODO: I need to do proper logging.
-  printfn $"Error at %s{routeInfo.path} on method %s{routeInfo.methodName}"
+  logger.error (
+    Log.setMessage "Error at {path} on method {method}"
+    >> Log.addParameters [
+      routeInfo.path
+      routeInfo.methodName
+    ]
+    >> Log.addExn ex
+  )
+
   Propagate {| msg = ex.Message |}
 
 let routeBuilder (typeName: string) (methodName: string) = $"/api/{typeName}/{methodName}"
