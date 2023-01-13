@@ -86,7 +86,7 @@ let Component () =
           <h5 class="text-xl font-medium text-gray-900 dark:text-white">Sign in to your account</h5>
           <div>
             <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your username</label>
-            <input @change={EvVal(SetUsername >> dispatch)} type="text" name="username" id="username" class="bg-gray-50
+            <input @keyup={EvVal(SetUsername >> dispatch)} type="text" name="username" id="username" class="bg-gray-50
             border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
             focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500
             dark:placeholder-gray-400 dark:text-white" placeholder="username" />
@@ -94,7 +94,7 @@ let Component () =
           </div>
           <div>
             <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your password</label>
-            <input @change={EvVal(SetPassword >> dispatch)} type="password" name="password" id="password" placeholder="••••••••"
+            <input @keyup={EvVal(SetPassword >> dispatch)} type="password" name="password" id="password" placeholder="••••••••"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
             focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600
             dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"> {ErrorComponent "text-sm text-red-500" "Password" state.Password}

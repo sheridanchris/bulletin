@@ -1,10 +1,51 @@
 module FeedPage
 
 open System
+open Fable
 open Lit
 open Lit.Elmish
 open LitStore
 open Shared
+open Thoth.Elmish
+
+type State = {
+  Debouncer: Debouncer.State
+  SearchQuery: string
+}
+
+type Msg =
+  | DebouncerSelfMsg of Debouncer.SelfMessage<Msg>
+  | SetSearchQuery of string
+  | EndOfInput
+
+let init () =
+  {
+    Debouncer = Debouncer.create ()
+    SearchQuery = ""
+  },
+  Elmish.Cmd.none
+
+let update msg state =
+  match msg with
+  | DebouncerSelfMsg debouncerMsg ->
+    let debouncerModel, debouncerCmd = Debouncer.update debouncerMsg state.Debouncer
+
+    { state with
+        Debouncer = debouncerModel
+    },
+    debouncerCmd
+  | SetSearchQuery query ->
+    let debouncerModel, debouncerCmd =
+      state.Debouncer
+      |> Debouncer.bounce (TimeSpan.FromMilliseconds 300) "search_query" EndOfInput
+
+    { state with
+        SearchQuery = query
+        Debouncer = debouncerModel
+    },
+    Elmish.Cmd.batch [ Elmish.Cmd.map DebouncerSelfMsg debouncerCmd ]
+  | EndOfInput ->
+    state, Elmish.Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.SetSearchQuery state.SearchQuery))
 
 [<HookComponent>]
 let Post (post: PostModel) =
@@ -116,6 +157,7 @@ let FeedSelector (selectedFeed: Guid option) (feeds: SubscribedFeed list) (dispa
 [<HookComponent>]
 let Component () =
   let store = Hook.useStore ApplicationContext.store
+  let state, dispatch = Hook.useElmish (init, update)
 
   let displayPosts posts =
     html
@@ -150,7 +192,7 @@ let Component () =
                 </div>
                 <input
                   .value={store.GetFeedRequest.SearchQuery |> Option.defaultValue String.Empty}
-                  @change={EvVal(ApplicationContext.SetSearchQuery >> ApplicationContext.dispatch)}
+                  @keyup={EvVal(SetSearchQuery >> dispatch)}
                   type="search"
                   id="search"
                   class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500

@@ -108,14 +108,14 @@ let renderUser (state: State) (dispatch: Msg -> unit) (user: UserModel) =
           <h5 class="text-xl font-medium text-gray-900 dark:text-white">Edit your profile</h5>
           <div>
             <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your username</label>
-            <input .value={user.Username} @change={EvVal(SetUsername >> dispatch)} type="text" name="username" id="username" class="bg-gray-50
+            <input .value={user.Username} @keyup={EvVal(SetUsername >> dispatch)} type="text" name="username" id="username" class="bg-gray-50
             border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
             focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500
             dark:placeholder-gray-400 dark:text-white" placeholder="username" /> {optionalErrorComponent "Username" state.Username}
           </div>
           <div>
             <label for="email-address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email address</label>
-            <input .value={user.EmailAddress} @change={EvVal(SetEmailAddress >> dispatch)} type="text" name="email-address" id="email-address" class="bg-gray-50
+            <input .value={user.EmailAddress} @keyup={EvVal(SetEmailAddress >> dispatch)} type="text" name="email-address" id="email-address" class="bg-gray-50
             border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
             focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500
             dark:placeholder-gray-400 dark:text-white" placeholder="email address" />
@@ -123,7 +123,7 @@ let renderUser (state: State) (dispatch: Msg -> unit) (user: UserModel) =
           </div>
           <div>
             <label for="gravatar-email-address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your gravatar email address</label>
-            <input .value={user.GravatarEmailAddress} @change={EvVal(SetGravatarEmailAddress >> dispatch)} type="text" name="gravatar-email-address" id="gravatar-email-address" />
+            <input .value={user.GravatarEmailAddress} @keyup={EvVal(SetGravatarEmailAddress >> dispatch)} type="text" name="gravatar-email-address" id="gravatar-email-address" />
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
             focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600
             dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="gravatar email address" />

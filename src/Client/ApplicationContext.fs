@@ -121,10 +121,12 @@ let private setSearchQuery query model =
         SearchQuery = query
     }
 
-  { model with
-      GetFeedRequest = getFeedRequest
-  },
-  Cmd.none
+  let model =
+    { model with
+        GetFeedRequest = getFeedRequest
+    }
+
+  model, getUserFeedCmd model
 
 let private setPage page model =
   match page with
