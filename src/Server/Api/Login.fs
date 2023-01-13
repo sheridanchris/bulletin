@@ -11,7 +11,8 @@ open BCrypt.Net
 let loginService (findUserAsync: FindUserAsync) (signInUser: SignInUser) : LoginService =
   fun loginRequest -> asyncResult {
     let! user =
-      FindByUsername loginRequest.Username
+      loginRequest.Username
+      |> FindByUsername
       |> findUserAsync
       |> AsyncResult.requireSome InvalidUsernameAndOrPassword
 

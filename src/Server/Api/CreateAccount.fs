@@ -13,25 +13,29 @@ let createAccountService
   (findUserAsync: FindUserAsync)
   (signInUser: SignInUser)
   (saveUserAsync: SaveAsync<User>)
-  (createGravatarUrl: CreateGravatarUrl)
   : CreateAccountService =
   fun createAccountRequest -> asyncResult {
     do!
-      FindByUsername createAccountRequest.Username
+      createAccountRequest.Username
+      |> FindByUsername
       |> findUserAsync
       |> AsyncResult.requireNone UsernameTaken
 
     do!
-      FindByEmailAddress createAccountRequest.EmailAddress
+      createAccountRequest.EmailAddress
+      |> FindByEmailAddress
       |> findUserAsync
       |> AsyncResult.requireNone EmailAddressTaken
+
+    let passwordHash = BCrypt.HashPassword createAccountRequest.Password
+    let profilePictureUrl = Gravatar.createUrl createAccountRequest.EmailAddress
 
     let user =
       User.create
         createAccountRequest.Username
         createAccountRequest.EmailAddress
-        (BCrypt.HashPassword createAccountRequest.Password)
-        (createGravatarUrl createAccountRequest.EmailAddress)
+        passwordHash
+        profilePictureUrl
 
     do! saveUserAsync user
     do! signInUser user

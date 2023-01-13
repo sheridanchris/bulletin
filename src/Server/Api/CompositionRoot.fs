@@ -28,19 +28,6 @@ let private getCurrentUserId (httpContext: HttpContext) : GetCurrentUserId =
     |> Option.ofNull
     |> Option.map (fun nameId -> % Guid.Parse(nameId.Value))
 
-let createGravatarUrl: CreateGravatarUrl =
-  fun emailAddress ->
-    use md5 = MD5.Create()
-
-    let emailAddress = emailAddress.Trim().ToLowerInvariant()
-    let emailBytes = Encoding.Default.GetBytes(emailAddress)
-    let emailHash = md5.ComputeHash(emailBytes)
-
-    let profilePictureHash =
-      emailHash |> Seq.map (fun byte -> byte.ToString("x2")) |> String.concat ""
-
-    $"https://www.gravatar.com/avatar/{profilePictureHash}"
-
 let unsecuredServerApi (httpContext: HttpContext) : UnsecuredServerApi =
   let querySession = httpContext.GetService<IQuerySession>()
   let documentSession = httpContext.GetService<IDocumentSession>()
@@ -52,7 +39,6 @@ let unsecuredServerApi (httpContext: HttpContext) : UnsecuredServerApi =
         (tryFindUserAsync querySession)
         (signInUser httpContext)
         (saveAsync documentSession)
-        createGravatarUrl
     GetCurrentUser = GetCurrentUser.getCurrentUser (getCurrentUserId httpContext) (tryFindUserAsync querySession)
   }
 
@@ -87,7 +73,6 @@ let securedServerApi (httpContext: HttpContext) : SecuredServerApi =
         (getCurrentUserId httpContext)
         (tryFindUserAsync querySession)
         (saveAsync documentSession)
-        createGravatarUrl
     ChangePassword =
       ChangePassword.changePasswordService
         (getCurrentUserId httpContext)

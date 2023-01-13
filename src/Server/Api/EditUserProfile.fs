@@ -10,7 +10,6 @@ let editUserProfileService
   (getCurrentUserId: GetCurrentUserId)
   (findUserAsync: FindUserAsync)
   (saveUserAsync: SaveAsync<User>)
-  (createGravatarUrl: CreateGravatarUrl)
   : EditUserProfileService =
   fun request -> asyncResult {
     let currentUserId = getCurrentUserId () |> Option.get
@@ -30,7 +29,7 @@ let editUserProfileService
           ProfilePictureUrl =
             request.GravatarEmailAddress
             |> Option.defaultValue user.GravatarEmailAddress
-            |> createGravatarUrl
+            |> Gravatar.createUrl
       }
 
     do! saveUserAsync updatedUser
