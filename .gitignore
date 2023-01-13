@@ -827,3 +827,5 @@ fabric.properties
 dev_data
 .idea/
 fable_modules
+deploy/
+.build/

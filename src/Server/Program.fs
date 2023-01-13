@@ -73,9 +73,7 @@ let configureStore: StoreOptions -> unit =
 let configureServices (serviceCollection: IServiceCollection) =
   serviceCollection.AddMarten(configureStore) |> ignore
 
-  serviceCollection
-    .AddHostedService<RssWorkerBackgroundService>()
-  |> ignore
+  serviceCollection.AddHostedService<RssWorkerBackgroundService>() |> ignore
 
   serviceCollection
 

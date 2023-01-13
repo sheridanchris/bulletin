@@ -5,10 +5,7 @@ open DataAccess
 open Shared
 open DependencyTypes
 
-let getCurrentUser
-  (getCurrentUserId: GetCurrentUserId)
-  (findUserAsync: FindUserAsync)
-  : GetCurrentUserService =
+let getCurrentUser (getCurrentUserId: GetCurrentUserId) (findUserAsync: FindUserAsync) : GetCurrentUserService =
   fun () -> async {
     let currentUserId = getCurrentUserId ()
 

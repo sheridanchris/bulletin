@@ -25,7 +25,7 @@ let private renderUser (user: UserModel) =
 
 [<HookComponent>]
 let Component () =
-  let store = Hook.useStore(ApplicationContext.store)
+  let store = Hook.useStore (ApplicationContext.store)
 
   match store.User with
   | User user -> renderUser user

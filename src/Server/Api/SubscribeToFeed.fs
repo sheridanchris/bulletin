@@ -80,7 +80,12 @@ let subscribeToFeedService
     match rssFeed with
     | Some rssFeed ->
       return!
-        createNewSubscriptionForFeed getFeedSubscriptionAsync saveFeedSubscription currentUserId rssFeed request.FeedName
+        createNewSubscriptionForFeed
+          getFeedSubscriptionAsync
+          saveFeedSubscription
+          currentUserId
+          rssFeed
+          request.FeedName
     | None ->
       return!
         createNewFeedAndSubscription saveRssFeed saveFeedSubscription currentUserId request.FeedUrl request.FeedName

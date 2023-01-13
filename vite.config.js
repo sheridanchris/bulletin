@@ -2,10 +2,9 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  root: "./src/Client",
   build: {
-    commonjsOptions: {
-      include: ["/node_modules"]
-    }
+    outDir: "../../deploy/public",
   },
   server: {
     proxy: {
@@ -13,9 +12,6 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true,
       }
-    },
-    watch: {
-      ignored: ['**/dev_data/**']
     }
   }
 })

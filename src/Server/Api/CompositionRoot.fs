@@ -37,9 +37,7 @@ let createGravatarUrl: CreateGravatarUrl =
     let emailHash = md5.ComputeHash(emailBytes)
 
     let profilePictureHash =
-      emailHash
-      |> Seq.map (fun byte -> byte.ToString("x2"))
-      |> String.concat ""
+      emailHash |> Seq.map (fun byte -> byte.ToString("x2")) |> String.concat ""
 
     $"https://www.gravatar.com/avatar/{profilePictureHash}"
 
@@ -64,7 +62,9 @@ let securedServerApi (httpContext: HttpContext) : SecuredServerApi =
 
   {
     GetSubscribedFeeds =
-      GetSubscriptions.getSubscribedFeedsService (getCurrentUserId httpContext) (getAllUserSubscriptionsWithFeeds querySession)
+      GetSubscriptions.getSubscribedFeedsService
+        (getCurrentUserId httpContext)
+        (getAllUserSubscriptionsWithFeeds querySession)
     GetUserFeed =
       GetUserFeed.getUserFeedService
         (getCurrentUserId httpContext)

@@ -1,19 +1,16 @@
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
-WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+FROM mcr.microsoft.com/dotnet/sdk:7.0 as build
 
-
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-WORKDIR /app
-COPY . .
-RUN dotnet restore "src/Server/Server.fsproj" --no-cache
-RUN dotnet build "src/Server/Server.fsproj" -c Release -o /app/build /maxcpucount:4
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
+RUN apt-get update && apt-get install -y nodejs
 
 FROM build AS publish
-RUN dotnet publish "src/Server/Server.fsproj" -c Release -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+COPY . .
+
+RUN dotnet fsi ./build.fsx
+
+FROM build AS final
+WORKDIR /app
+COPY --from=publish /app/deploy .
 ENTRYPOINT ["dotnet", "Server.dll"]

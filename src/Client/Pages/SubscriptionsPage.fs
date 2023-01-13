@@ -85,7 +85,11 @@ let tableRow (deleteFeed: Guid -> unit) (subscribedFeed: SubscribedFeed) =
           {subscribedFeed.FeedUrl}
       </td>
       <td class="py-4 px-6">
-          <button @click={Ev(fun _ -> deleteFeed subscribedFeed.FeedId)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Delete</button>
+          <button
+            @click={Ev(fun _ -> deleteFeed subscribedFeed.FeedId)}
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300
+            font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700
+            dark:focus:ring-blue-800">Delete</button>
       </td>
     </tr>
     """
@@ -102,13 +106,24 @@ let Component () =
       <div class="flex flex-col sm:flex-row justify-center items-center w-full gap-x-3">
         <div class="mb-6" colspan="3">
           <label for="feed-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Feed name</label>
-          <input @change={EvVal(SetFeedName >> dispatch)} placeholder="feed name" type="text" id="feed-name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+          <input
+            @change={EvVal(SetFeedName >> dispatch)} placeholder="feed name" type="text" id="feed-name"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500
+            block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
+            dark:focus:border-blue-500" />
         </div>
         <div class="mb-6" colspan="3">
           <label for="feed-url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">RSS feed url</label>
-          <input @change={EvVal(SetFeedUrl >> dispatch)} placeholder="feed url" type="text" id="feed-url" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+          <input
+            @change={EvVal(SetFeedUrl >> dispatch)} placeholder="feed url" type="text" id="feed-url"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block
+            w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
+            dark:focus:border-blue-500" />
         </div>
-        <button @click={Ev(fun _ -> dispatch Subscribe)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Subscribe</button>
+        <button
+          @click={Ev(fun _ -> dispatch Subscribe)}
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+          text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Subscribe</button>
       </div>
       <div class="overflow-x-auto relative">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">

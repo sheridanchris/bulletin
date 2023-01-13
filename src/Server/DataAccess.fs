@@ -11,10 +11,12 @@ open Shared
 open FSharp.UMX
 
 type GetRssFeeds = unit -> Async<IReadOnlyList<RssFeed>>
+
 let getRssFeeds (querySession: IQuerySession) : GetRssFeeds =
   fun () -> querySession |> Session.query<RssFeed> |> Queryable.toListAsync
 
 type GetRssFeedByUrl = string -> Async<RssFeed option>
+
 let getRssFeedByUrlAsync (querySession: IQuerySession) : GetRssFeedByUrl =
   fun feedUrl ->
     querySession
@@ -23,6 +25,7 @@ let getRssFeedByUrlAsync (querySession: IQuerySession) : GetRssFeedByUrl =
     |> Queryable.tryHeadAsync
 
 type GetLatestPostAsync = unit -> Async<DateTime option>
+
 let latestPostAsync (querySession: IQuerySession) : GetLatestPostAsync =
   fun () ->
     querySession
@@ -32,6 +35,7 @@ let latestPostAsync (querySession: IQuerySession) : GetLatestPostAsync =
     |> AsyncOption.map (fun post -> post.LastUpdatedAt)
 
 type FindPostsByUrls = string[] -> Async<IReadOnlyList<Post>>
+
 let findPostsByUrls (querySession: IQuerySession) : FindPostsByUrls =
   fun urls ->
     querySession
@@ -40,6 +44,7 @@ let findPostsByUrls (querySession: IQuerySession) : FindPostsByUrls =
     |> Queryable.toListAsync
 
 type GetUserFeedSubscriptionAsync = Guid<UserId> -> Guid<FeedId> -> Async<FeedSubscription option>
+
 let getUserFeedSubscriptionAsync (querySession: IQuerySession) : GetUserFeedSubscriptionAsync =
   fun userId feedId ->
     querySession
@@ -48,6 +53,7 @@ let getUserFeedSubscriptionAsync (querySession: IQuerySession) : GetUserFeedSubs
     |> Queryable.tryHeadAsync
 
 type GetUserSubscriptionsWithFeedsAsync = Guid<UserId> -> Async<(FeedSubscription * RssFeed) list>
+
 let getAllUserSubscriptionsWithFeeds (querySession: IQuerySession) : GetUserSubscriptionsWithFeedsAsync =
   fun userId ->
     let join (dict: Dictionary<Guid<FeedId>, RssFeed>) (feedSubscription: FeedSubscription) =
@@ -64,6 +70,7 @@ let getAllUserSubscriptionsWithFeeds (querySession: IQuerySession) : GetUserSubs
     |> Async.map (Seq.map (join dict) >> Seq.toList)
 
 type GetUserFeedAsync = GetFeedRequest -> Guid<FeedId> array -> Async<IPagedList<Post>>
+
 let getUserFeedAsync (querySession: IQuerySession) : GetUserFeedAsync =
   fun request feedIds ->
     let orderPosts (queryable: IQueryable<Post>) =
@@ -100,6 +107,7 @@ type GetUserFilter =
   | FindByEmailAddress of string
 
 type FindUserAsync = GetUserFilter -> Async<User option>
+
 let tryFindUserAsync (querySession: IQuerySession) : FindUserAsync =
   fun filter ->
     let filter (queryable: IQueryable<User>) : IQueryable<User> =
@@ -110,20 +118,22 @@ let tryFindUserAsync (querySession: IQuerySession) : FindUserAsync =
 
     querySession |> Session.query<User> |> filter |> Queryable.tryHeadAsync
 
-
 type SaveAsync<'T> = 'T -> Async<unit>
+
 let saveAsync (documentSession: IDocumentSession) : SaveAsync<'T> =
   fun elem ->
     documentSession |> Session.storeSingle elem
     documentSession |> Session.saveChangesAsync
 
 type SaveManyAsync<'T> = 'T list -> Async<unit>
+
 let saveManyAsync (documentSession: IDocumentSession) : SaveManyAsync<'T> =
   fun elems ->
     documentSession |> Session.storeMany elems
     documentSession |> Session.saveChangesAsync
 
 type DeleteAsync<'T> = 'T -> Async<unit>
+
 let deleteAsync (documentSession: IDocumentSession) : DeleteAsync<'T> =
   fun entity ->
     documentSession |> Session.deleteEntity entity

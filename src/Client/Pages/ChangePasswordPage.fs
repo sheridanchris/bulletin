@@ -74,14 +74,22 @@ let Component () =
           <h5 class="text-xl font-medium text-gray-900 dark:text-white">Change your password</h5>
           <div>
             <label for="current-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your current password</label>
-            <input @change={EvVal(SetCurrentPassword >> dispatch)} type="password" name="current-password" id="current-password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+            <input @change={EvVal(SetCurrentPassword >> dispatch)} type="password" name="current-password" id="current-password"
+            placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900
+            text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full
+            p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
           </div>
           <div>
             <label for="new-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your new password</label>
-            <input @change={EvVal(SetNewPassword >> dispatch)} type="password" name="new-password" id="new-password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+            <input @change={EvVal(SetNewPassword >> dispatch)} type="password" name="new-password" id="new-password" placeholder="••••••••"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+            focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600
+            dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
             {ErrorComponent "text-sm text-red-500" "New password" state.NewPassword}
           </div>
-          <button @click={Ev(fun _ -> dispatch Submit)} class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+          <button @click={Ev(fun _ -> dispatch Submit)} class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+            focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5
+            py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
         </div>
       </div>
     </div>

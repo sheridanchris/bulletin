@@ -4,40 +4,18 @@ open Lit
 open LitRouter
 open LitStore
 open Fable.Core.JsInterop
+open Routing
 open Shared
 
 importSideEffects "./index.css"
 
 // TODO: Is there anyway to require authentication for navigation???
 
-type Page =
-  | Home
-  | Login
-  | Register
-  | Feed
-  | Subscriptions
-  | Profile
-  | EditProfile
-  | ChangePassword
-  | NotFound
-
-let parseUrl =
-  function
-  | [] -> Home
-  | [ "feed" ] -> Feed
-  | [ "login" ] -> Login
-  | [ "register" ] -> Register
-  | [ "subscriptions" ] -> Subscriptions
-  | [ "profile" ] -> Profile
-  | [ "profile"; "edit" ] -> EditProfile
-  | [ "profile"; "edit"; "password" ] -> ChangePassword
-  | _ -> NotFound
-
 [<LitElement("my-app")>]
 let MyApp () =
   let _ = LitElement.init (fun cfg -> cfg.useShadowDom <- false)
   let store = Hook.useStore ApplicationContext.store
-  let page = parseUrl (Hook.useRouter RouteMode.Hash)
+  let page = Page.parseUrl (Hook.useRouter RouteMode.Hash)
 
   let renderAnonymous () =
     html
@@ -58,9 +36,12 @@ let MyApp () =
 
     let classes =
       if isSelected then
-        "block py-2 pl-3 pr-4 text-white text-bold bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white"
+        "block py-2 pl-3 pr-4 text-white text-bold bg-blue-700 rounded md:bg-transparent
+         md:text-blue-700 md:p-0 dark:text-white"
       else
-        "block py-2 pl-3 pr-4 text-gray-700 text-bold rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-white dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+        "block py-2 pl-3 pr-4 text-gray-700 text-bold rounded hover:bg-gray-100 md:hover:bg-transparent
+         md:hover:text-blue-700 md:p-0 md:dark:hover:text-white dark:text-gray-400 dark:hover:bg-gray-700
+         dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
 
     html
       $"""
@@ -104,5 +85,5 @@ let MyApp () =
      | Profile -> ProfilePage.Component()
      | EditProfile -> EditProfilePage.Component()
      | ChangePassword -> ChangePasswordPage.Component()
-     | NotFound -> NotFoundPage.Component()}
+     | Page.NotFound -> NotFoundPage.Component()}
     """

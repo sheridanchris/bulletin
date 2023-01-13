@@ -2,7 +2,10 @@
   "private": "true",
   "scripts": {
     "postinstall": "dotnet tool restore",
-    "start": "dotnet fable watch src/Client -s -o dist --run vite"
+    "prestart": "dotnet tool restore",
+    "prebuild": "dotnet tool restore",
+    "start": "dotnet fable watch ./src/Client --outDir ./src/Client/.build --run vite",
+    "build": "dotnet fable ./src/Client --outDir ./src/Client/.build --run vite build"
   },
   "dependencies": {
     "autoprefixer": "^10.4.13",
