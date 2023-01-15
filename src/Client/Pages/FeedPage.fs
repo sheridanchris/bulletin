@@ -37,7 +37,7 @@ let update msg state =
   | SetSearchQuery query ->
     let debouncerModel, debouncerCmd =
       state.Debouncer
-      |> Debouncer.bounce (TimeSpan.FromMilliseconds 300) "search_query" EndOfInput
+      |> Debouncer.bounce (TimeSpan.FromMilliseconds 750) "search_query" EndOfInput
 
     { state with
         SearchQuery = query
