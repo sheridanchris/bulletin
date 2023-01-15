@@ -115,18 +115,26 @@ let renderUser (state: State) (dispatch: Msg -> unit) (user: UserModel) =
           </div>
           <div>
             <label for="email-address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email address</label>
-            <input .value={user.EmailAddress} @keyup={EvVal(SetEmailAddress >> dispatch)} type="text" name="email-address" id="email-address" class="bg-gray-50
-            border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
-            focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500
-            dark:placeholder-gray-400 dark:text-white" placeholder="email address" />
+            <input
+              .value={user.EmailAddress} @keyup={EvVal(SetEmailAddress >> dispatch)}
+              type="text" name="email-address" id="email-address"
+              class="bg-gray-50
+              border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
+              focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500
+              dark:placeholder-gray-400 dark:text-white" placeholder="email address" />
             {optionalErrorComponent "Email address" state.EmailAddress}
           </div>
           <div>
             <label for="gravatar-email-address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your gravatar email address</label>
-            <input .value={user.GravatarEmailAddress} @keyup={EvVal(SetGravatarEmailAddress >> dispatch)} type="text" name="gravatar-email-address" id="gravatar-email-address" />
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
-            focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600
-            dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="gravatar email address" />
+            <input
+              .value={user.GravatarEmailAddress}
+              @keyup={EvVal(SetGravatarEmailAddress >> dispatch)}
+              type="text"
+              name="gravatar-email-address"
+              id="gravatar-email-address"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+              focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600
+              dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="gravatar email address" />
             {optionalErrorComponent "Gravatar email address" state.GravatarEmailAddress}
           </div>
           <button @click={Ev(fun _ -> dispatch Submit)} class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
