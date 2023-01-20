@@ -2,7 +2,7 @@ module ChangePassword
 
 open FsToolkit.ErrorHandling
 open Shared
-open DependencyTypes
+open Authentication
 open DataAccess
 open Data
 open BCrypt.Net

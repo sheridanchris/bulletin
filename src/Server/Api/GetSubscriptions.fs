@@ -3,7 +3,7 @@ module GetSubscriptions
 open Data
 open FsToolkit.ErrorHandling
 open Shared
-open DependencyTypes
+open Authentication
 open DataAccess
 open FSharp.UMX
 

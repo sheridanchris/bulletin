@@ -1,13 +1,14 @@
 module CreateAccount
 
 open System
+open Giraffe
 open Shared
 open Data
 open FsToolkit.ErrorHandling
 open FSharp.UMX
 open DataAccess
 open BCrypt.Net
-open DependencyTypes
+open Authentication
 
 let createAccountService
   (findUserAsync: FindUserAsync)
@@ -34,7 +35,7 @@ let createAccountService
       User.create createAccountRequest.Username createAccountRequest.EmailAddress passwordHash profilePictureUrl
 
     do! saveUserAsync user
-    do! signInUser user
+    do! signInUser user (defaultAuthenticationProperties ())
 
     return User.toSharedModel user
   }

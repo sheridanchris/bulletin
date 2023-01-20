@@ -6,9 +6,9 @@ open FSharp.UMX
 open Data
 open DataAccess
 open Shared
-open DependencyTypes
+open Authentication
 
-let private createSubscription (currentUserId: Guid<UserId>) (rssFeed: RssFeed) (feedName: string) = {
+let private createSubscription (currentUserId: UserId) (rssFeed: RssFeed) (feedName: string) = {
   Id = % Guid.NewGuid()
   UserId = currentUserId
   FeedId = rssFeed.Id
@@ -18,7 +18,7 @@ let private createSubscription (currentUserId: Guid<UserId>) (rssFeed: RssFeed) 
 let private createNewFeedAndSubscription
   (saveRssFeedAsync: SaveAsync<RssFeed>)
   (saveFeedSubscriptionAsync: SaveAsync<FeedSubscription>)
-  (currentUserId: Guid<UserId>)
+  (currentUserId: UserId)
   (feedUrl: string)
   (feedName: string)
   =
@@ -46,7 +46,7 @@ let private createNewFeedAndSubscription
 let private createNewSubscriptionForFeed
   (getFeedSubscriptionAsync: GetUserFeedSubscriptionAsync)
   (saveFeedSubscriptionAsync: SaveAsync<FeedSubscription>)
-  (currentUserId: Guid<UserId>)
+  (currentUserId: UserId)
   (feed: RssFeed)
   (feedName: string)
   =

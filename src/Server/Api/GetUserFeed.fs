@@ -4,7 +4,7 @@ open System
 open Data
 open FSharp.UMX
 open FsToolkit.ErrorHandling
-open DependencyTypes
+open Authentication
 open Marten.Pagination
 open Shared
 open DataAccess

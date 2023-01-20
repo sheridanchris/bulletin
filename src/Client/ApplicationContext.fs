@@ -3,8 +3,9 @@ module ApplicationContext
 open System
 open Shared
 open ElmishStore
+open FSharp.UMX
 
-// This acts as a cache for the entire app so I don't have to send network requests on navigation to
+// This acts as a cache for important state so I don't have to send network requests on navigation to
 // profile, feed, or subscriptions...
 
 type Model = {
@@ -18,7 +19,7 @@ type Msg =
   | SetCurrentUser of CurrentUser
   | SetSubscribedFeeds of SubscribedFeed list
   | AddFeedToContext of SubscribedFeed
-  | DeleteFeedFromContext of Guid
+  | DeleteFeedFromContext of SubscriptionId
   | Search
   | SetPage of int
   | SetSearchQuery of string
@@ -152,7 +153,7 @@ let private setSelectedFeed (feedValueString: string) model =
 
   let getFeedRequest =
     { model.GetFeedRequest with
-        Feed = feedId
+        Feed = feedId |> Option.map (fun id -> %id)
         Page = 1
     }
 

@@ -9,4 +9,8 @@
     <Compile Include="Library.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FSharp.UMX" Version="1.1.0" />
+  </ItemGroup>
+
 </Project>

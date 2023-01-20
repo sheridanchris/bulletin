@@ -139,7 +139,7 @@ let Pagination
     """
 
 [<HookComponent>]
-let FeedSelector (selectedFeed: Guid option) (feeds: SubscribedFeed list) (dispatch: ApplicationContext.Msg -> unit) =
+let FeedSelector (selectedFeed: FeedId option) (feeds: SubscribedFeed list) (dispatch: ApplicationContext.Msg -> unit) =
   let option (feed: SubscribedFeed) =
     html
       $"""

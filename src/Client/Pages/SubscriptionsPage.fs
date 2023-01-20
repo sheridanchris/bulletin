@@ -19,7 +19,7 @@ type Msg =
   | SetFeedName of string
   | SetFeedUrl of string
   | Subscribe
-  | DeleteFeed of Guid
+  | DeleteFeed of FeedId
   | SubscriptionResult of Result<SubscribedFeed, SubscribeToFeedError>
   | DeleteFeedResult of Result<DeleteFeedResponse, DeleteFeedError>
 
@@ -79,7 +79,7 @@ let update (msg: Msg) (state: State) =
     state, Elmish.Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.DeleteFeedFromContext id))
   | DeleteFeedResult(Error _) -> state, Elmish.Cmd.none
 
-let tableRow (deleteFeed: Guid -> unit) (subscribedFeed: SubscribedFeed) =
+let tableRow (deleteFeed: FeedId -> unit) (subscribedFeed: SubscribedFeed) =
   html
     $"""
     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">

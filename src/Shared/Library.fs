@@ -1,12 +1,29 @@
 ﻿namespace Shared
 
 open System
-open Microsoft.FSharp.Core
+open FSharp.UMX
 
 // TODO: Model validation.
 
+[<Measure>]
+type feedId
+
+[<Measure>]
+type userId
+
+[<Measure>]
+type postId
+
+[<Measure>]
+type feedSubscriptionId
+
+type FeedId = Guid<feedId>
+type UserId = Guid<userId>
+type PostId = Guid<postId>
+type SubscriptionId = Guid<feedSubscriptionId>
+
 type UserModel = {
-  Id: Guid
+  Id: UserId
   Username: string
   EmailAddress: string
   GravatarEmailAddress: string
@@ -25,7 +42,7 @@ type Ordering =
 type GetFeedRequest = {
   Ordering: Ordering
   SearchQuery: string option
-  Feed: Guid option
+  Feed: FeedId option
   Page: int
   PageSize: int
 }
@@ -40,7 +57,7 @@ type CreateAccountRequest = {
 
 type SubscribeToFeedRequest = { FeedName: string; FeedUrl: string }
 
-type DeleteFeedRequest = { FeedId: Guid }
+type DeleteFeedRequest = { FeedId: FeedId }
 
 type EditUserProfileRequest = {
   Username: string option
@@ -54,7 +71,7 @@ type ChangePasswordRequest = {
 }
 
 type PostModel = {
-  Id: Guid
+  Id: PostId
   Title: string
   Link: string
   PublishedAt: string
@@ -72,10 +89,10 @@ type Paginated<'a> = {
 }
 
 type SubscribedFeed = {
-  Id: Guid
+  Id: SubscriptionId
   Name: string
   FeedUrl: string
-  FeedId: Guid
+  FeedId: FeedId
 }
 
 type LoginError = | InvalidUsernameAndOrPassword
@@ -88,7 +105,7 @@ type SubscribeToFeedError = | AlreadySubscribed
 
 type DeleteFeedError = | NotFound
 
-type DeleteFeedResponse = Deleted of Guid
+type DeleteFeedResponse = Deleted of SubscriptionId
 
 type EditUserProfileError = | UserNotFound
 

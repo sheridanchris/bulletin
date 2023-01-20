@@ -3,7 +3,7 @@ module DeleteFeed
 open FsToolkit.ErrorHandling
 open FSharp.UMX
 open Shared
-open DependencyTypes
+open Authentication
 open DataAccess
 open Data
 

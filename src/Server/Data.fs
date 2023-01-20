@@ -4,22 +4,10 @@ open System
 open FSharp.UMX
 open Shared
 
-[<Measure>]
-type FeedId
-
-[<Measure>]
-type UserId
-
-[<Measure>]
-type PostId
-
-[<Measure>]
-type FeedSubscriptionId
-
-type RssFeed = { Id: Guid<FeedId>; RssFeedUrl: string }
+type RssFeed = { Id: FeedId; RssFeedUrl: string }
 
 type User = {
-  Id: Guid<UserId>
+  Id: UserId
   Username: string
   EmailAddress: string
   GravatarEmailAddress: string
@@ -28,19 +16,19 @@ type User = {
 }
 
 type FeedSubscription = {
-  Id: Guid<FeedSubscriptionId>
-  UserId: Guid<UserId>
-  FeedId: Guid<FeedId>
+  Id: SubscriptionId
+  UserId: UserId
+  FeedId: FeedId
   FeedName: string
 }
 
 type Post = {
-  Id: Guid<PostId>
+  Id: PostId
   Headline: string
   PublishedAt: DateTime
   LastUpdatedAt: DateTime
   Link: string
-  Feed: Guid<FeedId>
+  Feed: FeedId
 }
 
 module User =

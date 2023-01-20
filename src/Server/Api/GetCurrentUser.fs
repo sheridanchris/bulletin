@@ -3,7 +3,7 @@ module GetCurrentUser
 open Data
 open DataAccess
 open Shared
-open DependencyTypes
+open Authentication
 
 let getCurrentUser (getCurrentUserId: GetCurrentUserId) (findUserAsync: FindUserAsync) : GetCurrentUserService =
   fun () -> async {

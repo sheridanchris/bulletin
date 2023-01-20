@@ -4,7 +4,7 @@ open FsToolkit.ErrorHandling
 open Data
 open DataAccess
 open Shared
-open DependencyTypes
+open Authentication
 
 let editUserProfileService
   (getCurrentUserId: GetCurrentUserId)

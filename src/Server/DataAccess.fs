@@ -8,7 +8,6 @@ open FsToolkit.ErrorHandling
 open Data
 open System.Linq
 open Shared
-open FSharp.UMX
 
 type GetRssFeeds = unit -> Async<IReadOnlyList<RssFeed>>
 
@@ -43,7 +42,7 @@ let findPostsByUrls (querySession: IQuerySession) : FindPostsByUrls =
     |> Queryable.filter <@ fun post -> post.Link.IsOneOf(urls) @>
     |> Queryable.toListAsync
 
-type GetUserFeedSubscriptionAsync = Guid<UserId> -> Guid<FeedId> -> Async<FeedSubscription option>
+type GetUserFeedSubscriptionAsync = UserId -> FeedId -> Async<FeedSubscription option>
 
 let getUserFeedSubscriptionAsync (querySession: IQuerySession) : GetUserFeedSubscriptionAsync =
   fun userId feedId ->
@@ -52,15 +51,15 @@ let getUserFeedSubscriptionAsync (querySession: IQuerySession) : GetUserFeedSubs
     |> Queryable.filter <@ fun subscription -> subscription.UserId = userId && subscription.FeedId = feedId @>
     |> Queryable.tryHeadAsync
 
-type GetUserSubscriptionsWithFeedsAsync = Guid<UserId> -> Async<(FeedSubscription * RssFeed) list>
+type GetUserSubscriptionsWithFeedsAsync = UserId -> Async<(FeedSubscription * RssFeed) list>
 
 let getAllUserSubscriptionsWithFeeds (querySession: IQuerySession) : GetUserSubscriptionsWithFeedsAsync =
   fun userId ->
-    let join (dict: Dictionary<Guid<FeedId>, RssFeed>) (feedSubscription: FeedSubscription) =
+    let join (dict: Dictionary<FeedId, RssFeed>) (feedSubscription: FeedSubscription) =
       let correspondingRssFeed = dict[feedSubscription.FeedId]
       feedSubscription, correspondingRssFeed
 
-    let dict: Dictionary<Guid<FeedId>, RssFeed> = Dictionary()
+    let dict: Dictionary<FeedId, RssFeed> = Dictionary()
 
     querySession
     |> Session.query<FeedSubscription>
@@ -69,29 +68,25 @@ let getAllUserSubscriptionsWithFeeds (querySession: IQuerySession) : GetUserSubs
     |> Queryable.toListAsync
     |> Async.map (Seq.map (join dict) >> Seq.toList)
 
-type GetUserFeedAsync = GetFeedRequest -> Guid<FeedId> array -> Async<IPagedList<Post>>
+type GetUserFeedAsync = GetFeedRequest -> FeedId array -> Async<IPagedList<Post>>
 
 let getUserFeedAsync (querySession: IQuerySession) : GetUserFeedAsync =
   fun request feedIds ->
-    let orderPosts (queryable: IQueryable<Post>) =
+    let orderPosts: IQueryable<Post> -> IOrderedQueryable<Post> =
       match request.Ordering with
-      | Updated -> queryable |> Queryable.orderByDescending <@ fun post -> post.LastUpdatedAt @>
-      | Newest -> queryable |> Queryable.orderByDescending <@ fun post -> post.PublishedAt @>
-      | Oldest -> queryable |> Queryable.orderBy <@ fun post -> post.PublishedAt @>
+      | Updated -> Queryable.orderByDescending <@ fun post -> post.LastUpdatedAt @>
+      | Newest -> Queryable.orderByDescending <@ fun post -> post.PublishedAt @>
+      | Oldest -> Queryable.orderBy <@ fun post -> post.PublishedAt @>
 
-    let filterPostsByFeed (queryable: IQueryable<Post>) =
+    let filterPostsByFeed: IQueryable<Post> -> IQueryable<Post> =
       match request.Feed with
-      | None -> queryable
-      | Some feedId ->
-        let feedId = %feedId
-        queryable |> Queryable.filter <@ fun post -> post.Feed = feedId @>
+      | None -> id
+      | Some feedId -> Queryable.filter <@ fun post -> post.Feed = feedId @>
 
-    let filterPostsByHeadline (queryable: IQueryable<Post>) =
+    let filterPostsByHeadline: IQueryable<Post> -> IQueryable<Post> =
       match request.SearchQuery with
-      | None -> queryable
-      | Some query ->
-        queryable
-        |> Queryable.filter <@ fun post -> post.Headline.PhraseSearch(query) @>
+      | None -> id
+      | Some query -> Queryable.filter <@ fun post -> post.Headline.PhraseSearch(query) @>
 
     querySession
     |> Session.query<Post>
@@ -102,7 +97,7 @@ let getUserFeedAsync (querySession: IQuerySession) : GetUserFeedAsync =
     |> Queryable.pagedListAsync request.Page request.PageSize
 
 type GetUserFilter =
-  | FindById of Guid<UserId>
+  | FindById of UserId
   | FindByUsername of string
   | FindByEmailAddress of string
 
@@ -110,11 +105,11 @@ type FindUserAsync = GetUserFilter -> Async<User option>
 
 let tryFindUserAsync (querySession: IQuerySession) : FindUserAsync =
   fun filter ->
-    let filter (queryable: IQueryable<User>) : IQueryable<User> =
+    let filter: IQueryable<User> -> IQueryable<User> =
       match filter with
-      | FindById id -> queryable |> Queryable.filter <@ fun user -> user.Id = id @>
-      | FindByUsername username -> queryable |> Queryable.filter <@ fun user -> user.Username = username @>
-      | FindByEmailAddress email -> queryable |> Queryable.filter <@ fun user -> user.EmailAddress = email @>
+      | FindById id -> Queryable.filter <@ fun user -> user.Id = id @>
+      | FindByUsername username -> Queryable.filter <@ fun user -> user.Username = username @>
+      | FindByEmailAddress email -> Queryable.filter <@ fun user -> user.EmailAddress = email @>
 
     querySession |> Session.query<User> |> filter |> Queryable.tryHeadAsync
 

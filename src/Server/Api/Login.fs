@@ -5,7 +5,7 @@ open Data
 open FsToolkit.ErrorHandling
 open Shared
 open DataAccess
-open DependencyTypes
+open Authentication
 open BCrypt.Net
 
 let loginService (findUserAsync: FindUserAsync) (signInUser: SignInUser) : LoginService =
@@ -20,6 +20,6 @@ let loginService (findUserAsync: FindUserAsync) (signInUser: SignInUser) : Login
       BCrypt.Verify(loginRequest.Password, user.PasswordHash)
       |> Result.requireTrue InvalidUsernameAndOrPassword
 
-    do! signInUser user
+    do! signInUser user (defaultAuthenticationProperties ())
     return User.toSharedModel user
   }
