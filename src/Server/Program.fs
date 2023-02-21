@@ -77,6 +77,10 @@ let configureStore: StoreOptions -> unit =
       .For<FeedSubscription>()
       .ForeignKey<User>(fun subscription -> subscription.UserId)
       .ForeignKey<RssFeed>(fun subscription -> subscription.FeedId)
+      .ForeignKey<Category>(fun subscription -> subscription.Category)
+    |> ignore
+
+    options.Schema.For<Category>().ForeignKey<User>(fun category -> category.UserId)
     |> ignore
 
     options.AutoCreateSchemaObjects <- AutoCreate.CreateOrUpdate
@@ -93,7 +97,7 @@ let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
     >> Log.addExn ex
   )
 
-  Propagate {| msg = ex.Message |}
+  Propagate {| msg = ex.Message; stackTrace = ex.StackTrace |}
 
 let routeBuilder (typeName: string) (methodName: string) = $"/api/{typeName}/{methodName}"
 

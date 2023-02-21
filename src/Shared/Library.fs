@@ -17,10 +17,14 @@ type postId
 [<Measure>]
 type feedSubscriptionId
 
+[<Measure>]
+type categoryId
+
 type FeedId = Guid<feedId>
 type UserId = Guid<userId>
 type PostId = Guid<postId>
 type SubscriptionId = Guid<feedSubscriptionId>
+type CategoryId = Guid<categoryId>
 
 type UserModel = {
   Id: UserId
@@ -70,6 +74,8 @@ type ChangePasswordRequest = {
   NewPassword: string
 }
 
+type CreateCategoryRequest = { CategoryName: string }
+
 type PostModel = {
   Id: PostId
   Title: string
@@ -78,6 +84,8 @@ type PostModel = {
   UpdatedAt: string
   Source: string
 }
+
+type CategoryModel = { Id: CategoryId; Name: string }
 
 type Paginated<'a> = {
   Items: 'a list
@@ -113,6 +121,8 @@ type ChangePasswordError =
   | PasswordsDontMatch
   | UserNotFound
 
+type CreateCategoryError = | CategoryAlreadyExists
+
 type LoginService = LoginRequest -> Async<Result<UserModel, LoginError>>
 type CreateAccountService = CreateAccountRequest -> Async<Result<UserModel, CreateAccountError>>
 type GetCurrentUserService = unit -> Async<CurrentUser>
@@ -129,6 +139,7 @@ type SubscribeToFeedService = SubscribeToFeedRequest -> Async<Result<SubscribedF
 type DeleteFeedService = DeleteFeedRequest -> Async<Result<DeleteFeedResponse, DeleteFeedError>>
 type EditUserProfileService = EditUserProfileRequest -> Async<Result<UserModel, EditUserProfileError>>
 type ChangePasswordService = ChangePasswordRequest -> Async<Result<unit, ChangePasswordError>>
+type CreateCategoryService = CreateCategoryRequest -> Async<Result<CategoryModel, CreateCategoryError>>
 
 type SecuredServerApi = {
   GetSubscribedFeeds: GetSubscribedFeedsService
@@ -137,6 +148,7 @@ type SecuredServerApi = {
   DeleteFeed: DeleteFeedService
   EditUserProfile: EditUserProfileService
   ChangePassword: ChangePasswordService
+  CreateCategory: CreateCategoryService
 }
 
 module Paginated =

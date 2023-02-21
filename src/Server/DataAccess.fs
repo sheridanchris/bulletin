@@ -113,6 +113,15 @@ let tryFindUserAsync (querySession: IQuerySession) : FindUserAsync =
 
     querySession |> Session.query<User> |> filter |> Queryable.tryHeadAsync
 
+type FindCategoryByNameForUser = UserId -> string -> Async<Category option>
+
+let findCategoryByNameForUser (querySession: IQuerySession) : FindCategoryByNameForUser =
+  fun userId categoryName ->
+    querySession
+    |> Session.query<Category>
+    |> Queryable.filter <@ fun category -> category.Name = categoryName && category.UserId = userId @>
+    |> Queryable.tryHeadAsync
+
 type SaveAsync<'T> = 'T -> Async<unit>
 
 let saveAsync (documentSession: IDocumentSession) : SaveAsync<'T> =

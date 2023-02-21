@@ -14,6 +14,12 @@ open FSharp.UMX
 open FsLibLog
 open FsLibLog.Types
 
+(*
+  TODO:
+  Need to figure out how to support more feeds (rss/atom) ...
+  Some rss feeds simply do not work with this schema.
+*)
+
 [<Literal>]
 let rssFeedSample =
   """
@@ -22,13 +28,11 @@ let rssFeedSample =
       <item>
         <title>Title</title>
         <link>Link</link>
-        <guid>Guid</guid>
         <pubDate>Sun, 11 Dec 2022 19:10:01 GMT</pubDate>
       </item>
       <item>
         <title>Title</title>
         <link>Link</link>
-        <guid>Guid</guid>
       </item>
     </channel>
   </rss>

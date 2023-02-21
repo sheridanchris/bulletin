@@ -15,9 +15,16 @@ type User = {
   ProfilePictureUrl: string
 }
 
+type Category = {
+  Id: CategoryId
+  UserId: UserId
+  Name: string
+}
+
 type FeedSubscription = {
   Id: SubscriptionId
   UserId: UserId
+  Category: Nullable<CategoryId>
   FeedId: FeedId
   FeedName: string
 }
@@ -42,7 +49,7 @@ module User =
   }
 
   let toSharedModel (user: User) : UserModel = {
-    Id = %user.Id
+    Id = user.Id
     Username = user.Username
     EmailAddress = user.EmailAddress
     GravatarEmailAddress = user.GravatarEmailAddress

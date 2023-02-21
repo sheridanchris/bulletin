@@ -13,6 +13,7 @@ let private createSubscription (currentUserId: UserId) (rssFeed: RssFeed) (feedN
   UserId = currentUserId
   FeedId = rssFeed.Id
   FeedName = feedName
+  Category = Nullable()
 }
 
 let private createNewFeedAndSubscription
