@@ -12,6 +12,8 @@ let editUserProfileService
   (saveUserAsync: SaveAsync<User>)
   : EditUserProfileService =
   fun request -> asyncResult {
+    Validation.failOnValidationErrors request.Validate
+
     let currentUserId = getCurrentUserId () |> Option.get
 
     let! user =

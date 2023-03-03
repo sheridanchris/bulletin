@@ -2,6 +2,8 @@
 
 open System
 open FSharp.UMX
+open Validus
+open Validus.Operators
 
 // TODO: Model validation.
 
@@ -51,28 +53,101 @@ type GetFeedRequest = {
   PageSize: int
 }
 
-type LoginRequest = { Username: string; Password: string }
+type LoginRequest =
+  {
+    Username: string
+    Password: string
+  }
 
-type CreateAccountRequest = {
-  Username: string
-  EmailAddress: string
-  Password: string
-}
+  member this.Validate() = validate {
+    let! _ = Validation.notEmpty "Username" this.Username
+    and! _ = Validation.notEmpty "Password" this.Password
+    return this
+  }
 
-type SubscribeToFeedRequest = { FeedName: string; FeedUrl: string }
+type CreateAccountRequest =
+  {
+    Username: string
+    EmailAddress: string
+    Password: string
+    ConfirmPassword: string
+  }
+
+  member this.Validate() =
+    let usernameValidator = Validation.notEmpty <+> Validation.isAlphanumeric
+    let emailAddressValidator = Validation.notEmpty <+> Validation.isEmailAddress
+
+    let passwordValidator =
+      Validation.notEmpty
+      <+> Validation.isValidPassword
+      <+> Check.WithMessage.String.equals this.ConfirmPassword (sprintf "%s must match confirmation.")
+
+    let confirmPasswordValidation =
+      Validation.notEmpty
+      <+> Check.WithMessage.String.equals this.Password (sprintf "%s must match your password.")
+
+    validate {
+      let! _ = usernameValidator "Username" this.Username
+      and! _ = emailAddressValidator "Email address" this.EmailAddress
+      and! _ = passwordValidator "Password" this.Password
+      and! _ = confirmPasswordValidation "Confirmation" this.ConfirmPassword
+      return this
+    }
+
+type SubscribeToFeedRequest =
+  {
+    FeedName: string
+    FeedUrl: string
+  }
+
+  member this.Validate() =
+    let feedNameValidator = Validation.notEmpty <+> Validation.isAlphanumericWithSpaces
+    let feedUrlValidator = Validation.notEmpty <+> Validation.isUrl
+
+    validate {
+      let! _ = feedNameValidator "Feed name" this.FeedName
+      and! _ = feedUrlValidator "Feed url" this.FeedUrl
+      return this
+    }
 
 type DeleteFeedRequest = { FeedId: FeedId }
 
-type EditUserProfileRequest = {
-  Username: string option
-  EmailAddress: string option
-  GravatarEmailAddress: string option
-}
+type EditUserProfileRequest =
+  {
+    Username: string option
+    EmailAddress: string option
+    GravatarEmailAddress: string option
+  }
 
-type ChangePasswordRequest = {
-  CurrentPassword: string
-  NewPassword: string
-}
+  member this.Validate() =
+    let usernameValidator =
+      Check.optional (Validation.notEmpty <+> Validation.isAlphanumeric)
+
+    let emailAddressValidator =
+      Check.optional (Validation.notEmpty <+> Validation.isEmailAddress)
+
+    validate {
+      let! _ = usernameValidator "Username" this.Username
+      and! _ = emailAddressValidator "Email address" this.EmailAddress
+      and! _ = emailAddressValidator "Gravatar email address" this.GravatarEmailAddress
+      return this
+    }
+
+type ChangePasswordRequest =
+  {
+    CurrentPassword: string
+    NewPassword: string
+  }
+
+  member this.Validate() =
+    let currentPasswordValidator = Validation.notEmpty
+    let newPasswordValidator = Validation.notEmpty <+> Validation.isValidPassword
+
+    validate {
+      let! _ = currentPasswordValidator "Current password" this.CurrentPassword
+      and! _ = newPasswordValidator "New password" this.NewPassword
+      return this
+    }
 
 type CreateCategoryRequest = { CategoryName: string }
 

@@ -1,16 +1,16 @@
 module ChangePasswordPage
 
-open System
-open Alerts
+open Components
+open Components.Alerts
 open Lit
 open Lit.Elmish
-open ValidatedInput
 open Shared
+open Validus
 
 type State = {
-  CurrentPassword: string
-  NewPassword: ValidationState<string>
-  Alert: Alert
+  Request: ChangePasswordRequest
+  ValidationErrors: Map<string, string list>
+  Alert: Alert option
 }
 
 type Msg =
@@ -18,42 +18,55 @@ type Msg =
   | SetNewPassword of string
   | Submit
   | GotResult of Result<unit, ChangePasswordError>
+  | GotException of exn
 
 let init () =
   {
-    CurrentPassword = String.Empty
-    NewPassword = ValidationState.createInvalidWithNoErrors "New password" String.Empty
-    Alert = NothingToWorryAbout
+    Request =
+      {
+        CurrentPassword = ""
+        NewPassword = ""
+      }
+    ValidationErrors = Map.empty
+    Alert = None
   },
   Elmish.Cmd.none
+
+let updateRequest (request: ChangePasswordRequest) (state: State) =
+  let validationErrors =
+    match request.Validate() with
+    | Ok _ -> Map.empty
+    | Error errors -> ValidationErrors.toMap errors
+
+  { state with
+      Request = request
+      ValidationErrors = validationErrors
+  }
 
 let update (msg: Msg) (state: State) =
   match msg with
   | SetCurrentPassword password ->
-    { state with
-        CurrentPassword = password
-    },
-    Elmish.Cmd.none
-  | SetNewPassword password ->
-    let newPasswordState =
-      ValidationState.create (Validators.passwordValidator "New password") password
+    let request =
+      { state.Request with
+          CurrentPassword = password
+      }
 
-    { state with
-        NewPassword = newPasswordState
-    },
-    Elmish.Cmd.none
+    updateRequest request state, Elmish.Cmd.none
+  | SetNewPassword password ->
+    let request =
+      { state.Request with
+          NewPassword = password
+      }
+
+    updateRequest request state, Elmish.Cmd.none
   | Submit ->
-    match state.NewPassword with
-    | Invalid _ -> state, Elmish.Cmd.none
-    | Valid newPassword ->
-      state,
-      Elmish.Cmd.OfAsync.perform
-        Remoting.securedServerApi.ChangePassword
-        {
-          CurrentPassword = state.CurrentPassword
-          NewPassword = newPassword
-        }
-        GotResult
+    let cmd =
+      if state.ValidationErrors = Map.empty then
+        Elmish.Cmd.OfAsync.either Remoting.securedServerApi.ChangePassword state.Request GotResult GotException
+      else
+        Elmish.Cmd.none
+
+    state, cmd
   | GotResult result ->
     let alert =
       match result with
@@ -70,7 +83,15 @@ let update (msg: Msg) (state: State) =
 
         Danger { Reason = reason }
 
-    { state with Alert = alert }, Elmish.Cmd.none
+    { state with Alert = Some alert }, Elmish.Cmd.none
+  | GotException _ ->
+    let alert =
+      Danger
+        {
+          Reason = "Oops, something went wrong. Please refresh the page and try again!"
+        }
+
+    { state with Alert = Some alert }, Elmish.Cmd.none
 
 [<HookComponent>]
 let Component () =
@@ -89,6 +110,7 @@ let Component () =
             placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900
             text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full
             p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+            {ValidationErrors.renderValidationErrors state.ValidationErrors "Current password" state.Request.CurrentPassword}
           </div>
           <div>
             <label for="new-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your new password</label>
@@ -96,7 +118,7 @@ let Component () =
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
             focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600
             dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
-            {ErrorComponent "text-sm text-red-500" "New password" state.NewPassword}
+            {ValidationErrors.renderValidationErrors state.ValidationErrors "New password" state.Request.NewPassword}
           </div>
           <button @click={Ev(fun _ -> dispatch Submit)} class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
             focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5

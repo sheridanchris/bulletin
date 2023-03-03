@@ -16,6 +16,8 @@ let createAccountService
   (saveUserAsync: SaveAsync<User>)
   : CreateAccountService =
   fun createAccountRequest -> asyncResult {
+    Validation.failOnValidationErrors createAccountRequest.Validate
+
     do!
       createAccountRequest.Username
       |> FindByUsername

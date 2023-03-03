@@ -13,6 +13,8 @@ let changePasswordService
   (saveUserAsync: SaveAsync<User>)
   : ChangePasswordService =
   fun request -> asyncResult {
+    Validation.failOnValidationErrors request.Validate
+
     let currentUserId = getCurrentUserId () |> Option.get
 
     let! user =

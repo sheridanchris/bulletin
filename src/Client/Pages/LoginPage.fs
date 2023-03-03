@@ -1,7 +1,8 @@
 module LoginPage
 
 open System
-open Alerts
+open Components
+open Components.Alerts
 open Elmish
 open Fable.Core
 open Lit
@@ -10,12 +11,11 @@ open LitStore
 open LitRouter
 open Shared
 open Validus
-open ValidatedInput
 
 type State = {
-  Username: ValidationState<string>
-  Password: ValidationState<string>
-  Alert: Alert
+  Request: LoginRequest
+  ValidationErrors: Map<string, string list>
+  Alert: Alert option
 }
 
 type Msg =
@@ -23,39 +23,51 @@ type Msg =
   | SetPassword of string
   | Submit
   | GotLoginResponse of Result<UserModel, LoginError>
+  | GotException of exn
 
 let init () =
   {
-    Username = ValidationState.createInvalidWithNoErrors "Username" String.Empty
-    Password = ValidationState.createInvalidWithNoErrors "Password" String.Empty
-    Alert = NothingToWorryAbout
+    Request = { Username = ""; Password = "" }
+    ValidationErrors = Map.empty
+    Alert = None
   },
   Cmd.none
+
+let updateRequest (request: LoginRequest) (state: State) =
+  let validationErrors =
+    match request.Validate() with
+    | Ok _ -> Map.empty
+    | Error error -> ValidationErrors.toMap error
+
+  { state with
+      Request = request
+      ValidationErrors = validationErrors
+  }
 
 let update (msg: Msg) (state: State) =
   match msg with
   | SetUsername username ->
-    { state with
-        Username = ValidationState.create (Validators.stringNotEmptyValidator "Username") username
-    },
-    Cmd.none
-  | SetPassword password ->
-    { state with
-        Password = ValidationState.create (Validators.stringNotEmptyValidator "Password") password
-    },
-    Cmd.none
-  | Submit ->
-    match state.Username, state.Password with
-    | Valid username, Valid password ->
-      state,
-      Cmd.OfAsync.perform
-        Remoting.unsecuredServerApi.Login
-        {
+    let request =
+      { state.Request with
           Username = username
+      }
+
+    updateRequest request state, Cmd.none
+  | SetPassword password ->
+    let request =
+      { state.Request with
           Password = password
-        }
-        GotLoginResponse
-    | _ -> state, Elmish.Cmd.none
+      }
+
+    updateRequest request state, Cmd.none
+  | Submit ->
+    let cmd =
+      if state.ValidationErrors = Map.empty then
+        Cmd.OfAsync.either Remoting.unsecuredServerApi.Login state.Request GotLoginResponse GotException
+      else
+        Cmd.none
+
+    state, cmd
   | GotLoginResponse(Ok user) ->
     state,
     Cmd.batch [
@@ -68,10 +80,18 @@ let update (msg: Msg) (state: State) =
       let alert =
         Danger
           {
-            Reason = "Invalid username and/or password."
+            Reason = "Invalid username and/or password!"
           }
 
-      { state with Alert = alert }, Cmd.none
+      { state with Alert = Some alert }, Cmd.none
+  | GotException exn ->
+    let alert =
+      Danger
+        {
+          Reason = "Something went wrong with that request!"
+        }
+
+    { state with Alert = Some alert }, Cmd.none
 
 [<HookComponent>]
 let Component () =
@@ -90,14 +110,15 @@ let Component () =
             border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
             focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500
             dark:placeholder-gray-400 dark:text-white" placeholder="username" />
-            {ErrorComponent "text-sm text-red-500" "Username" state.Username}
+            {ValidationErrors.renderValidationErrors state.ValidationErrors "Username" state.Request.Username}
           </div>
           <div>
             <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your password</label>
             <input @keyup={EvVal(SetPassword >> dispatch)} type="password" name="password" id="password" placeholder="••••••••"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
             focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600
-            dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"> {ErrorComponent "text-sm text-red-500" "Password" state.Password}
+            dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+            {ValidationErrors.renderValidationErrors state.ValidationErrors "Password" state.Request.Password}
           </div>
           <button @click={Ev(fun _ -> dispatch Submit)} class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
             focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5

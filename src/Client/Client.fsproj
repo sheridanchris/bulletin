@@ -5,9 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Remoting.fs" />
-    <Compile Include="ValidatedInput.fs" />
-    <Compile Include="Validators.fs" />
-    <Compile Include="Alerts.fs" />
+    <Compile Include="Components.fs" />
     <Compile Include="ApplicationContext.fs" />
     <Compile Include="Pages\HomePage.fs" />
     <Compile Include="Pages\LoginPage.fs" />

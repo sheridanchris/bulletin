@@ -5,6 +5,7 @@ open System
 open System.Security.Cryptography
 open System.Text
 open Humanizer
+open Validus
 
 module String =
   let equalsIgnoreCase (first: string) (second: string) =
@@ -28,3 +29,10 @@ module Gravatar =
       |> String.concat String.Empty
 
     $"https://www.gravatar.com/avatar/{profilePictureHash}"
+
+module Validation =
+  let failOnValidationErrors (f: unit -> ValidationResult<_>) =
+    match f() with
+    | Ok _ -> ()
+    | Error _ -> failwith "Validation failure."
+

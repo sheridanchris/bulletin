@@ -10,6 +10,8 @@ open BCrypt.Net
 
 let loginService (findUserAsync: FindUserAsync) (signInUser: SignInUser) : LoginService =
   fun loginRequest -> asyncResult {
+    Validation.failOnValidationErrors loginRequest.Validate
+
     let! user =
       loginRequest.Username
       |> FindByUsername

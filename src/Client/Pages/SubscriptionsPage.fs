@@ -1,18 +1,18 @@
 module SubscriptionsPage
 
 open System
-open Alerts
+open Components
+open Components.Alerts
 open Lit
 open Lit.Elmish
 open LitStore
 open Shared
-open ValidatedInput
 open Validus
 
 type State = {
-  FeedName: ValidationState<string>
-  FeedUrl: ValidationState<string>
-  Alert: Alert
+  Request: SubscribeToFeedRequest
+  ValidationErrors: Map<string, string list>
+  Alert: Alert option
 }
 
 type Msg =
@@ -22,40 +22,49 @@ type Msg =
   | DeleteFeed of FeedId
   | SubscriptionResult of Result<SubscribedFeed, SubscribeToFeedError>
   | DeleteFeedResult of Result<DeleteFeedResponse, DeleteFeedError>
+  | GotException of exn
 
 let init () =
   {
-    FeedName = ValidationState.createInvalidWithNoErrors "Feed name" String.Empty
-    FeedUrl = ValidationState.createInvalidWithNoErrors "Feed url" String.Empty
-    Alert = NothingToWorryAbout
+    Request = { FeedName = ""; FeedUrl = "" }
+    ValidationErrors = Map.empty
+    Alert = None
   },
   Elmish.Cmd.none
+
+let updateRequest (request: SubscribeToFeedRequest) (state: State) =
+  let validationErrors =
+    match request.Validate() with
+    | Ok _ -> Map.empty
+    | Error errors -> ValidationErrors.toMap errors
+
+  { state with
+      Request = request
+      ValidationErrors = validationErrors
+  }
 
 let update (msg: Msg) (state: State) =
   match msg with
   | SetFeedName feedName ->
-    let feedNameState =
-      ValidationState.create (Validators.stringNotEmptyValidator "Feed name") feedName
+    let request =
+      { state.Request with
+          FeedName = feedName
+      }
 
-    { state with FeedName = feedNameState }, Elmish.Cmd.none
+    updateRequest request state, Elmish.Cmd.none
   | SetFeedUrl feedUrl ->
-    // TODO: Check for valid url?
-    let feedUrlState =
-      ValidationState.create (Validators.stringNotEmptyValidator "Feed url") feedUrl
-
-    { state with FeedUrl = feedUrlState }, Elmish.Cmd.none
+    let request = { state.Request with FeedUrl = feedUrl }
+    updateRequest request state, Elmish.Cmd.none
   | Subscribe ->
     let cmd =
-      match state.FeedName, state.FeedUrl with
-      | Valid feedName, Valid feedUrl ->
-        Elmish.Cmd.OfAsync.perform
+      if state.ValidationErrors = Map.empty then
+        Elmish.Cmd.OfAsync.either
           Remoting.securedServerApi.SubscribeToFeed
-          {
-            FeedName = feedName
-            FeedUrl = feedUrl
-          }
+          state.Request
           SubscriptionResult
-      | _ -> Elmish.Cmd.none
+          GotException
+      else
+        Elmish.Cmd.none
 
     state, cmd
   | SubscriptionResult result ->
@@ -72,12 +81,27 @@ let update (msg: Msg) (state: State) =
               Reason = "You are already subscribed to that feed."
             }
 
-        { state with Alert = alert }, Elmish.Cmd.none
+        { state with Alert = Some alert }, Elmish.Cmd.none
   | DeleteFeed feedId ->
-    state, Elmish.Cmd.OfAsync.perform Remoting.securedServerApi.DeleteFeed { FeedId = feedId } DeleteFeedResult
+    state,
+    Elmish.Cmd.OfAsync.either Remoting.securedServerApi.DeleteFeed { FeedId = feedId } DeleteFeedResult GotException
   | DeleteFeedResult(Ok(Deleted id)) ->
     state, Elmish.Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.DeleteFeedFromContext id))
-  | DeleteFeedResult(Error _) -> state, Elmish.Cmd.none
+  | DeleteFeedResult(Error error) ->
+    let msg =
+      match error with
+      | DeleteFeedError.NotFound -> "That feed wasn't found"
+
+    let alert = Danger { Reason = msg }
+    { state with Alert = Some alert }, Elmish.Cmd.none
+  | GotException exn ->
+    let alert =
+      Danger
+        {
+          Reason = "Something went wrong with that request!"
+        }
+
+    { state with Alert = Some alert }, Elmish.Cmd.none
 
 let tableRow (deleteFeed: FeedId -> unit) (subscribedFeed: SubscribedFeed) =
   html
@@ -99,6 +123,7 @@ let tableRow (deleteFeed: FeedId -> unit) (subscribedFeed: SubscribedFeed) =
     </tr>
     """
 
+// TODO: These validation errors don't display properly.
 [<HookComponent>]
 let Component () =
   let state, dispatch = Hook.useElmish (init, update)
@@ -116,6 +141,7 @@ let Component () =
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500
             block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
             dark:focus:border-blue-500" />
+          {ValidationErrors.renderValidationErrors state.ValidationErrors "Feed name" state.Request.FeedName}
         </div>
         <div class="mb-6" colspan="3">
           <label for="feed-url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">RSS feed url</label>
@@ -124,6 +150,7 @@ let Component () =
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block
             w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
             dark:focus:border-blue-500" />
+          {ValidationErrors.renderValidationErrors state.ValidationErrors "Feed url" state.Request.FeedUrl}
         </div>
         <button
           @click={Ev(fun _ -> dispatch Subscribe)}

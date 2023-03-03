@@ -6,11 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Validation.fs" />
     <Compile Include="Library.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FSharp.UMX" Version="1.1.0" />
+    <PackageReference Include="Validus" Version="4.1.2" />
   </ItemGroup>
 
 </Project>

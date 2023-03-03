@@ -18,6 +18,7 @@ open Saturn
 open FsLibLog
 open FsLibLog.Types
 open FsLibLog.Operators
+open Microsoft.AspNetCore.Server.Kestrel.Core
 
 let configuration: IConfiguration =
   ConfigurationBuilder().AddEnvironmentVariables().Build()

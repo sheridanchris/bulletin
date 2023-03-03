@@ -75,6 +75,8 @@ let subscribeToFeedService
   (saveFeedSubscription: SaveAsync<FeedSubscription>)
   : SubscribeToFeedService =
   fun request -> async {
+    Validation.failOnValidationErrors request.Validate
+
     let currentUserId = getCurrentUserId () |> Option.get
     let! rssFeed = getFeedByUrl request.FeedUrl
 
