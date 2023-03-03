@@ -5,8 +5,6 @@ open FSharp.UMX
 open Validus
 open Validus.Operators
 
-// TODO: Model validation.
-
 [<Measure>]
 type feedId
 
