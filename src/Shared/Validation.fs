@@ -17,14 +17,15 @@ let isAlphanumeric =
 
 let isAlphanumericWithSpaces =
   Check.String.notEmpty
-  <+> Check.WithMessage.String.pattern "^[a-zA-Z0-9\w+]*$" (sprintf "%s must be alphanumeric.")
+  <+> Check.WithMessage.String.pattern "^[a-zA-Z0-9\w+\s]+$" (sprintf "%s must be alphanumeric.")
 
 let isEmailAddress =
   Check.WithMessage.String.notEmpty (sprintf "%s must not be empty.")
   <+> Check.WithMessage.String.pattern @"[^@]+@[^\.]+\..+" (sprintf "%s must be an email address.")
 
+// TODO: Need to refine this.
 let isUrl =
-  Check.WithMessage.String.pattern "^(?:https?://)?(?:[\w]+\.)(?:\.?[\w]{2,})+$" (sprintf "%s must be a valid url.")
+  Check.WithMessage.String.pattern "^(?:https?://)?(?:[\w]+\.)(?:\.?[\w]{2,})(.*?)+$" (sprintf "%s must be a valid url.")
 
 let containsSymbol =
   let symbols = "!@#$%^&*()_-+=\\|'\";:,<.>/?"

@@ -55,18 +55,18 @@ type GetUserSubscriptionsWithFeedsAsync = UserId -> Async<(FeedSubscription * Rs
 
 let getAllUserSubscriptionsWithFeeds (querySession: IQuerySession) : GetUserSubscriptionsWithFeedsAsync =
   fun userId ->
-    let join (dict: Dictionary<FeedId, RssFeed>) (feedSubscription: FeedSubscription) =
-      let correspondingRssFeed = dict[feedSubscription.FeedId]
+    let join (rssFeeds: Dictionary<FeedId, RssFeed>) (feedSubscription: FeedSubscription) =
+      let correspondingRssFeed = rssFeeds[feedSubscription.FeedId]
       feedSubscription, correspondingRssFeed
 
-    let dict: Dictionary<FeedId, RssFeed> = Dictionary()
+    let rssFeeds: Dictionary<FeedId, RssFeed> = Dictionary()
 
     querySession
     |> Session.query<FeedSubscription>
     |> Queryable.filter <@ fun subscription -> subscription.UserId = userId @>
-    |> Queryable.includeDict <@ fun subscription -> subscription.FeedId @> dict
+    |> Queryable.includeDict <@ fun subscription -> subscription.FeedId @> rssFeeds
     |> Queryable.toListAsync
-    |> Async.map (Seq.map (join dict) >> Seq.toList)
+    |> Async.map (Seq.map (join rssFeeds) >> Seq.toList)
 
 type GetUserFeedAsync = GetFeedRequest -> FeedId array -> Async<IPagedList<Post>>
 
@@ -112,15 +112,6 @@ let tryFindUserAsync (querySession: IQuerySession) : FindUserAsync =
       | FindByEmailAddress email -> Queryable.filter <@ fun user -> user.EmailAddress = email @>
 
     querySession |> Session.query<User> |> filter |> Queryable.tryHeadAsync
-
-type FindCategoryByNameForUser = UserId -> string -> Async<Category option>
-
-let findCategoryByNameForUser (querySession: IQuerySession) : FindCategoryByNameForUser =
-  fun userId categoryName ->
-    querySession
-    |> Session.query<Category>
-    |> Queryable.filter <@ fun category -> category.Name = categoryName && category.UserId = userId @>
-    |> Queryable.tryHeadAsync
 
 type SaveAsync<'T> = 'T -> Async<unit>
 

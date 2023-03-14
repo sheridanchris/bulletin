@@ -56,9 +56,4 @@ let securedServerApi (httpContext: HttpContext) : SecuredServerApi =
         (Authentication.getCurrentUserId httpContext)
         (tryFindUserAsync querySession)
         (saveAsync documentSession)
-    CreateCategory =
-      CreateCategory.createCategoryService
-        (Authentication.getCurrentUserId httpContext)
-        (findCategoryByNameForUser querySession)
-        (saveAsync documentSession)
   }

@@ -15,16 +15,9 @@ type User = {
   ProfilePictureUrl: string
 }
 
-type Category = {
-  Id: CategoryId
-  UserId: UserId
-  Name: string
-}
-
 type FeedSubscription = {
   Id: SubscriptionId
   UserId: UserId
-  Category: Nullable<CategoryId>
   FeedId: FeedId
   FeedName: string
 }

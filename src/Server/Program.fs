@@ -16,9 +16,6 @@ open System.Text.Json.Serialization
 open Fable.Remoting.Giraffe
 open Saturn
 open FsLibLog
-open FsLibLog.Types
-open FsLibLog.Operators
-open Microsoft.AspNetCore.Server.Kestrel.Core
 
 let configuration: IConfiguration =
   ConfigurationBuilder().AddEnvironmentVariables().Build()
@@ -78,10 +75,6 @@ let configureStore: StoreOptions -> unit =
       .For<FeedSubscription>()
       .ForeignKey<User>(fun subscription -> subscription.UserId)
       .ForeignKey<RssFeed>(fun subscription -> subscription.FeedId)
-      .ForeignKey<Category>(fun subscription -> subscription.Category)
-    |> ignore
-
-    options.Schema.For<Category>().ForeignKey<User>(fun category -> category.UserId)
     |> ignore
 
     options.AutoCreateSchemaObjects <- AutoCreate.CreateOrUpdate
