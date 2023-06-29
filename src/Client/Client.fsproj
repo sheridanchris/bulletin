@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Interop.fs" />
     <Compile Include="Remoting.fs" />
     <Compile Include="Components.fs" />
     <Compile Include="ApplicationContext.fs" />

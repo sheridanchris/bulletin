@@ -98,59 +98,44 @@ let update (msg: Msg) (state: State) =
 
     { state with Alert = Some alert }, Elmish.Cmd.none
 
+// TODO: Card needs to be bigger (width)
 let renderUser (state: State) (dispatch: Msg -> unit) (user: UserModel) =
   html
     $"""
-    <div class="min-h-screen flex flex-col items-center justify-center">
-      {AlertComponent state.Alert}
-      <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow-md sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
-        <div class="space-y-6" action="#">
-          <h5 class="text-xl font-medium text-gray-900 dark:text-white">Edit your profile</h5>
-          <div>
-            <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your username</label>
-            <input .value={user.Username} @keyup={EvVal(SetUsername >> dispatch)} type="text" name="username" id="username" class="bg-gray-50
-            border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
-            focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500
-            dark:placeholder-gray-400 dark:text-white" placeholder="username" />
+    <div class="h-screen w-screen flex flex-col items-center justify-center">
+      {match state.Alert with
+       | None -> Lit.nothing
+       | Some alert -> Alerts.renderAlert alert}
+       <div class="card card-bordered shadow-xl bg-base-200">
+        <div class="card-body">
+          <span class="card-title">Edit Your Profile</span>
+          <div class="form-control">
+            <label for="username" class="label">Username</label>
+            <input id="username" class="input input-bordered" .value={user.Username} @keyup={EvVal(SetUsername >> dispatch)} />
             {ValidationErrors.renderValidationErrors
                state.ValidationErrors
                "Username"
                (state.Request.Username |> Option.defaultValue "")}
           </div>
-          <div>
-            <label for="email-address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email address</label>
-            <input
-              .value={user.EmailAddress} @keyup={EvVal(SetEmailAddress >> dispatch)}
-              type="text" name="email-address" id="email-address"
-              class="bg-gray-50
-              border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500
-              focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500
-              dark:placeholder-gray-400 dark:text-white" placeholder="email address" />
+          <div class="form-control">
+            <label for="email-address" class="label">Email Address</label>
+            <input id="email-address" type="email" class="input input-bordered" .value={user.EmailAddress} @keyup={EvVal(SetEmailAddress >> dispatch)} />
             {ValidationErrors.renderValidationErrors
                state.ValidationErrors
                "Email address"
                (state.Request.EmailAddress |> Option.defaultValue "")}
           </div>
-          <div>
-            <label for="gravatar-email-address" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your gravatar email address</label>
-            <input
-              .value={user.GravatarEmailAddress}
-              @keyup={EvVal(SetGravatarEmailAddress >> dispatch)}
-              type="text"
-              name="gravatar-email-address"
-              id="gravatar-email-address"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
-              focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600
-              dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="gravatar email address" />
+          <div class="form-control">
+            <label for="gravatar-email-address" class="label">Gravatar Email Address</label>
+            <input id="gravatar-email-address" type="email" class="input input-bordered" .value={user.GravatarEmailAddress} @keyup={EvVal(SetGravatarEmailAddress >> dispatch)} />
             {ValidationErrors.renderValidationErrors
                state.ValidationErrors
                "Gravatar email address"
                (state.Request.GravatarEmailAddress |> Option.defaultValue "")}
           </div>
-          <button @click={Ev(fun _ -> dispatch Submit)} class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-            focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5
-            py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Edit
-            profile</button>
+          <div class="card-actions">
+            <button @click={Ev(fun _ -> dispatch Submit)} class="btn btn-primary w-full">Edit Your Profile</button>
+          </div>
         </div>
       </div>
     </div>

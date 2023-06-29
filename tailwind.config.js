@@ -1,7 +1,7 @@
 module.exports = {
-  content: ["./**/*.{js,ts,jsx,tsx}"],
+  content: ["./src/Client/.build/**/*.js"],
   theme: {
     extend: {},
   },
-  plugins: [require('flowbite/plugin')],
+  plugins: [require('daisyui')],
 };

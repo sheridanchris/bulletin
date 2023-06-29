@@ -1,18 +1,48 @@
-#r "nuget: Fun.Build, 0.2.9"
+#r "nuget: Fun.Build, 0.4.0"
+#r "nuget: dotenv.net, 3.1.2"
 
 open Fun.Build
+open dotenv.net
+open System.IO
 
-pipeline "Build Bulletin" {
+let environmentVariables = DotEnv.Read()
 
-  stage "restore tools and dependencies" {
-    run "dotnet tool restore"
-    run "dotnet restore"
-    run "npm install"
+let environmentVariableOrDefault defaultValue envVariableKey =
+  match environmentVariables.TryGetValue envVariableKey with
+  | true, environmentVariable -> environmentVariable
+  | false, _ -> defaultValue
+
+let redisPassword = "REDIS_PASSWORD" |> environmentVariableOrDefault "PASS"
+let postgresPassword = "POSTGRES_PASSWORD" |> environmentVariableOrDefault "PASS"
+
+pipeline "dev" {
+  envVars [
+    "ConnectionStrings__Seq", "http://seq"
+    "ConnectionStrings__Redis", $"localhost,password={redisPassword}"
+    "ConnectionStrings__Postgresql", $"Host=localhost;Database=postgres;Username=postgres;Password={postgresPassword}"
+    "ASPNETCORE_ENVIRONMENT", "Development"
+  ]
+
+  stage "build and install" {
+    run "dotnet build"
+
+    run (fun ctx ->
+      if not(Directory.Exists("node_modules")) then
+        ctx.RunCommand("npm install")
+      else
+        async { return Ok () })
   }
 
-  stage "publish backend" { run "dotnet build src/Server/Server.fsproj -c Release -o ./deploy" }
+  stage "start container" {
+    run "docker compose down"
+    run "docker compose up -d --build"
+  }
 
-  stage "publish frontend" { run "npm run build" }
+  stage "run client & server" {
+    paralle
+    stage "run server" { run "dotnet watch run --project ./src/Server/Server.fsproj" }
+    stage "run client" { run "npm start" }
+  }
 
-  runIfOnlySpecified false
+  runIfOnlySpecified true
 }

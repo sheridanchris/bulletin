@@ -8,6 +8,7 @@ open Lit.Elmish
 open LitStore
 open Shared
 open Validus
+open Browser.Dom
 
 type State = {
   Request: SubscribeToFeedRequest
@@ -106,76 +107,64 @@ let update (msg: Msg) (state: State) =
 let tableRow (deleteFeed: FeedId -> unit) (subscribedFeed: SubscribedFeed) =
   html
     $"""
-    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-      <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-          {subscribedFeed.Name}
-      </th>
-      <td class="py-4 px-6">
-          {subscribedFeed.FeedUrl}
-      </td>
-      <td class="py-4 px-6">
-          <button
-            @click={Ev(fun _ -> deleteFeed subscribedFeed.FeedId)}
-            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300
-            font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700
-            dark:focus:ring-blue-800">Delete</button>
-      </td>
+    <tr>
+      <th>{subscribedFeed.Name}</th>
+      <td>{subscribedFeed.FeedUrl}</td>
+      <td><button class="btn btn-primary btn-sm" @click={Ev(fun _ -> deleteFeed subscribedFeed.FeedId)}>Delete</button></td>
     </tr>
     """
 
-// TODO: These validation errors don't display properly.
 [<HookComponent>]
 let Component () =
   let state, dispatch = Hook.useElmish (init, update)
   let store = Hook.useStore ApplicationContext.store
 
+  let showSubscriptionsModal () =
+    let modalElement = document.getElementById("subscriptions-modal") :?> Interop.HTMLDialogElement
+    modalElement.showModal()
+
   html
     $"""
-    <div class="w-full flex flex-col gap-y-3 justify-center items-center pt-20">
-      {AlertComponent state.Alert}
-      <div class="flex flex-col sm:flex-row justify-center items-center w-full gap-x-3">
-        <div class="mb-6" colspan="3">
-          <label for="feed-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Feed name</label>
-          <input
-            @keyup={EvVal(SetFeedName >> dispatch)} placeholder="feed name" type="text" id="feed-name"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500
-            block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
-            dark:focus:border-blue-500" />
-          {ValidationErrors.renderValidationErrors state.ValidationErrors "Feed name" state.Request.FeedName}
-        </div>
-        <div class="mb-6" colspan="3">
-          <label for="feed-url" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">RSS feed url</label>
-          <input
-            @keyup={EvVal(SetFeedUrl >> dispatch)} placeholder="feed url" type="text" id="feed-url"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block
-            w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500
-            dark:focus:border-blue-500" />
-          {ValidationErrors.renderValidationErrors state.ValidationErrors "Feed url" state.Request.FeedUrl}
-        </div>
-        <button
-          @click={Ev(fun _ -> dispatch Subscribe)}
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-          text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Subscribe</button>
+    <div class="w-full flex flex-col">
+      <div>
+        <button class="btn btn-ghost" @click={Ev(fun _ -> showSubscriptionsModal())}>
+          <i class="fa-solid fa-add"></i>
+          <span class="label-text normal-case">New Subscription</span>
+        </button>
       </div>
-      <div class="overflow-x-auto relative">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="py-3 px-6">
-                  Feed
-              </th>
-              <th scope="col" class="py-3 px-6">
-                  RSS Url
-              </th>
-              <th scope="col" class="py-3 px-6">
-                  Actions
-              </th>
-            </tr>
+      
+      <dialog id="subscriptions-modal" class="modal card card-bordered bg-base-200 shadow-xl">
+      {match state.Alert with
+       | None -> Lit.nothing
+       | Some alert -> Alerts.renderAlert alert}
+       <form method="modal" class="modal-box">
+          <div class="card-body">
+            <span class="card-title">Subscribe to a Feed</span>
+            <div class="form-control">
+              <label for="feed-name" class="label">Feed name</label>
+              <input id="feed-name" type="text" placeholder="feed name" class="input input-bordered" @keyup={EvVal(SetFeedName >> dispatch)} />
+              {ValidationErrors.renderValidationErrors state.ValidationErrors "Feed name" state.Request.FeedName}
+            </div>
+            <div class="form-control">
+              <label for="feed-url" class="label">Feed url</label>
+              <input id="feed-url" type="text" placeholder="feed url" class="input input-bordered" @keyup={EvVal(SetFeedUrl >> dispatch)} />
+              {ValidationErrors.renderValidationErrors state.ValidationErrors "Feed url" state.Request.FeedUrl}
+            </div>
+            <div class="card-actions">
+              <button class="btn btn-primary w-full" @click={Ev(fun _ -> dispatch Subscribe)}>Subscribe</button>
+            </div>
+          </div>
+        </form>
+      </dialog>
+
+      <div class="overflow-x-auto w-full h-full">
+        <table class="table">
+          <thead>
+            <th>Feed name</th>
+            <td>Feed url</td>
+            <td>Actions</td>
           </thead>
-          <tbody>
-            {store.SubscribedFeeds |> List.map (tableRow (DeleteFeed >> dispatch))}
-          </tbody>
+          {store.SubscribedFeeds |> List.map (tableRow (DeleteFeed >> dispatch))}
         </table>
       </div>
-    </div>
     """

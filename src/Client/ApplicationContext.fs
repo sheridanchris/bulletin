@@ -4,15 +4,22 @@ open System
 open Shared
 open ElmishStore
 open FSharp.UMX
+open Browser.Dom
+open Browser
 
 // This acts as a cache for important state so I don't have to send network requests on navigation to
 // profile, feed, or subscriptions...
+
+type Theme =
+  | Light
+  | Dark
 
 type Model = {
   User: CurrentUser
   SubscribedFeeds: SubscribedFeed list
   Posts: Paginated<PostModel>
   GetFeedRequest: GetFeedRequest
+  CurrentTheme: Theme
 }
 
 type Msg =
@@ -26,8 +33,24 @@ type Msg =
   | SetOrdering of string
   | SetSelectedFeed of string
   | SetPosts of Paginated<PostModel>
+  | ToggleTheme
+
+let getThemeFromLocalStorage () =
+  match localStorage.getItem("theme") with
+  | "dark" -> Dark
+  | _ -> Light
+
+let saveThemeToLocalStorage (theme: Theme) =
+  let value =
+    match theme with
+    | Dark -> "dark"
+    | Light -> "light"
+
+  localStorage.setItem("theme", value)
 
 let init () =
+  let theme = getThemeFromLocalStorage ()
+
   {
     User = Anonymous
     SubscribedFeeds = []
@@ -40,6 +63,7 @@ let init () =
         Page = 1
         PageSize = 25
       }
+    CurrentTheme = theme
   },
   Cmd.OfAsync.perform Remoting.unsecuredServerApi.GetCurrentUser () SetCurrentUser
 
@@ -180,6 +204,14 @@ let update (msg: Msg) (model: Model) =
   | SetSearchQuery query -> setSearchQuery query model
   | SetOrdering ordering -> setOrdering ordering model
   | SetSelectedFeed feedValue -> setSelectedFeed feedValue model
+  | ToggleTheme -> 
+    let nextTheme =
+      match model.CurrentTheme with
+      | Dark -> Light
+      | Light -> Dark
+    
+    saveThemeToLocalStorage nextTheme
+    { model with CurrentTheme = nextTheme }, Cmd.none
 
 let dispose _ = ()
 let store, dispatch = Store.makeElmish init update dispose ()
