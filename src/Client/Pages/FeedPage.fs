@@ -49,22 +49,6 @@ let update msg state =
   | EndOfInput ->
     state, Elmish.Cmd.ofSub (fun _ -> ApplicationContext.dispatch (ApplicationContext.SetSearchQuery state.SearchQuery))
 
-// TODO: Need to make this reactive to theme changes.
-[<HookComponent>]
-let Post (post: PostModel) =
-  html
-    $"""
-    <li class="py-3 sm:py-4">
-      <div class="flex items-center space-x-4">
-        <div class="flex-1 min-w-0">
-          <a class="link link-hover" href={post.Link} target="_blank">{post.Title}</a>
-          <p class="label-text">Published {post.PublishedAt} ago · Last Updated {post.UpdatedAt} ago</p>
-        </div>
-        <span class="inline-flex items-center text-base font-semibold label-text">{post.Source}</span>
-      </div>
-    </li>
-    """
-
 [<HookComponent>]
 let Pagination
   (currentPage: int)
@@ -139,23 +123,76 @@ let Component () =
   let store = Hook.useStore ApplicationContext.store
   let state, dispatch = Hook.useElmish (init, update)
 
-  let displayPosts posts =
+  let displayPostsInRegularMode posts =
+    let displayPost post =
+      html
+        $"""
+        <li class="py-3 sm:py-4">
+          <div class="flex items-center space-x-4">
+            <div class="flex-1 min-w-0">
+              <a class="link link-hover" href={post.Link} target="_blank">{post.Title}</a>
+              <p class="label-text">Published {post.PublishedAt} ago · Last Updated {post.UpdatedAt} ago</p>
+            </div>
+            <span class="inline-flex items-center text-base font-semibold label-text">{post.Source}</span>
+          </div>
+        </li>
+        """
+
     html
       $"""
       <div class="card card-bordered bg-base-100 shadow-xl">
         <div class="card-body">
           <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
-            {posts |> Seq.map Post}
+            {posts |> Seq.map displayPost}
           </ul>
         </div>
+      </div>
+      """
+
+  let displayPostsInCompactMode posts =
+    let displayPost post =
+      html
+        $"""
+        <tr>
+          <th><a class="link link-hover" href="{post.Link}">{post.Title}</a></th>
+          <td>{post.Source}</td>
+          <td>{post.PublishedAt} ago</td>
+          <td>{post.UpdatedAt} ago</td>
+        </tr>
+        """
+
+    html
+      $"""
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Source</th>
+              <th>Published At</th>
+              <th>Updated At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {posts |> Seq.map displayPost}
+          </tbody>
+        </table>
       </div>
       """
 
   let displayEmptyFeed () =
     html $"<h1>Sorry, there's nothing in your feed :(</h1>"
 
+  let nextModeIcon =
+    match store.CurrentFeedMode with
+    | ApplicationContext.FeedMode.Regular -> "fa-solid fa-table"
+    | ApplicationContext.FeedMode.Compact -> "fa-solid fa-up-down"
+
   html
     $"""
+    <button class="btn btn-ghost" @click={Ev(fun _ -> ApplicationContext.dispatch ApplicationContext.ToggleFeedMode)}>
+      <i class="{nextModeIcon}"></i>
+    </button>
     <div class="w-full h-full flex flex-col gap-y-3 justify-center items-center">
       <div class="flex flex-col sm:flex-row justify-center items-center w-full gap-x-3">
         <input
@@ -173,7 +210,9 @@ let Component () =
         {FeedSelector store.GetFeedRequest.Feed store.SubscribedFeeds ApplicationContext.dispatch}
       </div>
       {if List.length store.Posts.Items > 0 then
-         displayPosts store.Posts.Items
+         match store.CurrentFeedMode with
+         | ApplicationContext.FeedMode.Regular -> displayPostsInRegularMode store.Posts.Items
+         | ApplicationContext.FeedMode.Compact -> displayPostsInCompactMode store.Posts.Items
        else
          displayEmptyFeed ()}
       {Pagination

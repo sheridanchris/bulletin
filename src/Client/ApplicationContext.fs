@@ -14,12 +14,17 @@ type Theme =
   | Light
   | Dark
 
+type FeedMode =
+  | Regular
+  | Compact
+
 type Model = {
   User: CurrentUser
   SubscribedFeeds: SubscribedFeed list
   Posts: Paginated<PostModel>
   GetFeedRequest: GetFeedRequest
   CurrentTheme: Theme
+  CurrentFeedMode: FeedMode
 }
 
 type Msg =
@@ -34,6 +39,7 @@ type Msg =
   | SetSelectedFeed of string
   | SetPosts of Paginated<PostModel>
   | ToggleTheme
+  | ToggleFeedMode
 
 let getThemeFromLocalStorage () =
   match localStorage.getItem ("theme") with
@@ -48,8 +54,27 @@ let saveThemeToLocalStorage (theme: Theme) =
 
   localStorage.setItem ("theme", value)
 
+let getFeedModeFromLocalStorage () =
+  match localStorage.getItem ("feedMode") with
+  | "compact" -> Compact
+  | _ -> Regular
+
+let saveFeedModeToLocalStorage (feedMode: FeedMode) =
+  let value =
+    match feedMode with
+    | Regular -> "regular"
+    | Compact -> "compact"
+
+  localStorage.setItem ("feedMode", value)
+
+let pageSize feedMode =
+  match feedMode with
+  | Regular -> 25
+  | Compact -> 75
+
 let init () =
   let theme = getThemeFromLocalStorage ()
+  let feedMode = getFeedModeFromLocalStorage ()
 
   {
     User = Anonymous
@@ -60,9 +85,10 @@ let init () =
       SearchQuery = None
       Feed = None
       Page = 1
-      PageSize = 25
+      PageSize = pageSize feedMode
     }
     CurrentTheme = theme
+    CurrentFeedMode = feedMode
   },
   Cmd.OfAsync.perform Remoting.unsecuredServerApi.GetCurrentUser () SetCurrentUser
 
@@ -213,6 +239,25 @@ let update (msg: Msg) (model: Model) =
 
     saveThemeToLocalStorage nextTheme
     { model with CurrentTheme = nextTheme }, Cmd.none
+  | ToggleFeedMode ->
+    let nextFeedMode =
+      match model.CurrentFeedMode with
+      | Regular -> Compact
+      | Compact -> Regular
+
+    saveFeedModeToLocalStorage nextFeedMode
+
+    let model = {
+      model with
+          CurrentFeedMode = nextFeedMode
+          GetFeedRequest = {
+            model.GetFeedRequest with
+                Page = 1
+                PageSize = pageSize nextFeedMode
+          }
+    }
+
+    model, getUserFeedCmd model
 
 let dispose _ = ()
 let store, dispatch = Store.makeElmish init update dispose ()
