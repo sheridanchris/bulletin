@@ -39,18 +39,19 @@ let updateRequest (request: SubscribeToFeedRequest) (state: State) =
     | Ok _ -> Map.empty
     | Error errors -> ValidationErrors.toMap errors
 
-  { state with
-      Request = request
-      ValidationErrors = validationErrors
+  {
+    state with
+        Request = request
+        ValidationErrors = validationErrors
   }
 
 let update (msg: Msg) (state: State) =
   match msg with
   | SetFeedName feedName ->
-    let request =
-      { state.Request with
+    let request = {
+      state.Request with
           FeedName = feedName
-      }
+    }
 
     updateRequest request state, Elmish.Cmd.none
   | SetFeedUrl feedUrl ->
@@ -77,10 +78,9 @@ let update (msg: Msg) (state: State) =
       match error with
       | AlreadySubscribed ->
         let alert =
-          Danger
-            {
-              Reason = "You are already subscribed to that feed."
-            }
+          Danger {
+            Reason = "You are already subscribed to that feed."
+          }
 
         { state with Alert = Some alert }, Elmish.Cmd.none
   | DeleteFeed feedId ->
@@ -97,10 +97,9 @@ let update (msg: Msg) (state: State) =
     { state with Alert = Some alert }, Elmish.Cmd.none
   | GotException exn ->
     let alert =
-      Danger
-        {
-          Reason = "Something went wrong with that request!"
-        }
+      Danger {
+        Reason = "Something went wrong with that request!"
+      }
 
     { state with Alert = Some alert }, Elmish.Cmd.none
 
@@ -120,14 +119,16 @@ let Component () =
   let store = Hook.useStore ApplicationContext.store
 
   let showSubscriptionsModal () =
-    let modalElement = document.getElementById("subscriptions-modal") :?> Interop.HTMLDialogElement
-    modalElement.showModal()
+    let modalElement =
+      document.getElementById ("subscriptions-modal") :?> Interop.HTMLDialogElement
+
+    modalElement.showModal ()
 
   html
     $"""
     <div class="w-full flex flex-col">
       <div>
-        <button class="btn btn-ghost" @click={Ev(fun _ -> showSubscriptionsModal())}>
+        <button class="btn btn-ghost" @click={Ev(fun _ -> showSubscriptionsModal ())}>
           <i class="fa-solid fa-add"></i>
           <span class="label-text normal-case">New Subscription</span>
         </button>

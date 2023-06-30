@@ -30,8 +30,9 @@ let update msg state =
   | DebouncerSelfMsg debouncerMsg ->
     let debouncerModel, debouncerCmd = Debouncer.update debouncerMsg state.Debouncer
 
-    { state with
-        Debouncer = debouncerModel
+    {
+      state with
+          Debouncer = debouncerModel
     },
     debouncerCmd
   | SetSearchQuery query ->
@@ -39,9 +40,10 @@ let update msg state =
       state.Debouncer
       |> Debouncer.bounce (TimeSpan.FromMilliseconds 750) "search_query" EndOfInput
 
-    { state with
-        SearchQuery = query
-        Debouncer = debouncerModel
+    {
+      state with
+          SearchQuery = query
+          Debouncer = debouncerModel
     },
     Elmish.Cmd.batch [ Elmish.Cmd.map DebouncerSelfMsg debouncerCmd ]
   | EndOfInput ->
@@ -78,7 +80,10 @@ let Pagination
       $"""
         <button
           @click={Ev(fun _ -> goToPage page)}
-          class="{if isSelected then "join-item btn btn-active" else "join-item btn"}"
+          class="{if isSelected then
+                    "join-item btn btn-active"
+                  else
+                    "join-item btn"}"
         >
         {page}
         </button>
@@ -100,16 +105,16 @@ let Pagination
     $"""
     <div class="join">
       {[
-          if hasPrevious then
-            previousButton ()
+         if hasPrevious then
+           previousButton ()
 
-          for i in 1..numberOfPages do
-            let selected = currentPage = i
-            pageButton i selected
+         for i in 1..numberOfPages do
+           let selected = currentPage = i
+           pageButton i selected
 
-          if hasNext then
-            nextButton ()
-        ]}
+         if hasNext then
+           nextButton ()
+       ]}
     </div>
     """
 

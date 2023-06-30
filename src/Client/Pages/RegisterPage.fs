@@ -27,13 +27,12 @@ type Msg =
 
 let init () =
   {
-    CreateAccountRequest =
-      {
-        Username = ""
-        EmailAddress = ""
-        Password = ""
-        ConfirmPassword = ""
-      }
+    CreateAccountRequest = {
+      Username = ""
+      EmailAddress = ""
+      Password = ""
+      ConfirmPassword = ""
+    }
     ValidationErrors = Map.empty
     Alert = None
   },
@@ -45,42 +44,43 @@ let updateCreateAccountRequest (createAccountRequest: CreateAccountRequest) (sta
     | Ok _ -> Map.empty
     | Error errors -> ValidationErrors.toMap errors
 
-  { state with
-      CreateAccountRequest = createAccountRequest
-      ValidationErrors = validationErrors
+  {
+    state with
+        CreateAccountRequest = createAccountRequest
+        ValidationErrors = validationErrors
   }
 
 let update (msg: Msg) (state: State) =
   match msg with
   | SetUsername username ->
-    let request =
-      { state.CreateAccountRequest with
+    let request = {
+      state.CreateAccountRequest with
           Username = username
-      }
+    }
 
     let newState = updateCreateAccountRequest request state
     newState, Cmd.none
   | SetEmailAddress emailAddress ->
-    let request =
-      { state.CreateAccountRequest with
+    let request = {
+      state.CreateAccountRequest with
           EmailAddress = emailAddress
-      }
+    }
 
     let newState = updateCreateAccountRequest request state
     newState, Cmd.none
   | SetPassword password ->
-    let request =
-      { state.CreateAccountRequest with
+    let request = {
+      state.CreateAccountRequest with
           Password = password
-      }
+    }
 
     let newState = updateCreateAccountRequest request state
     newState, Cmd.none
   | SetConfirmPassword confirmPassword ->
-    let request =
-      { state.CreateAccountRequest with
+    let request = {
+      state.CreateAccountRequest with
           ConfirmPassword = confirmPassword
-      }
+    }
 
     let newState = updateCreateAccountRequest request state
     newState, Cmd.none
@@ -108,10 +108,9 @@ let update (msg: Msg) (state: State) =
     { state with Alert = Some alert }, Cmd.none
   | GotException _ ->
     let alert =
-      Alerts.Danger
-        {
-          Reason = "Something went wrong with that request!"
-        }
+      Alerts.Danger {
+        Reason = "Something went wrong with that request!"
+      }
 
     { state with Alert = Some alert }, Cmd.none
 

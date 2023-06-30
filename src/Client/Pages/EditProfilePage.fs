@@ -26,12 +26,11 @@ type Msg =
 
 let init () =
   {
-    Request =
-      {
-        Username = None
-        EmailAddress = None
-        GravatarEmailAddress = None
-      }
+    Request = {
+      Username = None
+      EmailAddress = None
+      GravatarEmailAddress = None
+    }
     ValidationErrors = Map.empty
     Alert = None
   },
@@ -46,32 +45,33 @@ let updateRequest (request: EditUserProfileRequest) (state: State) =
     | Ok _ -> Map.empty
     | Error errors -> ValidationErrors.toMap errors
 
-  { state with
-      Request = request
-      ValidationErrors = validationErrors
+  {
+    state with
+        Request = request
+        ValidationErrors = validationErrors
   }
 
 let update (msg: Msg) (state: State) =
   match msg with
   | SetUsername username ->
-    let request =
-      { state.Request with
+    let request = {
+      state.Request with
           Username = calculateInputValue username
-      }
+    }
 
     updateRequest request state, Elmish.Cmd.none
   | SetEmailAddress emailAddress ->
-    let request =
-      { state.Request with
+    let request = {
+      state.Request with
           EmailAddress = calculateInputValue emailAddress
-      }
+    }
 
     updateRequest request state, Elmish.Cmd.none
   | SetGravatarEmailAddress emailAddress ->
-    let request =
-      { state.Request with
+    let request = {
+      state.Request with
           GravatarEmailAddress = calculateInputValue emailAddress
-      }
+    }
 
     updateRequest request state, Elmish.Cmd.none
   | Submit ->
@@ -91,10 +91,9 @@ let update (msg: Msg) (state: State) =
   | GotResult(Error _)
   | GotException _ ->
     let alert =
-      Danger
-        {
-          Reason = "Failed to edit your profile."
-        }
+      Danger {
+        Reason = "Failed to edit your profile."
+      }
 
     { state with Alert = Some alert }, Elmish.Cmd.none
 

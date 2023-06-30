@@ -34,13 +34,12 @@ let private createNewFeedAndSubscription
     do! saveFeedSubscriptionAsync rssFeedSubscription
 
     return
-      Ok
-        {
-          Id = %rssFeedSubscription.Id
-          Name = rssFeedSubscription.FeedName
-          FeedUrl = rssFeed.RssFeedUrl
-          FeedId = %rssFeed.Id
-        }
+      Ok {
+        Id = %rssFeedSubscription.Id
+        Name = rssFeedSubscription.FeedName
+        FeedUrl = rssFeed.RssFeedUrl
+        FeedId = %rssFeed.Id
+      }
   }
 
 let private createNewSubscriptionForFeed
@@ -73,22 +72,23 @@ let subscribeToFeedService
   (saveRssFeed: SaveAsync<RssFeed>)
   (saveFeedSubscription: SaveAsync<FeedSubscription>)
   : SubscribeToFeedService =
-  fun request -> async {
-    Validation.failOnValidationErrors request.Validate
+  fun request ->
+    async {
+      Validation.failOnValidationErrors request.Validate
 
-    let currentUserId = getCurrentUserId () |> Option.get
-    let! rssFeed = getFeedByUrl request.FeedUrl
+      let currentUserId = getCurrentUserId () |> Option.get
+      let! rssFeed = getFeedByUrl request.FeedUrl
 
-    match rssFeed with
-    | Some rssFeed ->
-      return!
-        createNewSubscriptionForFeed
-          getFeedSubscriptionAsync
-          saveFeedSubscription
-          currentUserId
-          rssFeed
-          request.FeedName
-    | None ->
-      return!
-        createNewFeedAndSubscription saveRssFeed saveFeedSubscription currentUserId request.FeedUrl request.FeedName
-  }
+      match rssFeed with
+      | Some rssFeed ->
+        return!
+          createNewSubscriptionForFeed
+            getFeedSubscriptionAsync
+            saveFeedSubscription
+            currentUserId
+            rssFeed
+            request.FeedName
+      | None ->
+        return!
+          createNewFeedAndSubscription saveRssFeed saveFeedSubscription currentUserId request.FeedUrl request.FeedName
+    }

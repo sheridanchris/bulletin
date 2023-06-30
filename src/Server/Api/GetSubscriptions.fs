@@ -18,7 +18,8 @@ let getSubscribedFeedsService
   (getCurrentUserById: GetCurrentUserId)
   (getSubscribedFeeds: GetUserSubscriptionsWithFeedsAsync)
   : GetSubscribedFeedsService =
-  fun () -> async {
-    let currentUserId = getCurrentUserById () |> Option.get
-    return! getSubscribedFeeds currentUserId |> Async.map (List.map getSubscribedFeed)
-  }
+  fun () ->
+    async {
+      let currentUserId = getCurrentUserById () |> Option.get
+      return! getSubscribedFeeds currentUserId |> Async.map (List.map getSubscribedFeed)
+    }

@@ -23,7 +23,7 @@ module Alerts =
       | Success alert -> alert.Reason, "alert-success"
       | Info alert -> alert.Reason, "alert-info"
       | Warning alert -> alert.Reason, "alert-warning"
-      | Danger alert -> alert.Reason, "alert-error" 
+      | Danger alert -> alert.Reason, "alert-error"
 
     html
       $"""

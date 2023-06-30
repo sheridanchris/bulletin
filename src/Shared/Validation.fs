@@ -25,7 +25,9 @@ let isEmailAddress =
 
 // TODO: Need to refine this.
 let isUrl =
-  Check.WithMessage.String.pattern "^(?:https?://)?(?:[\w]+\.)(?:\.?[\w]{2,})(.*?)+$" (sprintf "%s must be a valid url.")
+  Check.WithMessage.String.pattern
+    "^(?:https?://)?(?:[\w]+\.)(?:\.?[\w]{2,})(.*?)+$"
+    (sprintf "%s must be a valid url.")
 
 let containsSymbol =
   let symbols = "!@#$%^&*()_-+=\\|'\";:,<.>/?"

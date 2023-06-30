@@ -32,7 +32,6 @@ module Gravatar =
 
 module Validation =
   let failOnValidationErrors (f: unit -> ValidationResult<_>) =
-    match f() with
+    match f () with
     | Ok _ -> ()
     | Error _ -> failwith "Validation failure."
-

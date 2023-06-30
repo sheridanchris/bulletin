@@ -15,29 +15,30 @@ let createAccountService
   (signInUser: SignInUser)
   (saveUserAsync: SaveAsync<User>)
   : CreateAccountService =
-  fun createAccountRequest -> asyncResult {
-    Validation.failOnValidationErrors createAccountRequest.Validate
+  fun createAccountRequest ->
+    asyncResult {
+      Validation.failOnValidationErrors createAccountRequest.Validate
 
-    do!
-      createAccountRequest.Username
-      |> FindByUsername
-      |> findUserAsync
-      |> AsyncResult.requireNone UsernameTaken
+      do!
+        createAccountRequest.Username
+        |> FindByUsername
+        |> findUserAsync
+        |> AsyncResult.requireNone UsernameTaken
 
-    do!
-      createAccountRequest.EmailAddress
-      |> FindByEmailAddress
-      |> findUserAsync
-      |> AsyncResult.requireNone EmailAddressTaken
+      do!
+        createAccountRequest.EmailAddress
+        |> FindByEmailAddress
+        |> findUserAsync
+        |> AsyncResult.requireNone EmailAddressTaken
 
-    let passwordHash = BCrypt.HashPassword createAccountRequest.Password
-    let profilePictureUrl = Gravatar.createUrl createAccountRequest.EmailAddress
+      let passwordHash = BCrypt.HashPassword createAccountRequest.Password
+      let profilePictureUrl = Gravatar.createUrl createAccountRequest.EmailAddress
 
-    let user =
-      User.create createAccountRequest.Username createAccountRequest.EmailAddress passwordHash profilePictureUrl
+      let user =
+        User.create createAccountRequest.Username createAccountRequest.EmailAddress passwordHash profilePictureUrl
 
-    do! saveUserAsync user
-    do! signInUser user (defaultAuthenticationProperties ())
+      do! saveUserAsync user
+      do! signInUser user (defaultAuthenticationProperties ())
 
-    return User.toSharedModel user
-  }
+      return User.toSharedModel user
+    }

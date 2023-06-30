@@ -11,29 +11,30 @@ let editUserProfileService
   (findUserAsync: FindUserAsync)
   (saveUserAsync: SaveAsync<User>)
   : EditUserProfileService =
-  fun request -> asyncResult {
-    Validation.failOnValidationErrors request.Validate
+  fun request ->
+    asyncResult {
+      Validation.failOnValidationErrors request.Validate
 
-    let currentUserId = getCurrentUserId () |> Option.get
+      let currentUserId = getCurrentUserId () |> Option.get
 
-    let! user =
-      FindById currentUserId
-      |> findUserAsync
-      |> AsyncResult.requireSome EditUserProfileError.UserNotFound
+      let! user =
+        FindById currentUserId
+        |> findUserAsync
+        |> AsyncResult.requireSome EditUserProfileError.UserNotFound
 
-    // Since the request contains optional values, only update each property if the optional value is present
-    // if not, use the existing value (don't update).
-    let updatedUser =
-      { user with
-          Username = request.Username |> Option.defaultValue user.Username
-          EmailAddress = request.EmailAddress |> Option.defaultValue user.EmailAddress
-          GravatarEmailAddress = request.GravatarEmailAddress |> Option.defaultValue user.GravatarEmailAddress
-          ProfilePictureUrl =
-            request.GravatarEmailAddress
-            |> Option.defaultValue user.GravatarEmailAddress
-            |> Gravatar.createUrl
+      // Since the request contains optional values, only update each property if the optional value is present
+      // if not, use the existing value (don't update).
+      let updatedUser = {
+        user with
+            Username = request.Username |> Option.defaultValue user.Username
+            EmailAddress = request.EmailAddress |> Option.defaultValue user.EmailAddress
+            GravatarEmailAddress = request.GravatarEmailAddress |> Option.defaultValue user.GravatarEmailAddress
+            ProfilePictureUrl =
+              request.GravatarEmailAddress
+              |> Option.defaultValue user.GravatarEmailAddress
+              |> Gravatar.createUrl
       }
 
-    do! saveUserAsync updatedUser
-    return User.toSharedModel updatedUser
-  }
+      do! saveUserAsync updatedUser
+      return User.toSharedModel updatedUser
+    }

@@ -36,7 +36,7 @@ type Msg =
   | ToggleTheme
 
 let getThemeFromLocalStorage () =
-  match localStorage.getItem("theme") with
+  match localStorage.getItem ("theme") with
   | "dark" -> Dark
   | _ -> Light
 
@@ -46,7 +46,7 @@ let saveThemeToLocalStorage (theme: Theme) =
     | Dark -> "dark"
     | Light -> "light"
 
-  localStorage.setItem("theme", value)
+  localStorage.setItem ("theme", value)
 
 let init () =
   let theme = getThemeFromLocalStorage ()
@@ -55,14 +55,13 @@ let init () =
     User = Anonymous
     SubscribedFeeds = []
     Posts = Paginated.empty ()
-    GetFeedRequest =
-      {
-        Ordering = Newest
-        SearchQuery = None
-        Feed = None
-        Page = 1
-        PageSize = 25
-      }
+    GetFeedRequest = {
+      Ordering = Newest
+      SearchQuery = None
+      Feed = None
+      Page = 1
+      PageSize = 25
+    }
     CurrentTheme = theme
   },
   Cmd.OfAsync.perform Remoting.unsecuredServerApi.GetCurrentUser () SetCurrentUser
@@ -81,10 +80,11 @@ let private setUser user model =
       getUserFeedCmd model
     ]
   | Anonymous ->
-    { model with
-        User = Anonymous
-        SubscribedFeeds = []
-        Posts = Paginated.empty ()
+    {
+      model with
+          User = Anonymous
+          SubscribedFeeds = []
+          Posts = Paginated.empty ()
     },
     Cmd.none
 
@@ -96,16 +96,16 @@ let private setOrdering ordering model =
     | ordering when ordering = string Updated -> Updated
     | _ -> Updated
 
-  let getFeedRequest =
-    { model.GetFeedRequest with
+  let getFeedRequest = {
+    model.GetFeedRequest with
         Ordering = ordering
         Page = 1
-    }
+  }
 
-  let model =
-    { model with
+  let model = {
+    model with
         GetFeedRequest = getFeedRequest
-    }
+  }
 
   model, getUserFeedCmd model
 
@@ -121,35 +121,35 @@ let deleteFeed feedId model =
     // TODO: not sure if I should update the feed here, or elsewhere.
     let subscribedFeeds = List.removeAt index model.SubscribedFeeds
 
-    let model =
-      { model with
+    let model = {
+      model with
           SubscribedFeeds = subscribedFeeds
-      }
+    }
 
     model, getUserFeedCmd model
 
 let private search model =
   let getFeedRequest = { model.GetFeedRequest with Page = 1 }
 
-  let model =
-    { model with
+  let model = {
+    model with
         GetFeedRequest = getFeedRequest
-    }
+  }
 
   model, getUserFeedCmd model
 
 let private setSearchQuery query model =
   let query = if String.IsNullOrWhiteSpace query then None else Some query
 
-  let getFeedRequest =
-    { model.GetFeedRequest with
+  let getFeedRequest = {
+    model.GetFeedRequest with
         SearchQuery = query
-    }
+  }
 
-  let model =
-    { model with
+  let model = {
+    model with
         GetFeedRequest = getFeedRequest
-    }
+  }
 
   model, getUserFeedCmd model
 
@@ -157,15 +157,15 @@ let private setPage page model =
   match page with
   | page when page < 0 || page > model.Posts.PageCount -> model, Cmd.none
   | page ->
-    let getFeedRequest =
-      { model.GetFeedRequest with
+    let getFeedRequest = {
+      model.GetFeedRequest with
           Page = page
-      }
+    }
 
-    let model =
-      { model with
+    let model = {
+      model with
           GetFeedRequest = getFeedRequest
-      }
+    }
 
     model, getUserFeedCmd model
 
@@ -175,16 +175,16 @@ let private setSelectedFeed (feedValueString: string) model =
     | true, value -> Some value
     | false, _ -> None
 
-  let getFeedRequest =
-    { model.GetFeedRequest with
+  let getFeedRequest = {
+    model.GetFeedRequest with
         Feed = feedId |> Option.map (fun id -> %id)
         Page = 1
-    }
+  }
 
-  let model =
-    { model with
+  let model = {
+    model with
         GetFeedRequest = getFeedRequest
-    }
+  }
 
   model, getUserFeedCmd model
 
@@ -193,8 +193,9 @@ let update (msg: Msg) (model: Model) =
   | SetPosts posts -> { model with Posts = posts }, Cmd.none
   | SetSubscribedFeeds feeds -> { model with SubscribedFeeds = feeds }, Cmd.none
   | AddFeedToContext feed ->
-    { model with
-        SubscribedFeeds = feed :: model.SubscribedFeeds
+    {
+      model with
+          SubscribedFeeds = feed :: model.SubscribedFeeds
     },
     getUserFeedCmd model
   | SetCurrentUser user -> setUser user model
@@ -204,12 +205,12 @@ let update (msg: Msg) (model: Model) =
   | SetSearchQuery query -> setSearchQuery query model
   | SetOrdering ordering -> setOrdering ordering model
   | SetSelectedFeed feedValue -> setSelectedFeed feedValue model
-  | ToggleTheme -> 
+  | ToggleTheme ->
     let nextTheme =
       match model.CurrentTheme with
       | Dark -> Light
       | Light -> Dark
-    
+
     saveThemeToLocalStorage nextTheme
     { model with CurrentTheme = nextTheme }, Cmd.none
 

@@ -47,25 +47,24 @@ type GetFeedRequest = {
   PageSize: int
 }
 
-type LoginRequest =
-  {
-    Username: string
-    Password: string
-  }
+type LoginRequest = {
+  Username: string
+  Password: string
+} with
 
-  member this.Validate() = validate {
-    let! _ = Validation.notEmpty "Username" this.Username
-    and! _ = Validation.notEmpty "Password" this.Password
-    return this
-  }
+  member this.Validate() =
+    validate {
+      let! _ = Validation.notEmpty "Username" this.Username
+      and! _ = Validation.notEmpty "Password" this.Password
+      return this
+    }
 
-type CreateAccountRequest =
-  {
-    Username: string
-    EmailAddress: string
-    Password: string
-    ConfirmPassword: string
-  }
+type CreateAccountRequest = {
+  Username: string
+  EmailAddress: string
+  Password: string
+  ConfirmPassword: string
+} with
 
   member this.Validate() =
     let usernameValidator = Validation.notEmpty <+> Validation.isAlphanumeric
@@ -88,11 +87,10 @@ type CreateAccountRequest =
       return this
     }
 
-type SubscribeToFeedRequest =
-  {
-    FeedName: string
-    FeedUrl: string
-  }
+type SubscribeToFeedRequest = {
+  FeedName: string
+  FeedUrl: string
+} with
 
   member this.Validate() =
     let feedNameValidator = Validation.notEmpty <+> Validation.isAlphanumericWithSpaces
@@ -106,12 +104,11 @@ type SubscribeToFeedRequest =
 
 type DeleteFeedRequest = { FeedId: FeedId }
 
-type EditUserProfileRequest =
-  {
-    Username: string option
-    EmailAddress: string option
-    GravatarEmailAddress: string option
-  }
+type EditUserProfileRequest = {
+  Username: string option
+  EmailAddress: string option
+  GravatarEmailAddress: string option
+} with
 
   member this.Validate() =
     let usernameValidator =
@@ -127,11 +124,10 @@ type EditUserProfileRequest =
       return this
     }
 
-type ChangePasswordRequest =
-  {
-    CurrentPassword: string
-    NewPassword: string
-  }
+type ChangePasswordRequest = {
+  CurrentPassword: string
+  NewPassword: string
+} with
 
   member this.Validate() =
     let currentPasswordValidator = Validation.notEmpty

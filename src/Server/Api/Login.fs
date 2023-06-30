@@ -9,19 +9,20 @@ open Authentication
 open BCrypt.Net
 
 let loginService (findUserAsync: FindUserAsync) (signInUser: SignInUser) : LoginService =
-  fun loginRequest -> asyncResult {
-    Validation.failOnValidationErrors loginRequest.Validate
+  fun loginRequest ->
+    asyncResult {
+      Validation.failOnValidationErrors loginRequest.Validate
 
-    let! user =
-      loginRequest.Username
-      |> FindByUsername
-      |> findUserAsync
-      |> AsyncResult.requireSome InvalidUsernameAndOrPassword
+      let! user =
+        loginRequest.Username
+        |> FindByUsername
+        |> findUserAsync
+        |> AsyncResult.requireSome InvalidUsernameAndOrPassword
 
-    do!
-      BCrypt.Verify(loginRequest.Password, user.PasswordHash)
-      |> Result.requireTrue InvalidUsernameAndOrPassword
+      do!
+        BCrypt.Verify(loginRequest.Password, user.PasswordHash)
+        |> Result.requireTrue InvalidUsernameAndOrPassword
 
-    do! signInUser user (defaultAuthenticationProperties ())
-    return User.toSharedModel user
-  }
+      do! signInUser user (defaultAuthenticationProperties ())
+      return User.toSharedModel user
+    }

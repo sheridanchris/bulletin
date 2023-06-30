@@ -43,11 +43,12 @@ let getUserFeedService
   (getSubscribedFeeds: GetUserSubscriptionsWithFeedsAsync)
   (getFeed: GetUserFeedAsync)
   : GetUserFeedService =
-  fun request -> async {
-    let currentUserId = getCurrentUserId () |> Option.get
-    let! subscribedFeeds = getSubscribedFeeds currentUserId |> Async.map (List.map fst)
+  fun request ->
+    async {
+      let currentUserId = getCurrentUserId () |> Option.get
+      let! subscribedFeeds = getSubscribedFeeds currentUserId |> Async.map (List.map fst)
 
-    return!
-      getFeed request [| for feed in subscribedFeeds -> feed.FeedId |]
-      |> Async.map (toPaginated (getPostModel subscribedFeeds))
-  }
+      return!
+        getFeed request [| for feed in subscribedFeeds -> feed.FeedId |]
+        |> Async.map (toPaginated (getPostModel subscribedFeeds))
+    }

@@ -6,16 +6,17 @@ open Shared
 open Authentication
 
 let getCurrentUser (getCurrentUserId: GetCurrentUserId) (findUserAsync: FindUserAsync) : GetCurrentUserService =
-  fun () -> async {
-    let currentUserId = getCurrentUserId ()
+  fun () ->
+    async {
+      let currentUserId = getCurrentUserId ()
 
-    match currentUserId with
-    | None -> return Anonymous
-    | Some id ->
-      let! currentUser = FindById id |> findUserAsync
+      match currentUserId with
+      | None -> return Anonymous
+      | Some id ->
+        let! currentUser = FindById id |> findUserAsync
 
-      return
-        currentUser
-        |> Option.map (fun user -> User(User.toSharedModel user))
-        |> Option.defaultValue Anonymous
-  }
+        return
+          currentUser
+          |> Option.map (fun user -> User(User.toSharedModel user))
+          |> Option.defaultValue Anonymous
+    }

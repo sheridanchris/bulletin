@@ -22,11 +22,10 @@ type Msg =
 
 let init () =
   {
-    Request =
-      {
-        CurrentPassword = ""
-        NewPassword = ""
-      }
+    Request = {
+      CurrentPassword = ""
+      NewPassword = ""
+    }
     ValidationErrors = Map.empty
     Alert = None
   },
@@ -38,25 +37,26 @@ let updateRequest (request: ChangePasswordRequest) (state: State) =
     | Ok _ -> Map.empty
     | Error errors -> ValidationErrors.toMap errors
 
-  { state with
-      Request = request
-      ValidationErrors = validationErrors
+  {
+    state with
+        Request = request
+        ValidationErrors = validationErrors
   }
 
 let update (msg: Msg) (state: State) =
   match msg with
   | SetCurrentPassword password ->
-    let request =
-      { state.Request with
+    let request = {
+      state.Request with
           CurrentPassword = password
-      }
+    }
 
     updateRequest request state, Elmish.Cmd.none
   | SetNewPassword password ->
-    let request =
-      { state.Request with
+    let request = {
+      state.Request with
           NewPassword = password
-      }
+    }
 
     updateRequest request state, Elmish.Cmd.none
   | Submit ->
@@ -71,10 +71,9 @@ let update (msg: Msg) (state: State) =
     let alert =
       match result with
       | Ok() ->
-        Success
-          {
-            Reason = "Your password has been changed"
-          }
+        Success {
+          Reason = "Your password has been changed"
+        }
       | Error error ->
         let reason =
           match error with
@@ -86,10 +85,9 @@ let update (msg: Msg) (state: State) =
     { state with Alert = Some alert }, Elmish.Cmd.none
   | GotException _ ->
     let alert =
-      Danger
-        {
-          Reason = "Oops, something went wrong. Please refresh the page and try again!"
-        }
+      Danger {
+        Reason = "Oops, something went wrong. Please refresh the page and try again!"
+      }
 
     { state with Alert = Some alert }, Elmish.Cmd.none
 

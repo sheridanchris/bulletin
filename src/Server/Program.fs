@@ -56,22 +56,19 @@ let configureStore: StoreOptions -> unit =
 
     options.Serializer(serializer)
 
-    options
-      .Schema
+    options.Schema
       .For<RssFeed>()
       .UniqueIndex(UniqueIndexType.Computed, (fun feed -> box feed.RssFeedUrl))
     |> ignore
 
-    options
-      .Schema
+    options.Schema
       .For<Post>()
       .FullTextIndex(Lambda.ofArity1 <@ fun post -> box post.Headline @>)
       .UniqueIndex(UniqueIndexType.Computed, (fun post -> box post.Link))
       .ForeignKey<RssFeed>(fun post -> post.Feed)
     |> ignore
 
-    options
-      .Schema
+    options.Schema
       .For<FeedSubscription>()
       .ForeignKey<User>(fun subscription -> subscription.UserId)
       .ForeignKey<RssFeed>(fun subscription -> subscription.FeedId)
@@ -91,7 +88,10 @@ let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
     >> Log.addExn ex
   )
 
-  Propagate {| msg = ex.Message; stackTrace = ex.StackTrace |}
+  Propagate {|
+    msg = ex.Message
+    stackTrace = ex.StackTrace
+  |}
 
 let routeBuilder (typeName: string) (methodName: string) = $"/api/{typeName}/{methodName}"
 
@@ -116,13 +116,14 @@ let handler: HttpHandler =
     Auth.requiresAuthentication (setStatusCode 401) >=> securedServerApi
   ]
 
-let app = application {
-  url "http://*:5000"
-  service_config configureServices
-  use_cookies_authentication_with_config cookieAuthenticationOptions
-  use_static "public"
-  use_response_caching
-  use_router handler
-}
+let app =
+  application {
+    url "http://*:5000"
+    service_config configureServices
+    use_cookies_authentication_with_config cookieAuthenticationOptions
+    use_static "public"
+    use_response_caching
+    use_router handler
+  }
 
 run app

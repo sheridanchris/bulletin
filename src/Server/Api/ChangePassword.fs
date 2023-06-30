@@ -12,23 +12,24 @@ let changePasswordService
   (findUserAsync: FindUserAsync)
   (saveUserAsync: SaveAsync<User>)
   : ChangePasswordService =
-  fun request -> asyncResult {
-    Validation.failOnValidationErrors request.Validate
+  fun request ->
+    asyncResult {
+      Validation.failOnValidationErrors request.Validate
 
-    let currentUserId = getCurrentUserId () |> Option.get
+      let currentUserId = getCurrentUserId () |> Option.get
 
-    let! user =
-      FindById currentUserId
-      |> findUserAsync
-      |> AsyncResult.requireSome ChangePasswordError.UserNotFound
+      let! user =
+        FindById currentUserId
+        |> findUserAsync
+        |> AsyncResult.requireSome ChangePasswordError.UserNotFound
 
-    do!
-      BCrypt.Verify(request.CurrentPassword, user.PasswordHash)
-      |> Result.requireTrue PasswordsDontMatch
+      do!
+        BCrypt.Verify(request.CurrentPassword, user.PasswordHash)
+        |> Result.requireTrue PasswordsDontMatch
 
-    do!
-      saveUserAsync
-        { user with
-            PasswordHash = BCrypt.HashPassword request.NewPassword
+      do!
+        saveUserAsync {
+          user with
+              PasswordHash = BCrypt.HashPassword request.NewPassword
         }
-  }
+    }

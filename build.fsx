@@ -12,8 +12,8 @@ let environmentVariableOrDefault defaultValue envVariableKey =
   | true, environmentVariable -> environmentVariable
   | false, _ -> defaultValue
 
-let redisPassword = "REDIS_PASSWORD" |> environmentVariableOrDefault "PASS"
-let postgresPassword = "POSTGRES_PASSWORD" |> environmentVariableOrDefault "PASS"
+let redisPassword = "REDIS_PASSWORD" |> environmentVariableOrDefault ""
+let postgresPassword = "POSTGRES_PASSWORD" |> environmentVariableOrDefault ""
 
 pipeline "dev" {
   envVars [
@@ -27,10 +27,10 @@ pipeline "dev" {
     run "dotnet build"
 
     run (fun ctx ->
-      if not(Directory.Exists("node_modules")) then
+      if not (Directory.Exists("node_modules")) then
         ctx.RunCommand("npm install")
       else
-        async { return Ok () })
+        async { return Ok() })
   }
 
   stage "start container" {

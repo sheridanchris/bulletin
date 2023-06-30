@@ -51,15 +51,14 @@ let toPost (feed: RssFeed) (item: RSS.Item) =
     let published =
       item.PubDate |> Option.map toDateTime |> Option.defaultValue DateTime.UtcNow
 
-    Some
-      {
-        Id = % Guid.NewGuid()
-        Headline = item.Title
-        PublishedAt = published
-        LastUpdatedAt = published
-        Link = item.Link
-        Feed = feed.Id
-      }
+    Some {
+      Id = % Guid.NewGuid()
+      Headline = item.Title
+      PublishedAt = published
+      LastUpdatedAt = published
+      Link = item.Link
+      Feed = feed.Id
+    }
   with ex ->
     logger.error (
       Log.setMessage "An exception has occured when converting an RSS item to a post for feed: {feedId}"
@@ -74,26 +73,27 @@ let filterSource (lastUpdatedAt: DateTime option) (post: Post) =
   | None -> true
   | Some lastUpdatedAt -> post.LastUpdatedAt > lastUpdatedAt
 
-let readSourceAsync (latest: DateTime option) (feed: RssFeed) = task {
-  let! rssResult = RSS.AsyncLoad(feed.RssFeedUrl) |> Async.Catch
+let readSourceAsync (latest: DateTime option) (feed: RssFeed) =
+  task {
+    let! rssResult = RSS.AsyncLoad(feed.RssFeedUrl) |> Async.Catch
 
-  return
-    match rssResult with
-    | Choice1Of2 rss ->
-      rss.Channel.Items
-      |> Array.map (toPost feed)
-      |> Array.choose id
-      |> Array.filter (filterSource latest)
-      |> Array.toList
-    | Choice2Of2 ex ->
-      logger.error (
-        Log.setMessage "An exception has occured when reading an rss feed. Id: {feedId}"
-        >> Log.addParameter feed.Id
-        >> Log.addExn ex
-      )
+    return
+      match rssResult with
+      | Choice1Of2 rss ->
+        rss.Channel.Items
+        |> Array.map (toPost feed)
+        |> Array.choose id
+        |> Array.filter (filterSource latest)
+        |> Array.toList
+      | Choice2Of2 ex ->
+        logger.error (
+          Log.setMessage "An exception has occured when reading an rss feed. Id: {feedId}"
+          >> Log.addParameter feed.Id
+          >> Log.addExn ex
+        )
 
-      []
-}
+        []
+  }
 
 type Work = CancellationToken -> Task
 
@@ -103,50 +103,52 @@ let asyncWork
   (findPostsByUrlsAsync: FindPostsByUrls)
   (savePostsAsync: SaveManyAsync<Post>)
   : Work =
-  fun stoppingToken -> task {
-    while not stoppingToken.IsCancellationRequested do
-      let! sources = getRssFeeds ()
+  fun stoppingToken ->
+    task {
+      while not stoppingToken.IsCancellationRequested do
+        let! sources = getRssFeeds ()
 
-      let! latestPost = getLatestPostAsync ()
-      let! results = sources |> Seq.map (readSourceAsync latestPost) |> Task.WhenAll
+        let! latestPost = getLatestPostAsync ()
+        let! results = sources |> Seq.map (readSourceAsync latestPost) |> Task.WhenAll
 
-      let posts =
-        results
-        |> Array.toList
-        |> List.concat
-        |> List.distinctBy (fun post -> post.Link)
+        let posts =
+          results
+          |> Array.toList
+          |> List.concat
+          |> List.distinctBy (fun post -> post.Link)
 
-      let! postsInDb = findPostsByUrlsAsync [| for post in posts -> post.Link |]
+        let! postsInDb = findPostsByUrlsAsync [| for post in posts -> post.Link |]
 
-      let updatedPosts =
-        posts
-        |> List.map (fun post ->
-          // This **should** be the 'UpdatedAt' DateTime for already published posts
-          let published = post.PublishedAt
+        let updatedPosts =
+          posts
+          |> List.map (fun post ->
+            // This **should** be the 'UpdatedAt' DateTime for already published posts
+            let published = post.PublishedAt
 
-          match postsInDb |> Seq.tryFind (fun p -> p.Link = post.Link) with
-          | Some post -> { post with LastUpdatedAt = published }
-          | None -> post)
+            match postsInDb |> Seq.tryFind (fun p -> p.Link = post.Link) with
+            | Some post -> { post with LastUpdatedAt = published }
+            | None -> post)
 
-      do! savePostsAsync updatedPosts
-      do! Task.Delay(pollingTimespan, stoppingToken)
-  }
+        do! savePostsAsync updatedPosts
+        do! Task.Delay(pollingTimespan, stoppingToken)
+    }
 
 type RssWorkerBackgroundService(serviceProvider: IServiceProvider) =
   inherit BackgroundService()
 
-  override _.ExecuteAsync(stoppingToken: CancellationToken) : Task = task {
-    use scope = serviceProvider.CreateScope()
+  override _.ExecuteAsync(stoppingToken: CancellationToken) : Task =
+    task {
+      use scope = serviceProvider.CreateScope()
 
-    let querySession = scope.ServiceProvider.GetRequiredService<IQuerySession>()
-    let documentSession = scope.ServiceProvider.GetRequiredService<IDocumentSession>()
+      let querySession = scope.ServiceProvider.GetRequiredService<IQuerySession>()
+      let documentSession = scope.ServiceProvider.GetRequiredService<IDocumentSession>()
 
-    let asyncWork =
-      asyncWork
-        (getRssFeeds querySession)
-        (latestPostAsync querySession)
-        (findPostsByUrls querySession)
-        (saveManyAsync documentSession)
+      let asyncWork =
+        asyncWork
+          (getRssFeeds querySession)
+          (latestPostAsync querySession)
+          (findPostsByUrls querySession)
+          (saveManyAsync documentSession)
 
-    do! asyncWork stoppingToken
-  }
+      do! asyncWork stoppingToken
+    }

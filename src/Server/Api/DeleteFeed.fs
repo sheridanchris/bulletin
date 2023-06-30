@@ -12,13 +12,14 @@ let deleteFeedService
   (getFeedSubscriptionAsync: GetUserFeedSubscriptionAsync)
   (deleteAsync: DeleteAsync<FeedSubscription>)
   : DeleteFeedService =
-  fun deleteFeedRequest -> asyncResult {
-    let currentUserId = getCurrentUserId () |> Option.get
+  fun deleteFeedRequest ->
+    asyncResult {
+      let currentUserId = getCurrentUserId () |> Option.get
 
-    let! feedSubscription =
-      getFeedSubscriptionAsync currentUserId (%deleteFeedRequest.FeedId)
-      |> AsyncResult.requireSome NotFound
+      let! feedSubscription =
+        getFeedSubscriptionAsync currentUserId (%deleteFeedRequest.FeedId)
+        |> AsyncResult.requireSome NotFound
 
-    do! deleteAsync feedSubscription
-    return Deleted(%feedSubscription.Id)
-  }
+      do! deleteAsync feedSubscription
+      return Deleted(%feedSubscription.Id)
+    }
