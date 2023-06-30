@@ -154,7 +154,7 @@ let Component () =
       html
         $"""
         <tr>
-          <th><a class="link link-hover" href="{post.Link}">{post.Title}</a></th>
+          <th><a class="link link-hover" href="{post.Link}" target="_blank">{post.Title}</a></th>
           <td>{post.Source}</td>
           <td>{post.PublishedAt} ago</td>
           <td>{post.UpdatedAt} ago</td>
