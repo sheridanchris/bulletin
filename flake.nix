@@ -3,7 +3,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     systems.url = "github:nix-systems/default";
     devenv.url = "github:cachix/devenv";
-    nixpkgs-python.url = "github:cachix/nixpkgs-python";
   };
 
   nixConfig = {
@@ -11,7 +10,7 @@
     extra-substituters = "https://devenv.cachix.org";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-python, devenv, systems, ... } @ inputs:
+  outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
     let
       forEachSystem = nixpkgs.lib.genAttrs (import systems);
     in
@@ -27,9 +26,7 @@
               inherit inputs pkgs;
               modules = [
                 {
-                    languages.dotnet = {
-                        enable = true;
-                    };
+                  languages.dotnet.enable = true;
                 }
               ];
             };
