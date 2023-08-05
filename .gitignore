@@ -829,3 +829,5 @@ dev_data
 fable_modules
 deploy/
 .build/
+.devenv/
+.direnv/
