@@ -27,6 +27,7 @@
               modules = [
                 {
                   languages.dotnet.enable = true;
+                  languages.javascript.enable = true;
                 }
               ];
             };
