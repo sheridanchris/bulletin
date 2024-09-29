@@ -34,7 +34,7 @@
           packages = [
             sqlite
             dotnet-sdk_8
-            tailwindcss
+            nodejs_22
           ];
           DOTNET_ROOT = "${dotnet-sdk_8}";
         };
