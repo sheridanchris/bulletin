@@ -3,15 +3,9 @@
   "isRoot": true,
   "tools": {
     "fantomas": {
-      "version": "6.1.1",
+      "version": "6.3.11",
       "commands": [
         "fantomas"
-      ]
-    },
-    "fable": {
-      "version": "4.1.4",
-      "commands": [
-        "fable"
       ]
     }
   }

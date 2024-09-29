@@ -1,36 +1,42 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    systems.url = "github:nix-systems/default";
-    devenv.url = "github:cachix/devenv";
+    nixpkgs.url = "github:NixOS/nixpkgs/master";
+    flake-utils.url = "github:numtide/flake-utils";
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   };
-
-  nixConfig = {
-    extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
-    extra-substituters = "https://devenv.cachix.org";
-  };
-
-  outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
-    let
-      forEachSystem = nixpkgs.lib.genAttrs (import systems);
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    pre-commit-hooks,
+    ...
+  }:
+    flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = import nixpkgs {inherit system;};
     in
-    {
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
-      devShells = forEachSystem
-        (system:
-          let
-            pkgs = nixpkgs.legacyPackages.${system};
-          in
-          {
-            default = devenv.lib.mkShell {
-              inherit inputs pkgs;
-              modules = [
-                {
-                  languages.dotnet.enable = true;
-                  languages.javascript.enable = true;
-                }
-              ];
+      with pkgs; {
+        checks = {
+          pre-commit-check = pre-commit-hooks.lib.${system}.run {
+            src = ./.;
+            hooks = {
+              fantomas = {
+                enable = true;
+                name = "fantomas";
+                description = "Format your F# code with fantomas.";
+                entry = "dotnet fantomas";
+                files = "(\\.fs$)|(\\.fsx$)";
+              };
             };
-          });
-    };
+          };
+        };
+        devShells.default = mkShell {
+          inherit (self.checks.${system}.pre-commit-check) shellHook;
+          packages = [
+            sqlite
+            dotnet-sdk_8
+            tailwindcss
+          ];
+          DOTNET_ROOT = "${dotnet-sdk_8}";
+        };
+      });
 }

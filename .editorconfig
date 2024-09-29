@@ -1,18 +1,15 @@
-# EditorConfig is awesome:
-http://EditorConfig.org
-
-# top-most EditorConfig file
 root = true
 
 [*]
-insert_final_newline = true
-indent_style = space
 indent_size = 2
+indent_style = space
+charset = utf-8
+insert_final_newline = true
 trim_trailing_whitespace = true
 end_of_line = lf
 
 [*.{fs,fsx}]
-charset = utf-8
-trim_trailing_whitespace = true
 fsharp_keep_max_number_of_blank_lines=1
 fsharp_multiline_bracket_style = stroustrup
+#fsharp_experimental_elmish = true
+#fsharp_array_or_list_multiline_formatter = number_of_items

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Domain.fs" />
+    <Compile Include="Database.fs" />
+    <Compile Include="Parser.fs" />
+    <Compile Include="Worker.fs" />
+    <Compile Include="Views.fs" />
+    <Compile Include="Handlers.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="migrations/*" CopyToOutputDirectory="Always" />
+    <None Include="public/*" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="dbup-sqlite" Version="5.0.40" />
+    <PackageReference Include="Donald" Version="10.0.2" />
+    <PackageReference Include="Falco" Version="5.0.0-alpha2" />
+    <PackageReference Include="FSharp.Data" Version="6.3.0" />
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="4.16.0" />
+    <PackageReference Include="FsToolkit.ErrorHandling.TaskResult" Version="4.16.0" />
+    <PackageReference Include="Humanizer" Version="3.0.0-beta.54" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+  </ItemGroup>
+</Project>
