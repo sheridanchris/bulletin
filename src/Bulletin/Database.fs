@@ -135,9 +135,6 @@ let queryFeedEntries entryQuery connection =
       (Templating.expandWhereClause "entries_fts MATCH 'title:' || @title_query"
        >> Templating.expandOrderByClause "rank")
     |> Templating.cleanUpTemplate
-    |> fun x ->
-        printfn "%s" x
-        x
   )
   |> Db.setParams [
     "feed_id_query", sqlInt32OrNull entryQuery.FeedIdQuery
